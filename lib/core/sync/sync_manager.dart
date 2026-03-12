@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:beaver/core/database/app_database.dart';
+import 'package:beaver/core/database/database.dart';
 import 'package:drift/drift.dart';
 
 /// 全局数据同步管理器 (对标商业级 IM 增量同步流)

@@ -1,26 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+
+import '../../config/config.dart';
+import '../request/request.dart';
 import '../../../shared/utils/storage_util.dart';
 
-/// 响应数据格式基类
-class BaseResponse<T> {
-  final int code;
-  final String msg;
-  final T? result;
-
-  BaseResponse({required this.code, required this.msg, this.result});
-
-  factory BaseResponse.fromJson(Map<String, dynamic> json, T Function(dynamic json)? fromJsonT) {
-    return BaseResponse(
-      code: json['code'] ?? -1,
-      msg: json['msg'] ?? '',
-      result: (json['result'] != null && fromJsonT != null) ? fromJsonT(json['result']) : null,
-    );
-  }
-}
-
-/// 基于 Dio 封装的 API 客户端 (对标桌面端 ajax.ts)
+/// 基于 Dio 的 HTTP 客户端 (对标 desktop render/utils/request/ajax.ts)
 class ApiClient {
   late Dio _dio;
   final String baseUrl;
@@ -50,9 +36,9 @@ class ApiClient {
         options.headers.addAll({
           'source': 'beaver-flutter',
           'timestamp': timestamp,
-          'env': 'prod', // 建议从环境变量读取
+          'env': currentEnv.name,
           'deviceId': await StorageUtil.getDeviceId(),
-          'version': '1.0.0', // 建议从 package_info_plus 读取
+          'version': AppConfig.version,
           'token': _cachedToken ?? '',
           'uuid': uuid,
         });
@@ -74,7 +60,19 @@ class ApiClient {
     ));
   }
 
-  // 通用 POST 请求
+  Future<BaseResponse<T>> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    T Function(dynamic json)? fromJsonT,
+  }) async {
+    try {
+      final response = await _dio.get(path, queryParameters: queryParameters);
+      return BaseResponse.fromJson(response.data, fromJsonT);
+    } catch (e) {
+      return BaseResponse(code: -1, msg: e.toString());
+    }
+  }
+
   Future<BaseResponse<T>> post<T>(
     String path, {
     dynamic data,

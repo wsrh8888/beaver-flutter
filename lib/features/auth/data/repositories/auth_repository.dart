@@ -1,4 +1,4 @@
-import 'package:beaver/core/network/api/api_client.dart';
+import 'package:beaver/core/network/request/request.dart';
 
 /// 认证仓库接口定义
 abstract class AuthRepository {

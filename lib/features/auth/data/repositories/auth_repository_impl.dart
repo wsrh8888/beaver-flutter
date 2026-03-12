@@ -1,7 +1,10 @@
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
+import 'package:beaver/core/database/database.dart';
 import 'package:beaver/core/network/api/api_client.dart';
+import 'package:beaver/core/network/request/request.dart';
+import 'package:beaver/core/network/websocket/websocket.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
-import 'package:beaver/core/database/app_database.dart';
 
 /// 认证仓库实现 (对标桌面端 Login 相关逻辑)
 class AuthRepositoryImpl implements AuthRepository {
@@ -33,6 +36,9 @@ class AuthRepositoryImpl implements AuthRepository {
       // c. 初始化该账号专用的本地数据库 (对标桌面端 DBManager.init(userId))
       await DatabaseManager.init(userId);
 
+      // d. 连接 WS，连接成功后自动执行 dataSyncManager.autoSync (对标 desktop MessageManager.onWsConnect)
+      getIt<WsConnectionManager>().connectWithToken(token);
+
       print('[Auth] 登录成功，用户: $userId, Token: $token');
     }
 
@@ -50,7 +56,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    getIt<WsConnectionManager>().disconnect();
     await StorageUtil.remove('token');
+    await StorageUtil.remove('userId');
     await DatabaseManager.close();
   }
 }
