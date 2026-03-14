@@ -1,10 +1,10 @@
 import 'package:get_it/get_it.dart';
-import 'package:beaver/core/config/config.dart';
+import 'package:beaver/common/config/config.dart';
 import 'package:beaver/core/database/database.dart';
-import 'package:beaver/core/network/api/api.dart';
-import 'package:beaver/application/business/index.dart';
-import 'package:beaver/core/network/websocket/websocket.dart';
-import 'package:beaver/core/sync/sync_manager.dart';
+import 'package:beaver/common/request/api_client.dart';
+import 'package:beaver/api/index.dart';
+import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/core/datasync/sync_manager.dart';
 import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
@@ -26,10 +26,6 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<WsConnectionManager>(() => WsConnectionManager());
 
-  getIt.registerLazySingleton<MessageBusiness>(() => MessageBusiness());
-  getIt.registerLazySingleton<ConversationBusiness>(() => ConversationBusiness());
-  getIt.registerLazySingleton<UserBusiness>(() => UserBusiness());
-
   // 3. 业务仓库实现
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(apiClient: getIt<ApiClient>()),
@@ -37,7 +33,7 @@ Future<void> configureDependencies() async {
 
   // 4. 数据同步管理器
   getIt.registerLazySingleton<SyncManager>(
-    () => SyncManager.instance,
+    () => SyncManager(),
   );
 
   // 5. 数据库：登录后 DatabaseManager.init(userId)，通过 GetIt 取当前实例

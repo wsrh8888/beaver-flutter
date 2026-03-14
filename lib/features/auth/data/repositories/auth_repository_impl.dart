@@ -1,7 +1,7 @@
 import 'package:beaver/core/database/database.dart';
-import 'package:beaver/core/network/api/api_client.dart';
-import 'package:beaver/core/network/request/request.dart';
-import 'package:beaver/core/network/websocket/websocket.dart';
+import 'package:beaver/common/request/api_client.dart';
+import 'package:beaver/common/request/request.dart';
+import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/shared/utils/storage_util.dart';

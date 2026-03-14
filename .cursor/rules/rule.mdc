@@ -1,0 +1,102 @@
+---
+alwaysApply: true
+---
+# 项目概述
+
+这是一个开源的IM（即时通讯）项目，对标大厂和开源IM产品。
+
+### 技术架构
+Flutter + Dart
+
+### 目录结构
+```
+lib/
+├── app/              # 应用入口
+├── api/              # API 接口定义
+├── common/           # 通用工具和配置
+│   ├── cache/        # 缓存工具
+│   ├── config/       # 配置文件
+│   ├── logger/       # 日志工具
+│   ├── request/      # HTTP 请求工具
+│   └── websocket/    # WebSocket 工具
+├── core/             # 核心业务逻辑
+│   ├── database/     # 数据库操作
+│   ├── datasync/     # 数据同步
+│   ├── message/      # 消息管理
+│   └── theme/        # 主题配置
+├── di/               # 依赖注入
+├── features/         # 功能模块
+│   ├── auth/         # 认证模块
+│   ├── chat/         # 聊天模块
+│   ├── contact/      # 联系人模块
+│   ├── home/         # 首页模块
+│   ├── moment/       # 动态模块
+│   └── user/         # 用户模块
+├── router/           # 路由配置
+└── shared/           # 共享组件和工具
+    ├── utils/        # 通用工具
+    └── widgets/      # 通用组件
+```
+
+### 文件命名规范
+- 所有文件推荐使用下划线的方式命名（lowCamelCase）。如果就一个单词不需要使用下划线。
+- 如果文件夹名已包含了某个功能前缀（如 `user`），则子文件不再重复该前缀。
+- **禁止在目录名中包含重复的功能前缀**，例如在 `api` 目录下创建 `_api` 或 `api_` 开头的文件，或创建 `xxApi` 或 `apiXXX` 命名的文件。目录名本身已经表达了功能，文件名不应重复。
+
+### 文件与路径
+- 不要编写 .md 文档。
+- 尽可能使用包路径（如 `package:beaver/...`），避免使用 `../` 之类的相对路径。
+- 全局共享的服务或模块，可以在目录下创建导出文件（如 `index.dart`），便于统一导入。
+- 对于功能模块的子目录（如 `datasync/chat/`），不需要创建导出文件，直接导入具体文件即可。
+
+### 接口规范
+- 数据结构统一为：
+```dart
+class BaseResponse<T> {
+  final int code;
+  final String msg;
+  final T? result;
+  
+  BaseResponse({required this.code, required this.msg, this.result});
+}
+```
+- 接口类型以 `I` 开头，以 `Req` 或 `Res` 结尾。
+- 由于底层已统一处理异常，业务代码中严禁写 `try...catch`，直接根据 `code == 0` 判断成功，非 0 则使用 `msg`。
+
+### 资源管理
+- 严禁使用文本表情包（如 📞、✓），统一使用 SVG 文件。
+- SVG 存放路径：`assets/images/[module]/[name].svg`。
+
+### 状态管理
+- 使用 flutter_bloc 进行状态管理。
+- 遵循 BLoC 模式的最佳实践：
+  - 事件（Event）：表示用户操作或系统事件
+  - 状态（State）：表示 UI 的当前状态
+  - BLoC：处理事件并生成新状态
+
+### 代码风格
+- 保持代码精简，拒绝过度开发。
+- 严格遵循 Dart 语言规范和 Flutter 最佳实践。
+- 使用 `dart format` 保持代码格式化一致。
+
+### 数据流说明
+
+#### 1. 启动同步流程
+```
+ws连接成功 -> 同步管理器(sync_manager)协调各模块同步 -> 各模块同步器(如message_sync)执行同步 -> 数据存储到本地数据库
+```
+
+#### 2. 发送消息流程
+```
+UI层发起消息发送 -> 业务层(business)处理消息逻辑 -> 调用API服务发送消息 -> WebSocket发送实时消息 -> 服务端确认 -> 本地数据库存储 -> 通知UI更新
+```
+
+#### 3. 接收消息流程
+```
+WebSocket接收消息 -> 消息管理器(message_manager)分发消息 -> 对应业务接收器处理 -> 业务层(business)处理业务逻辑 -> 本地数据库存储 -> 通知UI更新
+```
+
+### 切记
+- 严格遵循文件命名和路径规范。
+- 保持代码结构清晰，职责分离。
+- 优先使用现有工具和组件，避免重复造轮子。

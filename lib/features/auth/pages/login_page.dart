@@ -8,7 +8,7 @@ import 'package:beaver/features/auth/bloc/auth_event.dart';
 import 'package:beaver/features/auth/bloc/auth_state.dart';
 import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/core/theme/colors.dart';
-import 'package:beaver/core/router/router.dart';
+import 'package:beaver/router/router.dart';
 import 'package:beaver/shared/widgets/beaver_layout.dart';
 
 class LoginPage extends StatelessWidget {

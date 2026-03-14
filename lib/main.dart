@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:beaver/app/app.dart';
 import 'package:beaver/core/database/database.dart';
-import 'package:beaver/core/network/websocket/websocket.dart';
+import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 
