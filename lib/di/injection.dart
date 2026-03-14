@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:beaver/common/config/config.dart';
+import 'package:beaver/common/config/index.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/common/request/api_client.dart';
 import 'package:beaver/api/index.dart';

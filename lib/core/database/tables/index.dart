@@ -11,9 +11,9 @@ export 'chat/sync_status.dart';
 export 'friend/friend.dart';
 export 'friend/friend_verify.dart';
 
-export 'group/groups.dart';
+export 'group/group.dart';
 export 'group/members.dart';
 export 'group/join_requests.dart';
 export 'group/sync_status.dart';
 
-export 'datasync/datasync.dart';
+export 'datasync/sync.dart';

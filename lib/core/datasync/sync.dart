@@ -1,7 +1,7 @@
-import 'chat/message_sync.dart';
-import 'friend/friend_sync.dart';
-import 'group/group_sync.dart';
-import 'user/user_sync.dart';
+import 'chat/chat.dart';
+import 'friend/friend.dart';
+import 'group/group.dart';
+import 'user/user.dart';
 
 /// 数据同步状态
 enum DataSyncStatus {

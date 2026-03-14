@@ -52,6 +52,15 @@ dependencies:
   crypto: ^3.0.6
   flutter_svg: ^2.0.10+1
   flutter_screenutil: ^5.9.3
+  json_annotation: ^4.8.1
+  
+  # 缓存相关（大厂标准库）
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+  flutter_image_compress: ^2.3.0
+  video_player: ^2.9.5
+  chewie: ^1.10.0
+  audioplayers: ^6.4.0
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +69,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.13
   drift_dev: ^2.32.0
+  json_serializable: ^6.7.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

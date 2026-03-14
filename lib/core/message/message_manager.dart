@@ -1,12 +1,12 @@
-import 'package:beaver/core/datasync/sync_manager.dart';
-import 'package:beaver/core/datasync/sync_manager.dart' show syncManager;
+import 'package:beaver/core/datasync/sync.dart';
+import 'package:beaver/core/datasync/sync.dart' show syncManager;
 
-import 'receivers/call/receiver.dart';
-import 'receivers/chat/message_receiver.dart';
-import 'receivers/friend/receiver.dart';
-import 'receivers/group/receiver.dart';
-import 'receivers/notification/receiver.dart';
-import 'receivers/user/receiver.dart';
+import 'receivers/call/call.dart';
+import 'receivers/chat/chat.dart';
+import 'receivers/friend/friend.dart';
+import 'receivers/group/group.dart';
+import 'receivers/notification/notification.dart';
+import 'receivers/user/user.dart';
 
 /// 消息管理器
 /// 

@@ -8,6 +8,10 @@ import 'package:beaver/shared/utils/storage_util.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 初始化存储工具
+  await StorageUtil.init();
+  
+  // 配置依赖注入
   await configureDependencies();
 
   // 已登录：初始化 DB 并连接 WS（连接成功后自动 dataSyncManager.autoSync）

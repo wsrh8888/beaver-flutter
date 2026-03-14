@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'package:beaver/common/config/config.dart' as env_config;
+import 'package:beaver/common/config/index.dart' as env_config;
 
 /// WebSocket 客户端服务
 /// 
