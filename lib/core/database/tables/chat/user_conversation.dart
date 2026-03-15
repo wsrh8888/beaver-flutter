@@ -10,5 +10,6 @@ class ChatUserConversations extends Table {
   IntColumn get isMuted => integer().named('is_muted').withDefault(const Constant(0))();
   IntColumn get userReadSeq => integer().named('user_read_seq').withDefault(const Constant(0))();
   IntColumn get version => integer().named('version').withDefault(const Constant(0))();
+  IntColumn get createdAt => integer().named('created_at').nullable()();
   IntColumn get updatedAt => integer().named('updated_at').nullable()();
 }

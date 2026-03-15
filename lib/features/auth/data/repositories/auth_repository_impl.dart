@@ -1,56 +1,86 @@
 import 'package:beaver/core/database/database.dart';
-import 'package:beaver/common/request/api_client.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/api/auth.dart';
+import 'package:beaver/types/api/auth.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
-/// 认证仓库实现 (对标桌面端 Login 相关逻辑)
+/// 认证仓库实现
 class AuthRepositoryImpl implements AuthRepository {
-  final ApiClient apiClient;
-
-  AuthRepositoryImpl({required this.apiClient});
+  AuthRepositoryImpl();
 
   @override
   Future<BaseResponse<String>> login(String username, String password) async {
-    // 1. 调用登录 API
-    final response = await apiClient.post<String>(
-      '/auth/login',
-      data: {'username': username, 'password': password},
-      fromJsonT: (json) => json['token'] as String, // 假设返回体包含 token
-    );
+    // 对标桌面端：对密码进行 MD5 哈希
+    final hashedPassword = md5.convert(utf8.encode(password)).toString();
+    
+    final response = await emailPasswordLoginApi(EmailPasswordLoginReq(
+      email: username,
+      password: hashedPassword,
+    ));
 
-    // 2. 登录成功逻辑
     if (response.code == 0 && response.result != null) {
-      final token = response.result!;
-      final userId = response.msg; // 假设用 msg 带回 userId 或者在 result 里
+      final result = response.result!;
+      final token = result.token;
+      final userId = result.userId;
 
-      // a. 保存 Token 到本地
       await StorageUtil.setString('token', token);
       await StorageUtil.setString('userId', userId);
 
-      // b. 更新 ApiClient 内存缓存 (对标 ajax.ts 的 cachedToken)
-      apiClient.updateToken(token);
+      httpClient.updateToken(token);
 
-      // c. 初始化该账号专用的本地数据库 (对标桌面端 DBManager.init(userId))
       await DatabaseManager.init(userId);
 
-      // d. 连接 WS，连接成功后自动执行 dataSyncManager.autoSync (对标 desktop MessageManager.onWsConnect)
       getIt<WsConnectionManager>().connectWithToken(token);
 
       print('[Auth] 登录成功，用户: $userId, Token: $token');
+      
+      return BaseResponse<String>(
+        code: 0,
+        msg: response.msg,
+        result: token,
+      );
     }
 
-    return response;
+    return BaseResponse<String>(
+      code: response.code,
+      msg: response.msg,
+      result: null,
+    );
   }
 
   @override
-  Future<BaseResponse<bool>> register(String username, String password) async {
-    return await apiClient.post<bool>(
-      '/auth/register',
-      data: {'username': username, 'password': password},
-      fromJsonT: (json) => true,
+  Future<BaseResponse<bool>> register(String email, String password, String code) async {
+    // 对标桌面端：对密码进行 MD5 哈希
+    final hashedPassword = md5.convert(utf8.encode(password)).toString();
+
+    final response = await emailRegisterApi(EmailRegisterReq(
+      email: email,
+      password: hashedPassword,
+      code: code,
+    ));
+
+    return BaseResponse<bool>(
+      code: response.code,
+      msg: response.msg,
+      result: response.code == 0,
+    );
+  }
+
+  @override
+  Future<BaseResponse<bool>> getEmailCode(String email) async {
+    final response = await getEmailCodeApi(GetEmailCodeReq(
+      email: email,
+      type: 'register', // 这里的 type 根据后端协议设置，桌面端 default 可能是这个
+    ));
+    return BaseResponse<bool>(
+      code: response.code,
+      msg: response.msg,
+      result: response.code == 0,
     );
   }
 

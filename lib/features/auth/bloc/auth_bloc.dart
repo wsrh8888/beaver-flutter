@@ -12,6 +12,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginEvent>(_onLogin);
     on<AuthRegisterEvent>(_onRegister);
     on<AuthLogoutEvent>(_onLogout);
+    on<AuthGetCodeEvent>(_onGetCode);
   }
 
   Future<void> _onLogin(AuthLoginEvent event, Emitter<AuthState> emit) async {
@@ -47,11 +48,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onRegister(AuthRegisterEvent event, Emitter<AuthState> emit) async {
      emit(state.copyWith(status: AuthStatus.loading));
      
-     final response = await _authRepository.register(event.username, event.password);
+     final response = await _authRepository.register(event.email, event.password, event.code);
      
      if (response.code == 0) {
-       add(AuthLoginEvent(username: event.username, password: event.password));
+       add(AuthLoginEvent(username: event.email, password: event.password));
      } else {
+       emit(state.copyWith(
+         status: AuthStatus.error,
+         errorMessage: response.msg,
+       ));
+     }
+  }
+
+  Future<void> _onGetCode(AuthGetCodeEvent event, Emitter<AuthState> emit) async {
+     final response = await _authRepository.getEmailCode(event.email);
+     if (response.code != 0) {
        emit(state.copyWith(
          status: AuthStatus.error,
          errorMessage: response.msg,

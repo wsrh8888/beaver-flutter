@@ -1845,6 +1845,24 @@ class $ChatConversationsTable extends ChatConversations
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
+  @override
+  late final GeneratedColumn<String> avatar = GeneratedColumn<String>(
+    'avatar',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _maxSeqMeta = const VerificationMeta('maxSeq');
   @override
   late final GeneratedColumn<int> maxSeq = GeneratedColumn<int>(
@@ -1905,6 +1923,8 @@ class $ChatConversationsTable extends ChatConversations
     id,
     conversationId,
     type,
+    title,
+    avatar,
     maxSeq,
     lastMessage,
     version,
@@ -1944,6 +1964,18 @@ class $ChatConversationsTable extends ChatConversations
       );
     } else if (isInserting) {
       context.missing(_typeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('avatar')) {
+      context.handle(
+        _avatarMeta,
+        avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta),
+      );
     }
     if (data.containsKey('max_seq')) {
       context.handle(
@@ -1999,6 +2031,14 @@ class $ChatConversationsTable extends ChatConversations
         DriftSqlType.int,
         data['${effectivePrefix}type'],
       )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      ),
+      avatar: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar'],
+      ),
       maxSeq: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}max_seq'],
@@ -2033,6 +2073,8 @@ class ChatConversation extends DataClass
   final int id;
   final String conversationId;
   final int type;
+  final String? title;
+  final String? avatar;
   final int maxSeq;
   final String? lastMessage;
   final int version;
@@ -2042,6 +2084,8 @@ class ChatConversation extends DataClass
     required this.id,
     required this.conversationId,
     required this.type,
+    this.title,
+    this.avatar,
     required this.maxSeq,
     this.lastMessage,
     required this.version,
@@ -2054,6 +2098,12 @@ class ChatConversation extends DataClass
     map['id'] = Variable<int>(id);
     map['conversation_id'] = Variable<String>(conversationId);
     map['type'] = Variable<int>(type);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    if (!nullToAbsent || avatar != null) {
+      map['avatar'] = Variable<String>(avatar);
+    }
     map['max_seq'] = Variable<int>(maxSeq);
     if (!nullToAbsent || lastMessage != null) {
       map['last_message'] = Variable<String>(lastMessage);
@@ -2073,6 +2123,12 @@ class ChatConversation extends DataClass
       id: Value(id),
       conversationId: Value(conversationId),
       type: Value(type),
+      title: title == null && nullToAbsent
+          ? const Value.absent()
+          : Value(title),
+      avatar: avatar == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatar),
       maxSeq: Value(maxSeq),
       lastMessage: lastMessage == null && nullToAbsent
           ? const Value.absent()
@@ -2096,6 +2152,8 @@ class ChatConversation extends DataClass
       id: serializer.fromJson<int>(json['id']),
       conversationId: serializer.fromJson<String>(json['conversationId']),
       type: serializer.fromJson<int>(json['type']),
+      title: serializer.fromJson<String?>(json['title']),
+      avatar: serializer.fromJson<String?>(json['avatar']),
       maxSeq: serializer.fromJson<int>(json['maxSeq']),
       lastMessage: serializer.fromJson<String?>(json['lastMessage']),
       version: serializer.fromJson<int>(json['version']),
@@ -2110,6 +2168,8 @@ class ChatConversation extends DataClass
       'id': serializer.toJson<int>(id),
       'conversationId': serializer.toJson<String>(conversationId),
       'type': serializer.toJson<int>(type),
+      'title': serializer.toJson<String?>(title),
+      'avatar': serializer.toJson<String?>(avatar),
       'maxSeq': serializer.toJson<int>(maxSeq),
       'lastMessage': serializer.toJson<String?>(lastMessage),
       'version': serializer.toJson<int>(version),
@@ -2122,6 +2182,8 @@ class ChatConversation extends DataClass
     int? id,
     String? conversationId,
     int? type,
+    Value<String?> title = const Value.absent(),
+    Value<String?> avatar = const Value.absent(),
     int? maxSeq,
     Value<String?> lastMessage = const Value.absent(),
     int? version,
@@ -2131,6 +2193,8 @@ class ChatConversation extends DataClass
     id: id ?? this.id,
     conversationId: conversationId ?? this.conversationId,
     type: type ?? this.type,
+    title: title.present ? title.value : this.title,
+    avatar: avatar.present ? avatar.value : this.avatar,
     maxSeq: maxSeq ?? this.maxSeq,
     lastMessage: lastMessage.present ? lastMessage.value : this.lastMessage,
     version: version ?? this.version,
@@ -2144,6 +2208,8 @@ class ChatConversation extends DataClass
           ? data.conversationId.value
           : this.conversationId,
       type: data.type.present ? data.type.value : this.type,
+      title: data.title.present ? data.title.value : this.title,
+      avatar: data.avatar.present ? data.avatar.value : this.avatar,
       maxSeq: data.maxSeq.present ? data.maxSeq.value : this.maxSeq,
       lastMessage: data.lastMessage.present
           ? data.lastMessage.value
@@ -2160,6 +2226,8 @@ class ChatConversation extends DataClass
           ..write('id: $id, ')
           ..write('conversationId: $conversationId, ')
           ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('avatar: $avatar, ')
           ..write('maxSeq: $maxSeq, ')
           ..write('lastMessage: $lastMessage, ')
           ..write('version: $version, ')
@@ -2174,6 +2242,8 @@ class ChatConversation extends DataClass
     id,
     conversationId,
     type,
+    title,
+    avatar,
     maxSeq,
     lastMessage,
     version,
@@ -2187,6 +2257,8 @@ class ChatConversation extends DataClass
           other.id == this.id &&
           other.conversationId == this.conversationId &&
           other.type == this.type &&
+          other.title == this.title &&
+          other.avatar == this.avatar &&
           other.maxSeq == this.maxSeq &&
           other.lastMessage == this.lastMessage &&
           other.version == this.version &&
@@ -2198,6 +2270,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
   final Value<int> id;
   final Value<String> conversationId;
   final Value<int> type;
+  final Value<String?> title;
+  final Value<String?> avatar;
   final Value<int> maxSeq;
   final Value<String?> lastMessage;
   final Value<int> version;
@@ -2207,6 +2281,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
     this.type = const Value.absent(),
+    this.title = const Value.absent(),
+    this.avatar = const Value.absent(),
     this.maxSeq = const Value.absent(),
     this.lastMessage = const Value.absent(),
     this.version = const Value.absent(),
@@ -2217,6 +2293,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     this.id = const Value.absent(),
     required String conversationId,
     required int type,
+    this.title = const Value.absent(),
+    this.avatar = const Value.absent(),
     this.maxSeq = const Value.absent(),
     this.lastMessage = const Value.absent(),
     this.version = const Value.absent(),
@@ -2228,6 +2306,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     Expression<int>? id,
     Expression<String>? conversationId,
     Expression<int>? type,
+    Expression<String>? title,
+    Expression<String>? avatar,
     Expression<int>? maxSeq,
     Expression<String>? lastMessage,
     Expression<int>? version,
@@ -2238,6 +2318,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
       if (id != null) 'id': id,
       if (conversationId != null) 'conversation_id': conversationId,
       if (type != null) 'type': type,
+      if (title != null) 'title': title,
+      if (avatar != null) 'avatar': avatar,
       if (maxSeq != null) 'max_seq': maxSeq,
       if (lastMessage != null) 'last_message': lastMessage,
       if (version != null) 'version': version,
@@ -2250,6 +2332,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     Value<int>? id,
     Value<String>? conversationId,
     Value<int>? type,
+    Value<String?>? title,
+    Value<String?>? avatar,
     Value<int>? maxSeq,
     Value<String?>? lastMessage,
     Value<int>? version,
@@ -2260,6 +2344,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
       type: type ?? this.type,
+      title: title ?? this.title,
+      avatar: avatar ?? this.avatar,
       maxSeq: maxSeq ?? this.maxSeq,
       lastMessage: lastMessage ?? this.lastMessage,
       version: version ?? this.version,
@@ -2279,6 +2365,12 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     }
     if (type.present) {
       map['type'] = Variable<int>(type.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (avatar.present) {
+      map['avatar'] = Variable<String>(avatar.value);
     }
     if (maxSeq.present) {
       map['max_seq'] = Variable<int>(maxSeq.value);
@@ -2304,6 +2396,8 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
           ..write('id: $id, ')
           ..write('conversationId: $conversationId, ')
           ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('avatar: $avatar, ')
           ..write('maxSeq: $maxSeq, ')
           ..write('lastMessage: $lastMessage, ')
           ..write('version: $version, ')
@@ -2413,6 +2507,17 @@ class $ChatUserConversationsTable extends ChatUserConversations
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -2434,6 +2539,7 @@ class $ChatUserConversationsTable extends ChatUserConversations
     isMuted,
     userReadSeq,
     version,
+    createdAt,
     updatedAt,
   ];
   @override
@@ -2503,6 +2609,12 @@ class $ChatUserConversationsTable extends ChatUserConversations
         version.isAcceptableOrUnknown(data['version']!, _versionMeta),
       );
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -2550,6 +2662,10 @@ class $ChatUserConversationsTable extends ChatUserConversations
         DriftSqlType.int,
         data['${effectivePrefix}version'],
       )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}updated_at'],
@@ -2573,6 +2689,7 @@ class ChatUserConversation extends DataClass
   final int isMuted;
   final int userReadSeq;
   final int version;
+  final int? createdAt;
   final int? updatedAt;
   const ChatUserConversation({
     required this.id,
@@ -2583,6 +2700,7 @@ class ChatUserConversation extends DataClass
     required this.isMuted,
     required this.userReadSeq,
     required this.version,
+    this.createdAt,
     this.updatedAt,
   });
   @override
@@ -2596,6 +2714,9 @@ class ChatUserConversation extends DataClass
     map['is_muted'] = Variable<int>(isMuted);
     map['user_read_seq'] = Variable<int>(userReadSeq);
     map['version'] = Variable<int>(version);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<int>(createdAt);
+    }
     if (!nullToAbsent || updatedAt != null) {
       map['updated_at'] = Variable<int>(updatedAt);
     }
@@ -2612,6 +2733,9 @@ class ChatUserConversation extends DataClass
       isMuted: Value(isMuted),
       userReadSeq: Value(userReadSeq),
       version: Value(version),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -2632,6 +2756,7 @@ class ChatUserConversation extends DataClass
       isMuted: serializer.fromJson<int>(json['isMuted']),
       userReadSeq: serializer.fromJson<int>(json['userReadSeq']),
       version: serializer.fromJson<int>(json['version']),
+      createdAt: serializer.fromJson<int?>(json['createdAt']),
       updatedAt: serializer.fromJson<int?>(json['updatedAt']),
     );
   }
@@ -2647,6 +2772,7 @@ class ChatUserConversation extends DataClass
       'isMuted': serializer.toJson<int>(isMuted),
       'userReadSeq': serializer.toJson<int>(userReadSeq),
       'version': serializer.toJson<int>(version),
+      'createdAt': serializer.toJson<int?>(createdAt),
       'updatedAt': serializer.toJson<int?>(updatedAt),
     };
   }
@@ -2660,6 +2786,7 @@ class ChatUserConversation extends DataClass
     int? isMuted,
     int? userReadSeq,
     int? version,
+    Value<int?> createdAt = const Value.absent(),
     Value<int?> updatedAt = const Value.absent(),
   }) => ChatUserConversation(
     id: id ?? this.id,
@@ -2670,6 +2797,7 @@ class ChatUserConversation extends DataClass
     isMuted: isMuted ?? this.isMuted,
     userReadSeq: userReadSeq ?? this.userReadSeq,
     version: version ?? this.version,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
   ChatUserConversation copyWithCompanion(ChatUserConversationsCompanion data) {
@@ -2686,6 +2814,7 @@ class ChatUserConversation extends DataClass
           ? data.userReadSeq.value
           : this.userReadSeq,
       version: data.version.present ? data.version.value : this.version,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2701,6 +2830,7 @@ class ChatUserConversation extends DataClass
           ..write('isMuted: $isMuted, ')
           ..write('userReadSeq: $userReadSeq, ')
           ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -2716,6 +2846,7 @@ class ChatUserConversation extends DataClass
     isMuted,
     userReadSeq,
     version,
+    createdAt,
     updatedAt,
   );
   @override
@@ -2730,6 +2861,7 @@ class ChatUserConversation extends DataClass
           other.isMuted == this.isMuted &&
           other.userReadSeq == this.userReadSeq &&
           other.version == this.version &&
+          other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -2743,6 +2875,7 @@ class ChatUserConversationsCompanion
   final Value<int> isMuted;
   final Value<int> userReadSeq;
   final Value<int> version;
+  final Value<int?> createdAt;
   final Value<int?> updatedAt;
   const ChatUserConversationsCompanion({
     this.id = const Value.absent(),
@@ -2753,6 +2886,7 @@ class ChatUserConversationsCompanion
     this.isMuted = const Value.absent(),
     this.userReadSeq = const Value.absent(),
     this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   ChatUserConversationsCompanion.insert({
@@ -2764,6 +2898,7 @@ class ChatUserConversationsCompanion
     this.isMuted = const Value.absent(),
     this.userReadSeq = const Value.absent(),
     this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : userId = Value(userId),
        conversationId = Value(conversationId);
@@ -2776,6 +2911,7 @@ class ChatUserConversationsCompanion
     Expression<int>? isMuted,
     Expression<int>? userReadSeq,
     Expression<int>? version,
+    Expression<int>? createdAt,
     Expression<int>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -2787,6 +2923,7 @@ class ChatUserConversationsCompanion
       if (isMuted != null) 'is_muted': isMuted,
       if (userReadSeq != null) 'user_read_seq': userReadSeq,
       if (version != null) 'version': version,
+      if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
   }
@@ -2800,6 +2937,7 @@ class ChatUserConversationsCompanion
     Value<int>? isMuted,
     Value<int>? userReadSeq,
     Value<int>? version,
+    Value<int?>? createdAt,
     Value<int?>? updatedAt,
   }) {
     return ChatUserConversationsCompanion(
@@ -2811,6 +2949,7 @@ class ChatUserConversationsCompanion
       isMuted: isMuted ?? this.isMuted,
       userReadSeq: userReadSeq ?? this.userReadSeq,
       version: version ?? this.version,
+      createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -2842,6 +2981,9 @@ class ChatUserConversationsCompanion
     if (version.present) {
       map['version'] = Variable<int>(version.value);
     }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
@@ -2859,6 +3001,7 @@ class ChatUserConversationsCompanion
           ..write('isMuted: $isMuted, ')
           ..write('userReadSeq: $userReadSeq, ')
           ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -5291,6 +5434,26 @@ class $GroupMembersTable extends GroupMembers
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _nickNameMeta = const VerificationMeta(
+    'nickName',
+  );
+  @override
+  late final GeneratedColumn<String> nickName = GeneratedColumn<String>(
+    'nick_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
+  @override
+  late final GeneratedColumn<String> avatar = GeneratedColumn<String>(
+    'avatar',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _roleMeta = const VerificationMeta('role');
   @override
   late final GeneratedColumn<int> role = GeneratedColumn<int>(
@@ -5361,6 +5524,8 @@ class $GroupMembersTable extends GroupMembers
     id,
     groupId,
     userId,
+    nickName,
+    avatar,
     role,
     status,
     joinTime,
@@ -5398,6 +5563,18 @@ class $GroupMembersTable extends GroupMembers
       );
     } else if (isInserting) {
       context.missing(_userIdMeta);
+    }
+    if (data.containsKey('nick_name')) {
+      context.handle(
+        _nickNameMeta,
+        nickName.isAcceptableOrUnknown(data['nick_name']!, _nickNameMeta),
+      );
+    }
+    if (data.containsKey('avatar')) {
+      context.handle(
+        _avatarMeta,
+        avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta),
+      );
     }
     if (data.containsKey('role')) {
       context.handle(
@@ -5456,6 +5633,14 @@ class $GroupMembersTable extends GroupMembers
         DriftSqlType.string,
         data['${effectivePrefix}user_id'],
       )!,
+      nickName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nick_name'],
+      ),
+      avatar: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar'],
+      ),
       role: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}role'],
@@ -5493,6 +5678,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   final int id;
   final String groupId;
   final String userId;
+  final String? nickName;
+  final String? avatar;
   final int role;
   final int status;
   final int? joinTime;
@@ -5503,6 +5690,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     required this.id,
     required this.groupId,
     required this.userId,
+    this.nickName,
+    this.avatar,
     required this.role,
     required this.status,
     this.joinTime,
@@ -5516,6 +5705,12 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     map['id'] = Variable<int>(id);
     map['group_id'] = Variable<String>(groupId);
     map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || nickName != null) {
+      map['nick_name'] = Variable<String>(nickName);
+    }
+    if (!nullToAbsent || avatar != null) {
+      map['avatar'] = Variable<String>(avatar);
+    }
     map['role'] = Variable<int>(role);
     map['status'] = Variable<int>(status);
     if (!nullToAbsent || joinTime != null) {
@@ -5536,6 +5731,12 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       id: Value(id),
       groupId: Value(groupId),
       userId: Value(userId),
+      nickName: nickName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nickName),
+      avatar: avatar == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avatar),
       role: Value(role),
       status: Value(status),
       joinTime: joinTime == null && nullToAbsent
@@ -5560,6 +5761,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       id: serializer.fromJson<int>(json['id']),
       groupId: serializer.fromJson<String>(json['groupId']),
       userId: serializer.fromJson<String>(json['userId']),
+      nickName: serializer.fromJson<String?>(json['nickName']),
+      avatar: serializer.fromJson<String?>(json['avatar']),
       role: serializer.fromJson<int>(json['role']),
       status: serializer.fromJson<int>(json['status']),
       joinTime: serializer.fromJson<int?>(json['joinTime']),
@@ -5575,6 +5778,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'id': serializer.toJson<int>(id),
       'groupId': serializer.toJson<String>(groupId),
       'userId': serializer.toJson<String>(userId),
+      'nickName': serializer.toJson<String?>(nickName),
+      'avatar': serializer.toJson<String?>(avatar),
       'role': serializer.toJson<int>(role),
       'status': serializer.toJson<int>(status),
       'joinTime': serializer.toJson<int?>(joinTime),
@@ -5588,6 +5793,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     int? id,
     String? groupId,
     String? userId,
+    Value<String?> nickName = const Value.absent(),
+    Value<String?> avatar = const Value.absent(),
     int? role,
     int? status,
     Value<int?> joinTime = const Value.absent(),
@@ -5598,6 +5805,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
     userId: userId ?? this.userId,
+    nickName: nickName.present ? nickName.value : this.nickName,
+    avatar: avatar.present ? avatar.value : this.avatar,
     role: role ?? this.role,
     status: status ?? this.status,
     joinTime: joinTime.present ? joinTime.value : this.joinTime,
@@ -5610,6 +5819,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       id: data.id.present ? data.id.value : this.id,
       groupId: data.groupId.present ? data.groupId.value : this.groupId,
       userId: data.userId.present ? data.userId.value : this.userId,
+      nickName: data.nickName.present ? data.nickName.value : this.nickName,
+      avatar: data.avatar.present ? data.avatar.value : this.avatar,
       role: data.role.present ? data.role.value : this.role,
       status: data.status.present ? data.status.value : this.status,
       joinTime: data.joinTime.present ? data.joinTime.value : this.joinTime,
@@ -5625,6 +5836,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('id: $id, ')
           ..write('groupId: $groupId, ')
           ..write('userId: $userId, ')
+          ..write('nickName: $nickName, ')
+          ..write('avatar: $avatar, ')
           ..write('role: $role, ')
           ..write('status: $status, ')
           ..write('joinTime: $joinTime, ')
@@ -5640,6 +5853,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     id,
     groupId,
     userId,
+    nickName,
+    avatar,
     role,
     status,
     joinTime,
@@ -5654,6 +5869,8 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.id == this.id &&
           other.groupId == this.groupId &&
           other.userId == this.userId &&
+          other.nickName == this.nickName &&
+          other.avatar == this.avatar &&
           other.role == this.role &&
           other.status == this.status &&
           other.joinTime == this.joinTime &&
@@ -5666,6 +5883,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<int> id;
   final Value<String> groupId;
   final Value<String> userId;
+  final Value<String?> nickName;
+  final Value<String?> avatar;
   final Value<int> role;
   final Value<int> status;
   final Value<int?> joinTime;
@@ -5676,6 +5895,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.id = const Value.absent(),
     this.groupId = const Value.absent(),
     this.userId = const Value.absent(),
+    this.nickName = const Value.absent(),
+    this.avatar = const Value.absent(),
     this.role = const Value.absent(),
     this.status = const Value.absent(),
     this.joinTime = const Value.absent(),
@@ -5687,6 +5908,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.id = const Value.absent(),
     required String groupId,
     required String userId,
+    this.nickName = const Value.absent(),
+    this.avatar = const Value.absent(),
     this.role = const Value.absent(),
     this.status = const Value.absent(),
     this.joinTime = const Value.absent(),
@@ -5699,6 +5922,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<int>? id,
     Expression<String>? groupId,
     Expression<String>? userId,
+    Expression<String>? nickName,
+    Expression<String>? avatar,
     Expression<int>? role,
     Expression<int>? status,
     Expression<int>? joinTime,
@@ -5710,6 +5935,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (id != null) 'id': id,
       if (groupId != null) 'group_id': groupId,
       if (userId != null) 'user_id': userId,
+      if (nickName != null) 'nick_name': nickName,
+      if (avatar != null) 'avatar': avatar,
       if (role != null) 'role': role,
       if (status != null) 'status': status,
       if (joinTime != null) 'join_time': joinTime,
@@ -5723,6 +5950,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Value<int>? id,
     Value<String>? groupId,
     Value<String>? userId,
+    Value<String?>? nickName,
+    Value<String?>? avatar,
     Value<int>? role,
     Value<int>? status,
     Value<int?>? joinTime,
@@ -5734,6 +5963,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       id: id ?? this.id,
       groupId: groupId ?? this.groupId,
       userId: userId ?? this.userId,
+      nickName: nickName ?? this.nickName,
+      avatar: avatar ?? this.avatar,
       role: role ?? this.role,
       status: status ?? this.status,
       joinTime: joinTime ?? this.joinTime,
@@ -5754,6 +5985,12 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
+    }
+    if (nickName.present) {
+      map['nick_name'] = Variable<String>(nickName.value);
+    }
+    if (avatar.present) {
+      map['avatar'] = Variable<String>(avatar.value);
     }
     if (role.present) {
       map['role'] = Variable<int>(role.value);
@@ -5782,6 +6019,8 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('id: $id, ')
           ..write('groupId: $groupId, ')
           ..write('userId: $userId, ')
+          ..write('nickName: $nickName, ')
+          ..write('avatar: $avatar, ')
           ..write('role: $role, ')
           ..write('status: $status, ')
           ..write('joinTime: $joinTime, ')
@@ -7045,6 +7284,1346 @@ class DatasyncCompanion extends UpdateCompanion<DatasyncData> {
   }
 }
 
+class $EmojisTable extends Emojis with TableInfo<$EmojisTable, Emoji> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EmojisTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _emojiIdMeta = const VerificationMeta(
+    'emojiId',
+  );
+  @override
+  late final GeneratedColumn<String> emojiId = GeneratedColumn<String>(
+    'emoji_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fileKeyMeta = const VerificationMeta(
+    'fileKey',
+  );
+  @override
+  late final GeneratedColumn<String> fileKey = GeneratedColumn<String>(
+    'file_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emojiInfoMeta = const VerificationMeta(
+    'emojiInfo',
+  );
+  @override
+  late final GeneratedColumn<String> emojiInfo = GeneratedColumn<String>(
+    'emoji_info',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    emojiId,
+    fileKey,
+    title,
+    emojiInfo,
+    status,
+    version,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'emojis';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Emoji> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('emoji_id')) {
+      context.handle(
+        _emojiIdMeta,
+        emojiId.isAcceptableOrUnknown(data['emoji_id']!, _emojiIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_emojiIdMeta);
+    }
+    if (data.containsKey('file_key')) {
+      context.handle(
+        _fileKeyMeta,
+        fileKey.isAcceptableOrUnknown(data['file_key']!, _fileKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileKeyMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('emoji_info')) {
+      context.handle(
+        _emojiInfoMeta,
+        emojiInfo.isAcceptableOrUnknown(data['emoji_info']!, _emojiInfoMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Emoji map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Emoji(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      emojiId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emoji_id'],
+      )!,
+      fileKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_key'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      emojiInfo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emoji_info'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $EmojisTable createAlias(String alias) {
+    return $EmojisTable(attachedDatabase, alias);
+  }
+}
+
+class Emoji extends DataClass implements Insertable<Emoji> {
+  final int id;
+  final String emojiId;
+  final String fileKey;
+  final String title;
+  final String? emojiInfo;
+  final int status;
+  final int version;
+  final int? createdAt;
+  final int? updatedAt;
+  const Emoji({
+    required this.id,
+    required this.emojiId,
+    required this.fileKey,
+    required this.title,
+    this.emojiInfo,
+    required this.status,
+    required this.version,
+    this.createdAt,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['emoji_id'] = Variable<String>(emojiId);
+    map['file_key'] = Variable<String>(fileKey);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || emojiInfo != null) {
+      map['emoji_info'] = Variable<String>(emojiInfo);
+    }
+    map['status'] = Variable<int>(status);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<int>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<int>(updatedAt);
+    }
+    return map;
+  }
+
+  EmojisCompanion toCompanion(bool nullToAbsent) {
+    return EmojisCompanion(
+      id: Value(id),
+      emojiId: Value(emojiId),
+      fileKey: Value(fileKey),
+      title: Value(title),
+      emojiInfo: emojiInfo == null && nullToAbsent
+          ? const Value.absent()
+          : Value(emojiInfo),
+      status: Value(status),
+      version: Value(version),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory Emoji.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Emoji(
+      id: serializer.fromJson<int>(json['id']),
+      emojiId: serializer.fromJson<String>(json['emojiId']),
+      fileKey: serializer.fromJson<String>(json['fileKey']),
+      title: serializer.fromJson<String>(json['title']),
+      emojiInfo: serializer.fromJson<String?>(json['emojiInfo']),
+      status: serializer.fromJson<int>(json['status']),
+      version: serializer.fromJson<int>(json['version']),
+      createdAt: serializer.fromJson<int?>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'emojiId': serializer.toJson<String>(emojiId),
+      'fileKey': serializer.toJson<String>(fileKey),
+      'title': serializer.toJson<String>(title),
+      'emojiInfo': serializer.toJson<String?>(emojiInfo),
+      'status': serializer.toJson<int>(status),
+      'version': serializer.toJson<int>(version),
+      'createdAt': serializer.toJson<int?>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+    };
+  }
+
+  Emoji copyWith({
+    int? id,
+    String? emojiId,
+    String? fileKey,
+    String? title,
+    Value<String?> emojiInfo = const Value.absent(),
+    int? status,
+    int? version,
+    Value<int?> createdAt = const Value.absent(),
+    Value<int?> updatedAt = const Value.absent(),
+  }) => Emoji(
+    id: id ?? this.id,
+    emojiId: emojiId ?? this.emojiId,
+    fileKey: fileKey ?? this.fileKey,
+    title: title ?? this.title,
+    emojiInfo: emojiInfo.present ? emojiInfo.value : this.emojiInfo,
+    status: status ?? this.status,
+    version: version ?? this.version,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  Emoji copyWithCompanion(EmojisCompanion data) {
+    return Emoji(
+      id: data.id.present ? data.id.value : this.id,
+      emojiId: data.emojiId.present ? data.emojiId.value : this.emojiId,
+      fileKey: data.fileKey.present ? data.fileKey.value : this.fileKey,
+      title: data.title.present ? data.title.value : this.title,
+      emojiInfo: data.emojiInfo.present ? data.emojiInfo.value : this.emojiInfo,
+      status: data.status.present ? data.status.value : this.status,
+      version: data.version.present ? data.version.value : this.version,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Emoji(')
+          ..write('id: $id, ')
+          ..write('emojiId: $emojiId, ')
+          ..write('fileKey: $fileKey, ')
+          ..write('title: $title, ')
+          ..write('emojiInfo: $emojiInfo, ')
+          ..write('status: $status, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    emojiId,
+    fileKey,
+    title,
+    emojiInfo,
+    status,
+    version,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Emoji &&
+          other.id == this.id &&
+          other.emojiId == this.emojiId &&
+          other.fileKey == this.fileKey &&
+          other.title == this.title &&
+          other.emojiInfo == this.emojiInfo &&
+          other.status == this.status &&
+          other.version == this.version &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class EmojisCompanion extends UpdateCompanion<Emoji> {
+  final Value<int> id;
+  final Value<String> emojiId;
+  final Value<String> fileKey;
+  final Value<String> title;
+  final Value<String?> emojiInfo;
+  final Value<int> status;
+  final Value<int> version;
+  final Value<int?> createdAt;
+  final Value<int?> updatedAt;
+  const EmojisCompanion({
+    this.id = const Value.absent(),
+    this.emojiId = const Value.absent(),
+    this.fileKey = const Value.absent(),
+    this.title = const Value.absent(),
+    this.emojiInfo = const Value.absent(),
+    this.status = const Value.absent(),
+    this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  EmojisCompanion.insert({
+    this.id = const Value.absent(),
+    required String emojiId,
+    required String fileKey,
+    required String title,
+    this.emojiInfo = const Value.absent(),
+    this.status = const Value.absent(),
+    this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : emojiId = Value(emojiId),
+       fileKey = Value(fileKey),
+       title = Value(title);
+  static Insertable<Emoji> custom({
+    Expression<int>? id,
+    Expression<String>? emojiId,
+    Expression<String>? fileKey,
+    Expression<String>? title,
+    Expression<String>? emojiInfo,
+    Expression<int>? status,
+    Expression<int>? version,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (emojiId != null) 'emoji_id': emojiId,
+      if (fileKey != null) 'file_key': fileKey,
+      if (title != null) 'title': title,
+      if (emojiInfo != null) 'emoji_info': emojiInfo,
+      if (status != null) 'status': status,
+      if (version != null) 'version': version,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  EmojisCompanion copyWith({
+    Value<int>? id,
+    Value<String>? emojiId,
+    Value<String>? fileKey,
+    Value<String>? title,
+    Value<String?>? emojiInfo,
+    Value<int>? status,
+    Value<int>? version,
+    Value<int?>? createdAt,
+    Value<int?>? updatedAt,
+  }) {
+    return EmojisCompanion(
+      id: id ?? this.id,
+      emojiId: emojiId ?? this.emojiId,
+      fileKey: fileKey ?? this.fileKey,
+      title: title ?? this.title,
+      emojiInfo: emojiInfo ?? this.emojiInfo,
+      status: status ?? this.status,
+      version: version ?? this.version,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (emojiId.present) {
+      map['emoji_id'] = Variable<String>(emojiId.value);
+    }
+    if (fileKey.present) {
+      map['file_key'] = Variable<String>(fileKey.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (emojiInfo.present) {
+      map['emoji_info'] = Variable<String>(emojiInfo.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmojisCompanion(')
+          ..write('id: $id, ')
+          ..write('emojiId: $emojiId, ')
+          ..write('fileKey: $fileKey, ')
+          ..write('title: $title, ')
+          ..write('emojiInfo: $emojiInfo, ')
+          ..write('status: $status, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NotificationEventsTable extends NotificationEvents
+    with TableInfo<$NotificationEventsTable, NotificationEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _eventIdMeta = const VerificationMeta(
+    'eventId',
+  );
+  @override
+  late final GeneratedColumn<String> eventId = GeneratedColumn<String>(
+    'event_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventTypeMeta = const VerificationMeta(
+    'eventType',
+  );
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+    'event_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _fromUserIdMeta = const VerificationMeta(
+    'fromUserId',
+  );
+  @override
+  late final GeneratedColumn<String> fromUserId = GeneratedColumn<String>(
+    'from_user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetTypeMeta = const VerificationMeta(
+    'targetType',
+  );
+  @override
+  late final GeneratedColumn<String> targetType = GeneratedColumn<String>(
+    'target_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _priorityMeta = const VerificationMeta(
+    'priority',
+  );
+  @override
+  late final GeneratedColumn<int> priority = GeneratedColumn<int>(
+    'priority',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(5),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _dedupHashMeta = const VerificationMeta(
+    'dedupHash',
+  );
+  @override
+  late final GeneratedColumn<String> dedupHash = GeneratedColumn<String>(
+    'dedup_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    eventId,
+    eventType,
+    category,
+    version,
+    fromUserId,
+    targetId,
+    targetType,
+    payload,
+    priority,
+    status,
+    dedupHash,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notification_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NotificationEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('event_id')) {
+      context.handle(
+        _eventIdMeta,
+        eventId.isAcceptableOrUnknown(data['event_id']!, _eventIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventIdMeta);
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(
+        _eventTypeMeta,
+        eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTypeMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('from_user_id')) {
+      context.handle(
+        _fromUserIdMeta,
+        fromUserId.isAcceptableOrUnknown(
+          data['from_user_id']!,
+          _fromUserIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    }
+    if (data.containsKey('target_type')) {
+      context.handle(
+        _targetTypeMeta,
+        targetType.isAcceptableOrUnknown(data['target_type']!, _targetTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTypeMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    }
+    if (data.containsKey('priority')) {
+      context.handle(
+        _priorityMeta,
+        priority.isAcceptableOrUnknown(data['priority']!, _priorityMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('dedup_hash')) {
+      context.handle(
+        _dedupHashMeta,
+        dedupHash.isAcceptableOrUnknown(data['dedup_hash']!, _dedupHashMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      eventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_id'],
+      )!,
+      eventType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_type'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      fromUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_user_id'],
+      ),
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_id'],
+      ),
+      targetType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_type'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      ),
+      priority: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}priority'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}status'],
+      )!,
+      dedupHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dedup_hash'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $NotificationEventsTable createAlias(String alias) {
+    return $NotificationEventsTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationEvent extends DataClass
+    implements Insertable<NotificationEvent> {
+  final int id;
+  final String eventId;
+  final String eventType;
+  final String category;
+  final int version;
+  final String? fromUserId;
+  final String? targetId;
+  final String targetType;
+  final String? payload;
+  final int priority;
+  final int status;
+  final String? dedupHash;
+  final int? createdAt;
+  final int? updatedAt;
+  const NotificationEvent({
+    required this.id,
+    required this.eventId,
+    required this.eventType,
+    required this.category,
+    required this.version,
+    this.fromUserId,
+    this.targetId,
+    required this.targetType,
+    this.payload,
+    required this.priority,
+    required this.status,
+    this.dedupHash,
+    this.createdAt,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['event_id'] = Variable<String>(eventId);
+    map['event_type'] = Variable<String>(eventType);
+    map['category'] = Variable<String>(category);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || fromUserId != null) {
+      map['from_user_id'] = Variable<String>(fromUserId);
+    }
+    if (!nullToAbsent || targetId != null) {
+      map['target_id'] = Variable<String>(targetId);
+    }
+    map['target_type'] = Variable<String>(targetType);
+    if (!nullToAbsent || payload != null) {
+      map['payload'] = Variable<String>(payload);
+    }
+    map['priority'] = Variable<int>(priority);
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || dedupHash != null) {
+      map['dedup_hash'] = Variable<String>(dedupHash);
+    }
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<int>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<int>(updatedAt);
+    }
+    return map;
+  }
+
+  NotificationEventsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationEventsCompanion(
+      id: Value(id),
+      eventId: Value(eventId),
+      eventType: Value(eventType),
+      category: Value(category),
+      version: Value(version),
+      fromUserId: fromUserId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fromUserId),
+      targetId: targetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetId),
+      targetType: Value(targetType),
+      payload: payload == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payload),
+      priority: Value(priority),
+      status: Value(status),
+      dedupHash: dedupHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dedupHash),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory NotificationEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationEvent(
+      id: serializer.fromJson<int>(json['id']),
+      eventId: serializer.fromJson<String>(json['eventId']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      category: serializer.fromJson<String>(json['category']),
+      version: serializer.fromJson<int>(json['version']),
+      fromUserId: serializer.fromJson<String?>(json['fromUserId']),
+      targetId: serializer.fromJson<String?>(json['targetId']),
+      targetType: serializer.fromJson<String>(json['targetType']),
+      payload: serializer.fromJson<String?>(json['payload']),
+      priority: serializer.fromJson<int>(json['priority']),
+      status: serializer.fromJson<int>(json['status']),
+      dedupHash: serializer.fromJson<String?>(json['dedupHash']),
+      createdAt: serializer.fromJson<int?>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'eventId': serializer.toJson<String>(eventId),
+      'eventType': serializer.toJson<String>(eventType),
+      'category': serializer.toJson<String>(category),
+      'version': serializer.toJson<int>(version),
+      'fromUserId': serializer.toJson<String?>(fromUserId),
+      'targetId': serializer.toJson<String?>(targetId),
+      'targetType': serializer.toJson<String>(targetType),
+      'payload': serializer.toJson<String?>(payload),
+      'priority': serializer.toJson<int>(priority),
+      'status': serializer.toJson<int>(status),
+      'dedupHash': serializer.toJson<String?>(dedupHash),
+      'createdAt': serializer.toJson<int?>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+    };
+  }
+
+  NotificationEvent copyWith({
+    int? id,
+    String? eventId,
+    String? eventType,
+    String? category,
+    int? version,
+    Value<String?> fromUserId = const Value.absent(),
+    Value<String?> targetId = const Value.absent(),
+    String? targetType,
+    Value<String?> payload = const Value.absent(),
+    int? priority,
+    int? status,
+    Value<String?> dedupHash = const Value.absent(),
+    Value<int?> createdAt = const Value.absent(),
+    Value<int?> updatedAt = const Value.absent(),
+  }) => NotificationEvent(
+    id: id ?? this.id,
+    eventId: eventId ?? this.eventId,
+    eventType: eventType ?? this.eventType,
+    category: category ?? this.category,
+    version: version ?? this.version,
+    fromUserId: fromUserId.present ? fromUserId.value : this.fromUserId,
+    targetId: targetId.present ? targetId.value : this.targetId,
+    targetType: targetType ?? this.targetType,
+    payload: payload.present ? payload.value : this.payload,
+    priority: priority ?? this.priority,
+    status: status ?? this.status,
+    dedupHash: dedupHash.present ? dedupHash.value : this.dedupHash,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  NotificationEvent copyWithCompanion(NotificationEventsCompanion data) {
+    return NotificationEvent(
+      id: data.id.present ? data.id.value : this.id,
+      eventId: data.eventId.present ? data.eventId.value : this.eventId,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      category: data.category.present ? data.category.value : this.category,
+      version: data.version.present ? data.version.value : this.version,
+      fromUserId: data.fromUserId.present
+          ? data.fromUserId.value
+          : this.fromUserId,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+      targetType: data.targetType.present
+          ? data.targetType.value
+          : this.targetType,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      priority: data.priority.present ? data.priority.value : this.priority,
+      status: data.status.present ? data.status.value : this.status,
+      dedupHash: data.dedupHash.present ? data.dedupHash.value : this.dedupHash,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationEvent(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('eventType: $eventType, ')
+          ..write('category: $category, ')
+          ..write('version: $version, ')
+          ..write('fromUserId: $fromUserId, ')
+          ..write('targetId: $targetId, ')
+          ..write('targetType: $targetType, ')
+          ..write('payload: $payload, ')
+          ..write('priority: $priority, ')
+          ..write('status: $status, ')
+          ..write('dedupHash: $dedupHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    eventId,
+    eventType,
+    category,
+    version,
+    fromUserId,
+    targetId,
+    targetType,
+    payload,
+    priority,
+    status,
+    dedupHash,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationEvent &&
+          other.id == this.id &&
+          other.eventId == this.eventId &&
+          other.eventType == this.eventType &&
+          other.category == this.category &&
+          other.version == this.version &&
+          other.fromUserId == this.fromUserId &&
+          other.targetId == this.targetId &&
+          other.targetType == this.targetType &&
+          other.payload == this.payload &&
+          other.priority == this.priority &&
+          other.status == this.status &&
+          other.dedupHash == this.dedupHash &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class NotificationEventsCompanion extends UpdateCompanion<NotificationEvent> {
+  final Value<int> id;
+  final Value<String> eventId;
+  final Value<String> eventType;
+  final Value<String> category;
+  final Value<int> version;
+  final Value<String?> fromUserId;
+  final Value<String?> targetId;
+  final Value<String> targetType;
+  final Value<String?> payload;
+  final Value<int> priority;
+  final Value<int> status;
+  final Value<String?> dedupHash;
+  final Value<int?> createdAt;
+  final Value<int?> updatedAt;
+  const NotificationEventsCompanion({
+    this.id = const Value.absent(),
+    this.eventId = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.category = const Value.absent(),
+    this.version = const Value.absent(),
+    this.fromUserId = const Value.absent(),
+    this.targetId = const Value.absent(),
+    this.targetType = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.status = const Value.absent(),
+    this.dedupHash = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  NotificationEventsCompanion.insert({
+    this.id = const Value.absent(),
+    required String eventId,
+    required String eventType,
+    required String category,
+    this.version = const Value.absent(),
+    this.fromUserId = const Value.absent(),
+    this.targetId = const Value.absent(),
+    required String targetType,
+    this.payload = const Value.absent(),
+    this.priority = const Value.absent(),
+    this.status = const Value.absent(),
+    this.dedupHash = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : eventId = Value(eventId),
+       eventType = Value(eventType),
+       category = Value(category),
+       targetType = Value(targetType);
+  static Insertable<NotificationEvent> custom({
+    Expression<int>? id,
+    Expression<String>? eventId,
+    Expression<String>? eventType,
+    Expression<String>? category,
+    Expression<int>? version,
+    Expression<String>? fromUserId,
+    Expression<String>? targetId,
+    Expression<String>? targetType,
+    Expression<String>? payload,
+    Expression<int>? priority,
+    Expression<int>? status,
+    Expression<String>? dedupHash,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventId != null) 'event_id': eventId,
+      if (eventType != null) 'event_type': eventType,
+      if (category != null) 'category': category,
+      if (version != null) 'version': version,
+      if (fromUserId != null) 'from_user_id': fromUserId,
+      if (targetId != null) 'target_id': targetId,
+      if (targetType != null) 'target_type': targetType,
+      if (payload != null) 'payload': payload,
+      if (priority != null) 'priority': priority,
+      if (status != null) 'status': status,
+      if (dedupHash != null) 'dedup_hash': dedupHash,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  NotificationEventsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? eventId,
+    Value<String>? eventType,
+    Value<String>? category,
+    Value<int>? version,
+    Value<String?>? fromUserId,
+    Value<String?>? targetId,
+    Value<String>? targetType,
+    Value<String?>? payload,
+    Value<int>? priority,
+    Value<int>? status,
+    Value<String?>? dedupHash,
+    Value<int?>? createdAt,
+    Value<int?>? updatedAt,
+  }) {
+    return NotificationEventsCompanion(
+      id: id ?? this.id,
+      eventId: eventId ?? this.eventId,
+      eventType: eventType ?? this.eventType,
+      category: category ?? this.category,
+      version: version ?? this.version,
+      fromUserId: fromUserId ?? this.fromUserId,
+      targetId: targetId ?? this.targetId,
+      targetType: targetType ?? this.targetType,
+      payload: payload ?? this.payload,
+      priority: priority ?? this.priority,
+      status: status ?? this.status,
+      dedupHash: dedupHash ?? this.dedupHash,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (eventId.present) {
+      map['event_id'] = Variable<String>(eventId.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (fromUserId.present) {
+      map['from_user_id'] = Variable<String>(fromUserId.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    if (targetType.present) {
+      map['target_type'] = Variable<String>(targetType.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (priority.present) {
+      map['priority'] = Variable<int>(priority.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (dedupHash.present) {
+      map['dedup_hash'] = Variable<String>(dedupHash.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('eventId: $eventId, ')
+          ..write('eventType: $eventType, ')
+          ..write('category: $category, ')
+          ..write('version: $version, ')
+          ..write('fromUserId: $fromUserId, ')
+          ..write('targetId: $targetId, ')
+          ..write('targetType: $targetType, ')
+          ..write('payload: $payload, ')
+          ..write('priority: $priority, ')
+          ..write('status: $status, ')
+          ..write('dedupHash: $dedupHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7066,6 +8645,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $DatasyncTable datasync = $DatasyncTable(this);
+  late final $EmojisTable emojis = $EmojisTable(this);
+  late final $NotificationEventsTable notificationEvents =
+      $NotificationEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7084,6 +8666,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     groupJoinRequests,
     groupSyncStatus,
     datasync,
+    emojis,
+    notificationEvents,
   ];
 }
 
@@ -7967,6 +9551,8 @@ typedef $$ChatConversationsTableCreateCompanionBuilder =
       Value<int> id,
       required String conversationId,
       required int type,
+      Value<String?> title,
+      Value<String?> avatar,
       Value<int> maxSeq,
       Value<String?> lastMessage,
       Value<int> version,
@@ -7978,6 +9564,8 @@ typedef $$ChatConversationsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> conversationId,
       Value<int> type,
+      Value<String?> title,
+      Value<String?> avatar,
       Value<int> maxSeq,
       Value<String?> lastMessage,
       Value<int> version,
@@ -8006,6 +9594,16 @@ class $$ChatConversationsTableFilterComposer
 
   ColumnFilters<int> get type => $composableBuilder(
     column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get avatar => $composableBuilder(
+    column: $table.avatar,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8059,6 +9657,16 @@ class $$ChatConversationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get avatar => $composableBuilder(
+    column: $table.avatar,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get maxSeq => $composableBuilder(
     column: $table.maxSeq,
     builder: (column) => ColumnOrderings(column),
@@ -8104,6 +9712,12 @@ class $$ChatConversationsTableAnnotationComposer
 
   GeneratedColumn<int> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get avatar =>
+      $composableBuilder(column: $table.avatar, builder: (column) => column);
 
   GeneratedColumn<int> get maxSeq =>
       $composableBuilder(column: $table.maxSeq, builder: (column) => column);
@@ -8166,6 +9780,8 @@ class $$ChatConversationsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> conversationId = const Value.absent(),
                 Value<int> type = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<String?> avatar = const Value.absent(),
                 Value<int> maxSeq = const Value.absent(),
                 Value<String?> lastMessage = const Value.absent(),
                 Value<int> version = const Value.absent(),
@@ -8175,6 +9791,8 @@ class $$ChatConversationsTableTableManager
                 id: id,
                 conversationId: conversationId,
                 type: type,
+                title: title,
+                avatar: avatar,
                 maxSeq: maxSeq,
                 lastMessage: lastMessage,
                 version: version,
@@ -8186,6 +9804,8 @@ class $$ChatConversationsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String conversationId,
                 required int type,
+                Value<String?> title = const Value.absent(),
+                Value<String?> avatar = const Value.absent(),
                 Value<int> maxSeq = const Value.absent(),
                 Value<String?> lastMessage = const Value.absent(),
                 Value<int> version = const Value.absent(),
@@ -8195,6 +9815,8 @@ class $$ChatConversationsTableTableManager
                 id: id,
                 conversationId: conversationId,
                 type: type,
+                title: title,
+                avatar: avatar,
                 maxSeq: maxSeq,
                 lastMessage: lastMessage,
                 version: version,
@@ -8240,6 +9862,7 @@ typedef $$ChatUserConversationsTableCreateCompanionBuilder =
       Value<int> isMuted,
       Value<int> userReadSeq,
       Value<int> version,
+      Value<int?> createdAt,
       Value<int?> updatedAt,
     });
 typedef $$ChatUserConversationsTableUpdateCompanionBuilder =
@@ -8252,6 +9875,7 @@ typedef $$ChatUserConversationsTableUpdateCompanionBuilder =
       Value<int> isMuted,
       Value<int> userReadSeq,
       Value<int> version,
+      Value<int?> createdAt,
       Value<int?> updatedAt,
     });
 
@@ -8301,6 +9925,11 @@ class $$ChatUserConversationsTableFilterComposer
 
   ColumnFilters<int> get version => $composableBuilder(
     column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8359,6 +9988,11 @@ class $$ChatUserConversationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -8401,6 +10035,9 @@ class $$ChatUserConversationsTableAnnotationComposer
 
   GeneratedColumn<int> get version =>
       $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<int> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -8460,6 +10097,7 @@ class $$ChatUserConversationsTableTableManager
                 Value<int> isMuted = const Value.absent(),
                 Value<int> userReadSeq = const Value.absent(),
                 Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
               }) => ChatUserConversationsCompanion(
                 id: id,
@@ -8470,6 +10108,7 @@ class $$ChatUserConversationsTableTableManager
                 isMuted: isMuted,
                 userReadSeq: userReadSeq,
                 version: version,
+                createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
@@ -8482,6 +10121,7 @@ class $$ChatUserConversationsTableTableManager
                 Value<int> isMuted = const Value.absent(),
                 Value<int> userReadSeq = const Value.absent(),
                 Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
               }) => ChatUserConversationsCompanion.insert(
                 id: id,
@@ -8492,6 +10132,7 @@ class $$ChatUserConversationsTableTableManager
                 isMuted: isMuted,
                 userReadSeq: userReadSeq,
                 version: version,
+                createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -9692,6 +11333,8 @@ typedef $$GroupMembersTableCreateCompanionBuilder =
       Value<int> id,
       required String groupId,
       required String userId,
+      Value<String?> nickName,
+      Value<String?> avatar,
       Value<int> role,
       Value<int> status,
       Value<int?> joinTime,
@@ -9704,6 +11347,8 @@ typedef $$GroupMembersTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> groupId,
       Value<String> userId,
+      Value<String?> nickName,
+      Value<String?> avatar,
       Value<int> role,
       Value<int> status,
       Value<int?> joinTime,
@@ -9733,6 +11378,16 @@ class $$GroupMembersTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
     column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nickName => $composableBuilder(
+    column: $table.nickName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get avatar => $composableBuilder(
+    column: $table.avatar,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9791,6 +11446,16 @@ class $$GroupMembersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get nickName => $composableBuilder(
+    column: $table.nickName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get avatar => $composableBuilder(
+    column: $table.avatar,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get role => $composableBuilder(
     column: $table.role,
     builder: (column) => ColumnOrderings(column),
@@ -9839,6 +11504,12 @@ class $$GroupMembersTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get nickName =>
+      $composableBuilder(column: $table.nickName, builder: (column) => column);
+
+  GeneratedColumn<String> get avatar =>
+      $composableBuilder(column: $table.avatar, builder: (column) => column);
 
   GeneratedColumn<int> get role =>
       $composableBuilder(column: $table.role, builder: (column) => column);
@@ -9893,6 +11564,8 @@ class $$GroupMembersTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> groupId = const Value.absent(),
                 Value<String> userId = const Value.absent(),
+                Value<String?> nickName = const Value.absent(),
+                Value<String?> avatar = const Value.absent(),
                 Value<int> role = const Value.absent(),
                 Value<int> status = const Value.absent(),
                 Value<int?> joinTime = const Value.absent(),
@@ -9903,6 +11576,8 @@ class $$GroupMembersTableTableManager
                 id: id,
                 groupId: groupId,
                 userId: userId,
+                nickName: nickName,
+                avatar: avatar,
                 role: role,
                 status: status,
                 joinTime: joinTime,
@@ -9915,6 +11590,8 @@ class $$GroupMembersTableTableManager
                 Value<int> id = const Value.absent(),
                 required String groupId,
                 required String userId,
+                Value<String?> nickName = const Value.absent(),
+                Value<String?> avatar = const Value.absent(),
                 Value<int> role = const Value.absent(),
                 Value<int> status = const Value.absent(),
                 Value<int?> joinTime = const Value.absent(),
@@ -9925,6 +11602,8 @@ class $$GroupMembersTableTableManager
                 id: id,
                 groupId: groupId,
                 userId: userId,
+                nickName: nickName,
+                avatar: avatar,
                 role: role,
                 status: status,
                 joinTime: joinTime,
@@ -10640,6 +12319,652 @@ typedef $$DatasyncTableProcessedTableManager =
       DatasyncData,
       PrefetchHooks Function()
     >;
+typedef $$EmojisTableCreateCompanionBuilder =
+    EmojisCompanion Function({
+      Value<int> id,
+      required String emojiId,
+      required String fileKey,
+      required String title,
+      Value<String?> emojiInfo,
+      Value<int> status,
+      Value<int> version,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+typedef $$EmojisTableUpdateCompanionBuilder =
+    EmojisCompanion Function({
+      Value<int> id,
+      Value<String> emojiId,
+      Value<String> fileKey,
+      Value<String> title,
+      Value<String?> emojiInfo,
+      Value<int> status,
+      Value<int> version,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+
+class $$EmojisTableFilterComposer
+    extends Composer<_$AppDatabase, $EmojisTable> {
+  $$EmojisTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emojiId => $composableBuilder(
+    column: $table.emojiId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileKey => $composableBuilder(
+    column: $table.fileKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emojiInfo => $composableBuilder(
+    column: $table.emojiInfo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$EmojisTableOrderingComposer
+    extends Composer<_$AppDatabase, $EmojisTable> {
+  $$EmojisTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emojiId => $composableBuilder(
+    column: $table.emojiId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileKey => $composableBuilder(
+    column: $table.fileKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emojiInfo => $composableBuilder(
+    column: $table.emojiInfo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EmojisTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EmojisTable> {
+  $$EmojisTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get emojiId =>
+      $composableBuilder(column: $table.emojiId, builder: (column) => column);
+
+  GeneratedColumn<String> get fileKey =>
+      $composableBuilder(column: $table.fileKey, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get emojiInfo =>
+      $composableBuilder(column: $table.emojiInfo, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$EmojisTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EmojisTable,
+          Emoji,
+          $$EmojisTableFilterComposer,
+          $$EmojisTableOrderingComposer,
+          $$EmojisTableAnnotationComposer,
+          $$EmojisTableCreateCompanionBuilder,
+          $$EmojisTableUpdateCompanionBuilder,
+          (Emoji, BaseReferences<_$AppDatabase, $EmojisTable, Emoji>),
+          Emoji,
+          PrefetchHooks Function()
+        > {
+  $$EmojisTableTableManager(_$AppDatabase db, $EmojisTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EmojisTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EmojisTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EmojisTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> emojiId = const Value.absent(),
+                Value<String> fileKey = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> emojiInfo = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => EmojisCompanion(
+                id: id,
+                emojiId: emojiId,
+                fileKey: fileKey,
+                title: title,
+                emojiInfo: emojiInfo,
+                status: status,
+                version: version,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String emojiId,
+                required String fileKey,
+                required String title,
+                Value<String?> emojiInfo = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => EmojisCompanion.insert(
+                id: id,
+                emojiId: emojiId,
+                fileKey: fileKey,
+                title: title,
+                emojiInfo: emojiInfo,
+                status: status,
+                version: version,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EmojisTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EmojisTable,
+      Emoji,
+      $$EmojisTableFilterComposer,
+      $$EmojisTableOrderingComposer,
+      $$EmojisTableAnnotationComposer,
+      $$EmojisTableCreateCompanionBuilder,
+      $$EmojisTableUpdateCompanionBuilder,
+      (Emoji, BaseReferences<_$AppDatabase, $EmojisTable, Emoji>),
+      Emoji,
+      PrefetchHooks Function()
+    >;
+typedef $$NotificationEventsTableCreateCompanionBuilder =
+    NotificationEventsCompanion Function({
+      Value<int> id,
+      required String eventId,
+      required String eventType,
+      required String category,
+      Value<int> version,
+      Value<String?> fromUserId,
+      Value<String?> targetId,
+      required String targetType,
+      Value<String?> payload,
+      Value<int> priority,
+      Value<int> status,
+      Value<String?> dedupHash,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+typedef $$NotificationEventsTableUpdateCompanionBuilder =
+    NotificationEventsCompanion Function({
+      Value<int> id,
+      Value<String> eventId,
+      Value<String> eventType,
+      Value<String> category,
+      Value<int> version,
+      Value<String?> fromUserId,
+      Value<String?> targetId,
+      Value<String> targetType,
+      Value<String?> payload,
+      Value<int> priority,
+      Value<int> status,
+      Value<String?> dedupHash,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+
+class $$NotificationEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationEventsTable> {
+  $$NotificationEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromUserId => $composableBuilder(
+    column: $table.fromUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dedupHash => $composableBuilder(
+    column: $table.dedupHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NotificationEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationEventsTable> {
+  $$NotificationEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventId => $composableBuilder(
+    column: $table.eventId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromUserId => $composableBuilder(
+    column: $table.fromUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get priority => $composableBuilder(
+    column: $table.priority,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dedupHash => $composableBuilder(
+    column: $table.dedupHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NotificationEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationEventsTable> {
+  $$NotificationEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get eventId =>
+      $composableBuilder(column: $table.eventId, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get fromUserId => $composableBuilder(
+    column: $table.fromUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+
+  GeneratedColumn<String> get targetType => $composableBuilder(
+    column: $table.targetType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get priority =>
+      $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get dedupHash =>
+      $composableBuilder(column: $table.dedupHash, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$NotificationEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NotificationEventsTable,
+          NotificationEvent,
+          $$NotificationEventsTableFilterComposer,
+          $$NotificationEventsTableOrderingComposer,
+          $$NotificationEventsTableAnnotationComposer,
+          $$NotificationEventsTableCreateCompanionBuilder,
+          $$NotificationEventsTableUpdateCompanionBuilder,
+          (
+            NotificationEvent,
+            BaseReferences<
+              _$AppDatabase,
+              $NotificationEventsTable,
+              NotificationEvent
+            >,
+          ),
+          NotificationEvent,
+          PrefetchHooks Function()
+        > {
+  $$NotificationEventsTableTableManager(
+    _$AppDatabase db,
+    $NotificationEventsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotificationEventsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> eventId = const Value.absent(),
+                Value<String> eventType = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<String?> fromUserId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+                Value<String> targetType = const Value.absent(),
+                Value<String?> payload = const Value.absent(),
+                Value<int> priority = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<String?> dedupHash = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => NotificationEventsCompanion(
+                id: id,
+                eventId: eventId,
+                eventType: eventType,
+                category: category,
+                version: version,
+                fromUserId: fromUserId,
+                targetId: targetId,
+                targetType: targetType,
+                payload: payload,
+                priority: priority,
+                status: status,
+                dedupHash: dedupHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String eventId,
+                required String eventType,
+                required String category,
+                Value<int> version = const Value.absent(),
+                Value<String?> fromUserId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+                required String targetType,
+                Value<String?> payload = const Value.absent(),
+                Value<int> priority = const Value.absent(),
+                Value<int> status = const Value.absent(),
+                Value<String?> dedupHash = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => NotificationEventsCompanion.insert(
+                id: id,
+                eventId: eventId,
+                eventType: eventType,
+                category: category,
+                version: version,
+                fromUserId: fromUserId,
+                targetId: targetId,
+                targetType: targetType,
+                payload: payload,
+                priority: priority,
+                status: status,
+                dedupHash: dedupHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NotificationEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NotificationEventsTable,
+      NotificationEvent,
+      $$NotificationEventsTableFilterComposer,
+      $$NotificationEventsTableOrderingComposer,
+      $$NotificationEventsTableAnnotationComposer,
+      $$NotificationEventsTableCreateCompanionBuilder,
+      $$NotificationEventsTableUpdateCompanionBuilder,
+      (
+        NotificationEvent,
+        BaseReferences<
+          _$AppDatabase,
+          $NotificationEventsTable,
+          NotificationEvent
+        >,
+      ),
+      NotificationEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10670,4 +12995,8 @@ class $AppDatabaseManager {
       $$GroupSyncStatusTableTableManager(_db, _db.groupSyncStatus);
   $$DatasyncTableTableManager get datasync =>
       $$DatasyncTableTableManager(_db, _db.datasync);
+  $$EmojisTableTableManager get emojis =>
+      $$EmojisTableTableManager(_db, _db.emojis);
+  $$NotificationEventsTableTableManager get notificationEvents =>
+      $$NotificationEventsTableTableManager(_db, _db.notificationEvents);
 }

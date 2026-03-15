@@ -1,19 +1,37 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/auth/bloc/auth_bloc.dart';
+import 'package:beaver/features/auth/bloc/auth_event.dart';
+import 'package:beaver/features/auth/bloc/auth_state.dart';
+import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/core/theme/colors.dart';
 import 'package:beaver/shared/widgets/beaver_layout.dart';
-import 'package:beaver/shared/widgets/beaver_header.dart';
+import 'package:beaver/router/router.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => AuthBloc(authRepository: getIt<AuthRepository>()),
+      child: const RegisterView(),
+    );
+  }
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
+
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -51,23 +69,34 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BeaverLayout(
-      showBackground: true,
-      showHeader: false, // 注册页 header 也是手写的特别样式，先关掉系统 header
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          children: [
-            SizedBox(height: 30.w),
-            _buildLogo(),
-            SizedBox(height: 24.w),
-            _buildTitleSection(),
-            SizedBox(height: 32.w),
-            _buildForm(),
-            SizedBox(height: 24.w),
-            _buildBottomLinks(),
-            SizedBox(height: 30.w),
-          ],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.authenticated) {
+          context.go(AppRoutes.home);
+        } else if (state.status == AuthStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage ?? '注册失败'), backgroundColor: const Color(0xFFFF7D45)),
+          );
+        }
+      },
+      child: BeaverLayout(
+        showBackground: true,
+        showHeader: false, 
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Column(
+            children: [
+              SizedBox(height: 30.w),
+              _buildLogo(),
+              SizedBox(height: 24.w),
+              _buildTitleSection(),
+              SizedBox(height: 32.w),
+              _buildForm(),
+              SizedBox(height: 24.w),
+              _buildBottomLinks(),
+              SizedBox(height: 30.w),
+            ],
+          ),
         ),
       ),
     );
@@ -145,7 +174,10 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildCodeButton() {
     final enabled = !_isCodeButtonDisabled && _validateEmail(_emailController.text);
     return GestureDetector(
-      onTap: enabled ? _startCountdown : null,
+      onTap: enabled ? () {
+        context.read<AuthBloc>().add(AuthGetCodeEvent(email: _emailController.text));
+        _startCountdown();
+      } : null,
       child: Container(height: 36.w, padding: EdgeInsets.symmetric(horizontal: 14.w), decoration: BoxDecoration(gradient: AppColors.primaryGradient, borderRadius: BorderRadius.circular(10.w), boxShadow: [BoxShadow(color: const Color(0xFFFF7D45).withOpacity(0.15), offset: const Offset(0, 2), blurRadius: 8)]), alignment: Alignment.center, child: Text(_isCodeButtonDisabled ? '${_countdown}s' : '获取验证码', style: TextStyle(color: Colors.white, fontSize: 13.w, fontWeight: FontWeight.w500))),
     );
   }
@@ -155,10 +187,19 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildRegisterBtn() {
-    final enabled = _isFormValid;
+    final isLoading = context.watch<AuthBloc>().state.status == AuthStatus.loading;
+    final enabled = _isFormValid && !isLoading;
     return GestureDetector(
-      onTap: enabled ? () {} : null,
-      child: Container(width: double.infinity, height: 48.w, decoration: BoxDecoration(gradient: enabled ? AppColors.primaryGradient : LinearGradient(colors: [const Color(0xFFFF7D45).withOpacity(0.3), const Color(0xFFE86835).withOpacity(0.3)]), borderRadius: BorderRadius.circular(14.w), boxShadow: enabled ? [BoxShadow(color: const Color(0xFFFF7D45).withOpacity(0.15), offset: Offset(0, 4.w), blurRadius: 12.w)] : null), alignment: Alignment.center, child: Text('注册', style: TextStyle(color: Colors.white, fontSize: 16.w, fontWeight: FontWeight.w600))),
+      onTap: enabled ? () {
+        context.read<AuthBloc>().add(AuthRegisterEvent(
+          email: _emailController.text,
+          password: _passwordController.text,
+          code: _codeController.text,
+        ));
+      } : null,
+      child: Container(width: double.infinity, height: 48.w, decoration: BoxDecoration(gradient: enabled ? AppColors.primaryGradient : LinearGradient(colors: [const Color(0xFFFF7D45).withOpacity(0.3), const Color(0xFFE86835).withOpacity(0.3)]), borderRadius: BorderRadius.circular(14.w), boxShadow: enabled ? [BoxShadow(color: const Color(0xFFFF7D45).withOpacity(0.15), offset: Offset(0, 4.w), blurRadius: 12.w)] : null), alignment: Alignment.center, child: isLoading 
+          ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+          : Text('注册', style: TextStyle(color: Colors.white, fontSize: 16.w, fontWeight: FontWeight.w600))),
     );
   }
 

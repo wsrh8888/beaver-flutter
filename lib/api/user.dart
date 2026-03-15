@@ -1,9 +1,8 @@
 import 'package:beaver/common/request/request.dart';
-import 'package:beaver/common/config/env.dart';
+import 'package:beaver/types/api/user.dart';
 
 /// 用户数据同步
-Future<BaseResponse<T>> userSyncApi<T>(Map<String, dynamic> data, T Function(dynamic) fromJsonT) {
-  final url = '$baseUrl/api/user/sync';
-  return httpClient.post<T>(url, data: data, fromJsonT: fromJsonT);
+Future<BaseResponse<IUserSyncRes>> userSyncApi(IUserSyncReq data) {
+  const url = '/api/user/sync';
+  return httpClient.post<IUserSyncRes>(url, data: data.toJson(), fromJsonT: (json) => IUserSyncRes.fromJson(json));
 }
-

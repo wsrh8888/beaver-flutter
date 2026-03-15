@@ -27,8 +27,7 @@ final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.login,
   redirect: (context, state) {
     final isLoggedInValue = isLoggedIn();
-    final currentPath = state.location;
-    
+    final currentPath = state.uri.path;
     // 如果已登录且在登录页，跳转到首页
     if (isLoggedInValue && currentPath == AppRoutes.login) {
       return AppRoutes.home;

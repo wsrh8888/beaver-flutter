@@ -1,8 +1,25 @@
-/// 应用级配置 (对标 desktop main/config：版本等；设备 ID 仍在请求层用 StorageUtil)
-class AppConfig {
-  static String _version = '1.0.0';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 
-  /// 应用版本 (请求头 version；可从 package_info_plus 读取后 set)
-  static String get version => _version;
-  static set version(String v) => _version = v;
+/// 应用级配置 (对标 desktop main/config)
+class AppConfig {
+  static String version = '1.0.0';
+  static const String source = 'beaver-flutter';
+  static String? _deviceId;
+
+  static String get deviceId => _deviceId ?? 'unknown';
+
+  static Future<void> init() async {
+    if (_deviceId != null) return;
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfo.androidInfo;
+      _deviceId = androidInfo.id;
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfo.iosInfo;
+      _deviceId = iosInfo.identifierForVendor;
+    } else {
+      _deviceId = 'flutter-unknown-device';
+    }
+  }
 }

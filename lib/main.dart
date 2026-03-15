@@ -5,11 +5,16 @@ import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 
+import 'package:beaver/common/config/config.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 初始化存储工具
   await StorageUtil.init();
+  
+  // 初始化设备信息（公参使用）
+  await AppConfig.init();
   
   // 配置依赖注入
   await configureDependencies();

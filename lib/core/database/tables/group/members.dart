@@ -5,6 +5,8 @@ class GroupMembers extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get groupId => text().named('group_id')();
   TextColumn get userId => text().named('user_id')();
+  TextColumn get nickName => text().named('nick_name').nullable()();
+  TextColumn get avatar => text().named('avatar').nullable()();
   IntColumn get role => integer().named('role').withDefault(const Constant(3))();
   IntColumn get status => integer().named('status').withDefault(const Constant(1))();
   IntColumn get joinTime => integer().named('join_time').nullable()();

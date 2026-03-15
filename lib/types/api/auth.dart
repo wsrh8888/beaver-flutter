@@ -104,6 +104,7 @@ class LogoutReq {
 
 /// 用户登出响应
 class LogoutRes {
+  LogoutRes();
   factory LogoutRes.fromJson(Map<String, dynamic> json) => LogoutRes();
 }
 
@@ -255,5 +256,35 @@ class ResetPasswordRes {
 
   factory ResetPasswordRes.fromJson(Map<String, dynamic> json) => ResetPasswordRes(
     message: json['message'] ?? '',
+  );
+}
+
+/// 邮箱注册请求
+class EmailRegisterReq {
+  final String email;
+  final String password;
+  final String code;
+
+  EmailRegisterReq({
+    required this.email,
+    required this.password,
+    required this.code,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'email': email,
+    'password': password,
+    'code': code,
+  };
+}
+
+/// 邮箱注册响应
+class EmailRegisterRes {
+  final String? message;
+
+  EmailRegisterRes({this.message});
+
+  factory EmailRegisterRes.fromJson(Map<String, dynamic> json) => EmailRegisterRes(
+    message: json['message'] as String?,
   );
 }

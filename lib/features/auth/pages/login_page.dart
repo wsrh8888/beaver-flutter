@@ -31,8 +31,8 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(text: '751135385@qq.com');
+  final _passwordController = TextEditingController(text: '15383645663.rH');
   bool _obscurePassword = true;
   bool _emailTouched = false;
   bool _passwordTouched = false;

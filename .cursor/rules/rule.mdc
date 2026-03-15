@@ -79,6 +79,11 @@ class BaseResponse<T> {
 - 严格遵循 Dart 语言规范和 Flutter 最佳实践。
 - 使用 `dart format` 保持代码格式化一致。
 
+### 依赖与版本规范
+- **包管理**: `pubspec.yaml` 中的所有依赖包必须保持最新稳定版本。更新依赖时优先使用 `fvm flutter pub upgrade --major-versions`。
+- **API 版本**: 所有 API 接口请求和数据结构定义必须对标 `beaver-desktop` 或服务端最新的定义，确保字段和逻辑的 1:1 同步。
+- **代码生成**: 在修改数据库表定义（Table）或 JSON 模型后，必须运行 `fvm flutter pub run build_runner build --delete-conflicting-outputs` 更新生成的代码（`.g.dart`）。
+
 ### 数据流说明
 
 #### 1. 启动流程
