@@ -27,15 +27,34 @@ lib/
 ├── di/               # 依赖注入
 ├── features/         # 功能模块
 │   ├── auth/         # 认证模块
+│   │   ├── login/    # 登录路由
+│   │   │   ├── bloc/      # 登录状态管理
+│   │   │   ├── data/      # 登录数据
+│   │   │   └── login_page.dart      # 登录页面
+│   │   └── register/ # 注册路由
+│   │       ├── bloc/      # 注册状态管理
+│   │       ├── data/      # 注册数据
+│   │       └── register_page.dart   # 注册页面
 │   ├── chat/         # 聊天模块
+│   │   ├── chat_list/    # 聊天列表路由
+│   │   └── chat_detail/  # 聊天详情路由
 │   ├── contact/      # 联系人模块
 │   ├── home/         # 首页模块
 │   ├── moment/       # 动态模块
 │   └── user/         # 用户模块
 ├── router/           # 路由配置
 └── shared/           # 共享组件和工具
+    ├── ui/           # UI组件库
+    │   ├── avatar/   # 头像组件
+    │   ├── button/   # 按钮组件
+    │   ├── dialog/   # 对话框组件
+    │   ├── header/   # 头部组件
+    │   ├── image/    # 图片组件
+    │   ├── layout/   # 布局组件
+    │   ├── menus/    # 菜单组件
+    │   └── toast/    # 提示组件
     ├── utils/        # 通用工具
-    └── widgets/      # 通用组件
+    └── widgets/      # 业务组件
 ```
 
 ### 文件命名规范

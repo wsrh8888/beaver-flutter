@@ -1,0 +1,48 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/features/groupList/group_list_page/bloc/event.dart';
+import 'package:beaver/features/groupList/group_list_page/bloc/state.dart';
+import 'package:beaver/features/groupList/group_list_page/data/repositories/repository.dart';
+
+class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
+  final GroupListRepository _repository;
+
+  GroupListBloc(this._repository) : super(const GroupListState()) {
+    on<LoadGroupListEvent>(_onLoadGroupList);
+    on<SelectGroupEvent>(_onSelectGroup);
+    on<CreateGroupEvent>(_onCreateGroup);
+  }
+
+  Future<void> _onLoadGroupList(
+    LoadGroupListEvent event,
+    Emitter<GroupListState> emit,
+  ) async {
+    emit(state.copyWith(status: GroupListStatus.loading));
+
+    try {
+      final groupList = await _repository.getGroupList();
+      emit(state.copyWith(
+        status: GroupListStatus.success,
+        groupList: groupList,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: GroupListStatus.error,
+        errorMessage: '加载群聊列表失败: $e',
+      ));
+    }
+  }
+
+  Future<void> _onSelectGroup(
+    SelectGroupEvent event,
+    Emitter<GroupListState> emit,
+  ) async {
+    // 导航到群聊页面
+  }
+
+  Future<void> _onCreateGroup(
+    CreateGroupEvent event,
+    Emitter<GroupListState> emit,
+  ) async {
+    // 导航到创建群聊页面
+  }
+}
