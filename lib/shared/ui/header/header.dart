@@ -42,10 +42,10 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           // 状态栏
           SizedBox(height: MediaQuery.of(context).padding.top),
-          // Header 内容 (88rpx -> 44.w)
+          // Header 内容 (44px)
           Container(
             height: 44.w,
-            padding: EdgeInsets.symmetric(horizontal: 15.w), // 30rpx
+            padding: EdgeInsets.symmetric(horizontal: 15.w),
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -59,7 +59,7 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
                   Text(
                     title!,
                     style: TextStyle(
-                      fontSize: 18.w, // 36rpx
+                      fontSize: 18.w,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF333333),
                     ),
@@ -84,7 +84,7 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
         onTap: onBack ?? () => Navigator.maybePop(context),
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
-          width: 20.w, // 40rpx
+          width: 20.w,
           height: 20.w,
           child: SvgPicture.asset(leftIcon, fit: BoxFit.contain),
         ),

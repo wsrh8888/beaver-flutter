@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/guide/main/bloc/bloc.dart';
-import 'package:beaver/features/guide/main/bloc/event.dart';
-import 'package:beaver/features/guide/main/bloc/state.dart';
-import 'package:beaver/features/guide/main/data/repositories/repository.dart';
+import 'package:beaver/features/guide/guide_page/bloc/bloc.dart';
+import 'package:beaver/features/guide/guide_page/bloc/event.dart';
+import 'package:beaver/features/guide/guide_page/bloc/state.dart';
+import 'package:beaver/features/guide/guide_page/data/repositories/repository.dart';
 
 class GuidePage extends StatefulWidget {
   const GuidePage({super.key});
@@ -130,4 +130,3 @@ class _GuidePageState extends State<GuidePage> {
     );
   }
 }
-

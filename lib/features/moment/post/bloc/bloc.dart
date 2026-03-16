@@ -28,7 +28,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
   ) async {
     if (state.mediaList.length >= 9) {
       emit(state.copyWith(
-        errorMessage: '最多只能上�?张图�?,
+        errorMessage: '最多只能上传9张图片',
       ));
       return;
     }
@@ -92,4 +92,3 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     }
   }
 }
-

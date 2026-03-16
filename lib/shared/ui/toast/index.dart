@@ -7,7 +7,7 @@ class BeaverToast {
     {
       Duration duration = const Duration(seconds: 2),
       ToastType type = ToastType.info,
-    },
+    }
   ) {
     final overlay = Overlay.of(context);
     final entry = OverlayEntry(

@@ -1,4 +1,4 @@
-import 'package:go_router/go_router.dart';
+﻿import 'package:go_router/go_router.dart';
 import 'package:beaver/features/contact/list/list.dart';
 
 
@@ -16,6 +16,4 @@ List<GoRoute> contactRoutes = [
   ),
   // 可以在这里添加更多联系人相关路由
 ];
-
-
 

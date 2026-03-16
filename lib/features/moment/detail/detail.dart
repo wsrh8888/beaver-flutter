@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/moment/detail/bloc/bloc.dart';
@@ -8,14 +8,14 @@ import 'package:beaver/features/moment/detail/data/repositories/repository.dart'
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 
-class MomentPage extends StatefulWidget {
+class MomentDetailPage extends StatefulWidget {
   const MomentPage({super.key});
 
   @override
-  State<MomentPage> createState() => _MomentPageState();
+  State<MomentDetailPage> createState() => _MomentDetailPageState();
 }
 
-class _MomentPageState extends State<MomentPage> {
+class _MomentDetailPageState extends State<MomentDetailPage> {
   late MomentBloc _momentBloc;
 
   @override
@@ -64,7 +64,7 @@ class _MomentPageState extends State<MomentPage> {
         },
         builder: (context, state) {
           return BeaverLayout(
-            title: '朋友�?,
+            title: '朋友�?,
             showBack: false,
             showBackground: true,
             backgroundType: 'gradient',
@@ -72,7 +72,7 @@ class _MomentPageState extends State<MomentPage> {
             isScrollable: true,
             child: Stack(
               children: [
-                // 朋友圈列�?
+                // 朋友圈列�?
                 Container(
                   padding: EdgeInsets.all(16.w),
                   child: ListView.builder(
@@ -258,7 +258,7 @@ class _MomentPageState extends State<MomentPage> {
                         final index = entry.key;
                         final like = entry.value;
                         return Text(
-                          like.userName + (index < moment.likes.length - 1 ? '�? : ''),
+                          like.userName + (index < moment.likes.length - 1 ? '�? : ''),
                           style: TextStyle(
                             fontSize: 14.w,
                             color: const Color(0xFF2D3436),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/discover/main/bloc/bloc.dart';
-import 'package:beaver/features/discover/main/bloc/event.dart';
-import 'package:beaver/features/discover/main/bloc/state.dart';
-import 'package:beaver/features/discover/main/data/repositories/repository.dart';
+import 'package:beaver/features/discover/discover_page/bloc/bloc.dart';
+import 'package:beaver/features/discover/discover_page/bloc/event.dart';
+import 'package:beaver/features/discover/discover_page/bloc/state.dart';
+import 'package:beaver/features/discover/discover_page/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
 class DiscoverPage extends StatefulWidget {
@@ -150,4 +150,3 @@ class _DiscoverPageState extends State<DiscoverPage> {
     }
   }
 }
-

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/core/theme/colors.dart';
-import 'package:beaver/shared/widgets/beaver_header.dart';
+import 'package:beaver/shared/ui/header/header.dart';
 
 class BeaverLayout extends StatelessWidget {
   final bool showHeader;
@@ -12,11 +12,13 @@ class BeaverLayout extends StatelessWidget {
   final bool showBackground;
   final double backgroundHeight;
   final Widget child;
-  final bool isScrollable;
   final Widget? before;
   final Widget? after;
   final double beforeHeight;
   final double afterHeight;
+  final bool isScrollable;
+  final Widget? rightSlot;
+  final VoidCallback? onBack;
 
   const BeaverLayout({
     super.key,
@@ -26,13 +28,15 @@ class BeaverLayout extends StatelessWidget {
     this.showBack = true,
     this.headerBackground = Colors.transparent,
     this.showBackground = false,
-    this.backgroundHeight = 120, // 240rpx -> 120.w
+    this.backgroundHeight = 120, // 240rpx -> 120px
     required this.child,
     this.isScrollable = true,
     this.before,
     this.after,
     this.beforeHeight = 0,
     this.afterHeight = 0,
+    this.rightSlot,
+    this.onBack,
   });
 
   @override
@@ -66,6 +70,8 @@ class BeaverLayout extends StatelessWidget {
                   title: title,
                   showBack: showBack,
                   background: headerBackground,
+                  rightSlot: rightSlot,
+                  onBack: onBack,
                 ),
               
               // 3. Before Content

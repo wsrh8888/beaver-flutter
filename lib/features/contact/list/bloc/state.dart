@@ -16,13 +16,13 @@ class ContactListState {
     this.groupedContacts = const {},
     this.indexList = const [],
     this.errorMessage,
-    this.currentIndex = 'â†?,
+    this.currentIndex = '',
   });
 
   ContactListState copyWith({
     ContactListStatus? status,
     List<ContactModel>? contacts,
-    Map<String, List<ContactModel>>? groupedContacts,
+    Map<String, List<ContactModel>>? groupedContacts, 
     List<String>? indexList,
     String? errorMessage,
     String? currentIndex,
@@ -37,4 +37,3 @@ class ContactListState {
     );
   }
 }
-

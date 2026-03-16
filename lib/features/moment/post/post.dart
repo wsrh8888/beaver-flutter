@@ -31,17 +31,13 @@ class _PostMomentPageState extends State<PostMomentPage> {
     super.dispose();
   }
 
-  void _goBack() {
-    Navigator.of(context).pop();
-  }
-
   void _handlePost() {
     _postMomentBloc.add(PostMomentSubmitEvent());
   }
 
   void _chooseImage() {
     // 模拟选择图片
-    _postMomentBloc.add(AddImageEvent('https://neeko-copilot.bytedance.net/api/text2image?prompt=new%20image&size=512x512'));
+    _postMomentBloc.add(AddImageEvent('https://placeholder.co/512?text=New+Img'));
   }
 
   void _removeImage(int index) {
@@ -73,13 +69,12 @@ class _PostMomentPageState extends State<PostMomentPage> {
         },
         builder: (context, state) {
           return BeaverLayout(
-            title: '发布朋友�?,
+            title: '发布朋友圈',
             showBack: true,
-            showBackground: true,
-            backgroundType: 'gradient',
+            showBackground: false,
             backgroundHeight: 120.w,
             isScrollable: true,
-            rightAction: GestureDetector(
+            rightSlot: GestureDetector(
               onTap: state.canPost ? _handlePost : null,
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
@@ -117,7 +112,7 @@ class _PostMomentPageState extends State<PostMomentPage> {
                       maxLength: 1000,
                       decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: '分享此刻的想�?..',
+                        hintText: '分享此刻的想法...',
                         hintStyle: TextStyle(
                           fontSize: 16.w,
                           color: const Color(0xFFB2BEC3),
@@ -131,7 +126,7 @@ class _PostMomentPageState extends State<PostMomentPage> {
                       ),
                     ),
                   ),
-                  // 字数计数�?
+                  // 字数计数器
                   Container(
                     alignment: Alignment.centerRight,
                     margin: EdgeInsets.only(bottom: 24.w),
@@ -238,4 +233,3 @@ class _PostMomentPageState extends State<PostMomentPage> {
     );
   }
 }
-

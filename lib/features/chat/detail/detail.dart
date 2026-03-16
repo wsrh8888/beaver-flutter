@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/chat/detail/bloc/bloc.dart';
@@ -184,4 +184,3 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
-

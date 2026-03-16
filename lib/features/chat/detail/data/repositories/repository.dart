@@ -1,4 +1,4 @@
-import 'package:beaver/core/database/database.dart';
+﻿import 'package:beaver/core/database/database.dart';
 import 'package:beaver/features/chat/detail/data/models/message.dart';
 
 class ChatRepository {
@@ -49,7 +49,7 @@ class ChatRepository {
   }
 
   Future<Conversation?> getConversation(String conversationId) async {
-    return await _database.select(_database.conversations)
+    return await _database.select(_database.chatConversations)
         .where((c) => c.id.equals(conversationId))
         .getSingleOrNull();
   }

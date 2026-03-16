@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/setting/main/bloc/bloc.dart';
-import 'package:beaver/features/setting/main/bloc/event.dart';
-import 'package:beaver/features/setting/main/bloc/state.dart';
-import 'package:beaver/features/setting/main/data/repositories/repository.dart';
+import 'package:beaver/features/setting/setting_page/bloc/bloc.dart';
+import 'package:beaver/features/setting/setting_page/bloc/event.dart';
+import 'package:beaver/features/setting/setting_page/bloc/state.dart';
+import 'package:beaver/features/setting/setting_page/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/button/button.dart';
 import 'package:beaver/shared/ui/dialog/dialog.dart';
 import 'package:beaver/shared/ui/header/header.dart';
@@ -38,7 +38,7 @@ class _SettingPageState extends State<SettingPage> {
   void _handleClickItem(int id) {
     switch (id) {
       case 1:
-        // 账号与安�?
+        // 账号与安全
         break;
       case 2:
         // 隐私政策
@@ -47,7 +47,7 @@ class _SettingPageState extends State<SettingPage> {
         // 用户协议
         break;
       case 4:
-        // 检查更�?
+        // 检查更新
         break;
       case 5:
         // 主题设置
@@ -59,7 +59,7 @@ class _SettingPageState extends State<SettingPage> {
     _settingBloc.add(LogoutEvent());
     // 显示成功提示
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已退出登�?)),
+      const SnackBar(content: Text('已退出登录')),
     );
     // 延迟跳转
     Future.delayed(const Duration(seconds: 1), () {
@@ -102,9 +102,9 @@ class _SettingPageState extends State<SettingPage> {
                       margin: EdgeInsets.symmetric(horizontal: (MediaQuery.of(context).size.width - 375.w) / 2),
                       child: Column(
                         children: [
-                          // 账号与安全设�?
+                          // 账号与安全设置
                           _buildSettingCard([
-                            _buildSettingItem(1, '账号与安�?),
+                            _buildSettingItem(1, '账号与安全'),
                           ]),
                           SizedBox(height: 24.w),
                           // 主题设置
@@ -112,14 +112,14 @@ class _SettingPageState extends State<SettingPage> {
                             _buildSettingItem(5, '主题设置'),
                           ]),
                           SizedBox(height: 24.w),
-                          // 关于与支�?
+                          // 关于与支持
                           _buildSettingCard([
                             _buildSettingItem(2, '隐私政策'),
                             _buildSettingItem(3, '用户协议'),
-                            _buildSettingItem(4, '检查更�?),
+                            _buildSettingItem(4, '检查更新'),
                           ]),
                           SizedBox(height: 40.w),
-                          // 退出登录按�?
+                          // 退出登录按钮
                           GestureDetector(
                             onTap: () => _settingBloc.add(ShowLogoutDialogEvent()),
                             child: Container(
@@ -138,7 +138,7 @@ class _SettingPageState extends State<SettingPage> {
                               ),
                               alignment: Alignment.center,
                               child: Text(
-                                '退出登�?,
+                                '退出登录',
                                 style: TextStyle(
                                   fontSize: 16.w,
                                   fontWeight: FontWeight.w600,
@@ -155,11 +155,11 @@ class _SettingPageState extends State<SettingPage> {
                 // 退出登录对话框
                 if (state.showLogoutDialog)
                   BeaverDialog(
-                    title: '确认退出登�?,
-                    content: '退出后需要重新登录才能使�?Beaver ，确定要退出吗�?,
+                    title: '确认退出登录',
+                    content: '退出后需要重新登录才能使用 Beaver ，确定要退出吗？',
                     type: 'warning',
                     size: 'medium',
-                    confirmText: '确认退�?,
+                    confirmText: '确认退出',
                     cancelText: '取消',
                     onConfirm: _handleLogout,
                     onCancel: () => _settingBloc.add(HideLogoutDialogEvent()),
@@ -226,4 +226,3 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 }
-

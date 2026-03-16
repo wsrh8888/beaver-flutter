@@ -9,7 +9,7 @@ class BeaverApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      // 基于 375x812 的主流 iPhone 设计稿 (1px = 1 logical pixel)
+      // 基于 375x812 的主流设计稿 (1.w = 1 logical pixel)
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,

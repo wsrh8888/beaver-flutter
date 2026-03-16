@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+﻿// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'app_database.dart';
 
@@ -2118,8 +2118,8 @@ class ChatConversation extends DataClass
     return map;
   }
 
-  ChatConversationsCompanion toCompanion(bool nullToAbsent) {
-    return ChatConversationsCompanion(
+  ChatChatConversationsCompanion toCompanion(bool nullToAbsent) {
+    return ChatChatConversationsCompanion(
       id: Value(id),
       conversationId: Value(conversationId),
       type: Value(type),
@@ -2201,7 +2201,7 @@ class ChatConversation extends DataClass
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
-  ChatConversation copyWithCompanion(ChatConversationsCompanion data) {
+  ChatConversation copyWithCompanion(ChatChatConversationsCompanion data) {
     return ChatConversation(
       id: data.id.present ? data.id.value : this.id,
       conversationId: data.conversationId.present
@@ -2266,7 +2266,7 @@ class ChatConversation extends DataClass
           other.updatedAt == this.updatedAt);
 }
 
-class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
+class ChatChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
   final Value<int> id;
   final Value<String> conversationId;
   final Value<int> type;
@@ -2277,7 +2277,7 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
   final Value<int> version;
   final Value<int?> createdAt;
   final Value<int?> updatedAt;
-  const ChatConversationsCompanion({
+  const ChatChatConversationsCompanion({
     this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
     this.type = const Value.absent(),
@@ -2289,7 +2289,7 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  ChatConversationsCompanion.insert({
+  ChatChatConversationsCompanion.insert({
     this.id = const Value.absent(),
     required String conversationId,
     required int type,
@@ -2328,7 +2328,7 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     });
   }
 
-  ChatConversationsCompanion copyWith({
+  ChatChatConversationsCompanion copyWith({
     Value<int>? id,
     Value<String>? conversationId,
     Value<int>? type,
@@ -2340,7 +2340,7 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
     Value<int?>? createdAt,
     Value<int?>? updatedAt,
   }) {
-    return ChatConversationsCompanion(
+    return ChatChatConversationsCompanion(
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
       type: type ?? this.type,
@@ -2392,7 +2392,7 @@ class ChatConversationsCompanion extends UpdateCompanion<ChatConversation> {
 
   @override
   String toString() {
-    return (StringBuffer('ChatConversationsCompanion(')
+    return (StringBuffer('ChatChatConversationsCompanion(')
           ..write('id: $id, ')
           ..write('conversationId: $conversationId, ')
           ..write('type: $type, ')
@@ -2723,8 +2723,8 @@ class ChatUserConversation extends DataClass
     return map;
   }
 
-  ChatUserConversationsCompanion toCompanion(bool nullToAbsent) {
-    return ChatUserConversationsCompanion(
+  ChatUserChatConversationsCompanion toCompanion(bool nullToAbsent) {
+    return ChatUserChatConversationsCompanion(
       id: Value(id),
       userId: Value(userId),
       conversationId: Value(conversationId),
@@ -2800,7 +2800,7 @@ class ChatUserConversation extends DataClass
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
     updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
   );
-  ChatUserConversation copyWithCompanion(ChatUserConversationsCompanion data) {
+  ChatUserConversation copyWithCompanion(ChatUserChatConversationsCompanion data) {
     return ChatUserConversation(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
@@ -2865,7 +2865,7 @@ class ChatUserConversation extends DataClass
           other.updatedAt == this.updatedAt);
 }
 
-class ChatUserConversationsCompanion
+class ChatUserChatConversationsCompanion
     extends UpdateCompanion<ChatUserConversation> {
   final Value<int> id;
   final Value<String> userId;
@@ -2877,7 +2877,7 @@ class ChatUserConversationsCompanion
   final Value<int> version;
   final Value<int?> createdAt;
   final Value<int?> updatedAt;
-  const ChatUserConversationsCompanion({
+  const ChatUserChatConversationsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.conversationId = const Value.absent(),
@@ -2889,7 +2889,7 @@ class ChatUserConversationsCompanion
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
-  ChatUserConversationsCompanion.insert({
+  ChatUserChatConversationsCompanion.insert({
     this.id = const Value.absent(),
     required String userId,
     required String conversationId,
@@ -2928,7 +2928,7 @@ class ChatUserConversationsCompanion
     });
   }
 
-  ChatUserConversationsCompanion copyWith({
+  ChatUserChatConversationsCompanion copyWith({
     Value<int>? id,
     Value<String>? userId,
     Value<String>? conversationId,
@@ -2940,7 +2940,7 @@ class ChatUserConversationsCompanion
     Value<int?>? createdAt,
     Value<int?>? updatedAt,
   }) {
-    return ChatUserConversationsCompanion(
+    return ChatUserChatConversationsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
       conversationId: conversationId ?? this.conversationId,
@@ -2992,7 +2992,7 @@ class ChatUserConversationsCompanion
 
   @override
   String toString() {
-    return (StringBuffer('ChatUserConversationsCompanion(')
+    return (StringBuffer('ChatUserChatConversationsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('conversationId: $conversationId, ')
@@ -9547,7 +9547,7 @@ typedef $$ChatsTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$ChatConversationsTableCreateCompanionBuilder =
-    ChatConversationsCompanion Function({
+    ChatChatConversationsCompanion Function({
       Value<int> id,
       required String conversationId,
       required int type,
@@ -9560,7 +9560,7 @@ typedef $$ChatConversationsTableCreateCompanionBuilder =
       Value<int?> updatedAt,
     });
 typedef $$ChatConversationsTableUpdateCompanionBuilder =
-    ChatConversationsCompanion Function({
+    ChatChatConversationsCompanion Function({
       Value<int> id,
       Value<String> conversationId,
       Value<int> type,
@@ -9787,7 +9787,7 @@ class $$ChatConversationsTableTableManager
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
-              }) => ChatConversationsCompanion(
+              }) => ChatChatConversationsCompanion(
                 id: id,
                 conversationId: conversationId,
                 type: type,
@@ -9811,7 +9811,7 @@ class $$ChatConversationsTableTableManager
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
-              }) => ChatConversationsCompanion.insert(
+              }) => ChatChatConversationsCompanion.insert(
                 id: id,
                 conversationId: conversationId,
                 type: type,
@@ -9853,7 +9853,7 @@ typedef $$ChatConversationsTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$ChatUserConversationsTableCreateCompanionBuilder =
-    ChatUserConversationsCompanion Function({
+    ChatUserChatConversationsCompanion Function({
       Value<int> id,
       required String userId,
       required String conversationId,
@@ -9866,7 +9866,7 @@ typedef $$ChatUserConversationsTableCreateCompanionBuilder =
       Value<int?> updatedAt,
     });
 typedef $$ChatUserConversationsTableUpdateCompanionBuilder =
-    ChatUserConversationsCompanion Function({
+    ChatUserChatConversationsCompanion Function({
       Value<int> id,
       Value<String> userId,
       Value<String> conversationId,
@@ -10099,7 +10099,7 @@ class $$ChatUserConversationsTableTableManager
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
-              }) => ChatUserConversationsCompanion(
+              }) => ChatUserChatConversationsCompanion(
                 id: id,
                 userId: userId,
                 conversationId: conversationId,
@@ -10123,7 +10123,7 @@ class $$ChatUserConversationsTableTableManager
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
-              }) => ChatUserConversationsCompanion.insert(
+              }) => ChatUserChatConversationsCompanion.insert(
                 id: id,
                 userId: userId,
                 conversationId: conversationId,

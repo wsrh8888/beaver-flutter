@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+﻿import 'package:drift/drift.dart';
 import 'package:beaver/core/database/app_database.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/chat.dart';
@@ -12,7 +12,7 @@ class ChatService extends BaseService {
       for (final conv in conversations) {
         batch.insert(
           db.chatConversations,
-          ChatConversationsCompanion(
+          ChatChatConversationsCompanion(
             conversationId: Value(conv.conversationId),
             type: Value(conv.conversationType),
             title: Value(conv.title),
@@ -31,7 +31,7 @@ class ChatService extends BaseService {
       for (final uc in settings) {
         batch.insert(
           db.chatUserConversations,
-          ChatUserConversationsCompanion(
+          ChatUserChatConversationsCompanion(
             userId: Value(uc.userId),
             conversationId: Value(uc.conversationId),
             isHidden: Value(uc.isHidden ? 1 : 0),

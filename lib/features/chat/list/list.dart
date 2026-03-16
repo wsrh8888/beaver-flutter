@@ -10,6 +10,7 @@ import 'package:beaver/features/chat/list/bloc/state.dart';
 import 'package:beaver/features/chat/list/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/core/database/database.dart';
 
 class ChatListPage extends StatelessWidget {
@@ -36,173 +37,113 @@ class ChatListView extends StatefulWidget {
 class _ChatListViewState extends State<ChatListView> {
   bool _showDropdown = false;
 
-  final List<Map<String, dynamic>> _homeMenus = [
-    {'id': 1, 'title': '添加好友', 'icon': 'assets/icons/add-friend-icon.svg'},
-    {'id': 2, 'title': '创建群聊', 'icon': 'assets/icons/group-icon.svg'},
-    {'id': 3, 'title': '扫一�?, 'icon': 'assets/icons/scan-icon.svg'},
-  ];
-
-  void _handleMenuClick(int id) {
-    setState(() => _showDropdown = false);
-
-    switch (id) {
-      case 1:
-        context.push('/search-friend');
-        break;
-      case 2:
-        context.push('/create-group');
-        break;
-      case 3:
-        _scanCode();
-        break;
-    }
-  }
-
-  void _scanCode() {
-    // 实现扫码功能
-    BeaverToast.show('扫码功能开发中...');
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                // 顶部导航�?
-                _buildHeader(),
-                // 内容区域
-                Expanded(
-                  child: BlocBuilder<ChatListBloc, ChatListState>(
-                    builder: (context, state) {
-                      if (state.status == ChatListStatus.loading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (state.status == ChatListStatus.error) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                state.errorMessage ?? '加载失败',
-                                style: TextStyle(
-                                  fontSize: 28.w,
-                                  color: const Color(0xFF636E72),
-                                ),
-                              ),
-                              SizedBox(height: 20.w),
-                              GestureDetector(
-                                onTap: () {
-                                  context.read<ChatListBloc>().add(const LoadChatListEvent());
-                                },
-                                child: Text(
-                                  '点击重试',
-                                  style: TextStyle(
-                                    fontSize: 28.w,
-                                    color: const Color(0xFFFF7D45),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return CustomScrollView(
-                        slivers: [
-                          // 置顶会话
-                          if (state.pinnedChats.isNotEmpty) ...[
-                            _buildSectionHeader('置顶会话'),
-                            _buildPinnedList(state.pinnedChats),
-                          ],
-                          // 普通消�?
-                          _buildSectionHeader('消息'),
-                          _buildRegularList(state.chats),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
+    return BeaverLayout(
+      title: '消息',
+      showHeader: true,
+      showBack: false,
+      isScrollable: false,
+      rightSlot: GestureDetector(
+        onTap: () => setState(() => _showDropdown = !_showDropdown),
+        child: Container(
+          width: 24.w,
+          height: 24.w,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF7D45),
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icons/plus-icon.svg',
+              width: 12.w,
+              height: 12.w,
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
-            // 下拉菜单
-            if (_showDropdown) ...[
-              _buildDropdown(),
-              _buildMask(),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      height: 112.w,
-      padding: EdgeInsets.symmetric(horizontal: 32.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.withOpacity(0.1),
-            width: 1.w,
           ),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
         children: [
-          Text(
-            '消息',
-            style: TextStyle(
-              fontSize: 40.w,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF2D3436),
-            ),
+          BlocBuilder<ChatListBloc, ChatListState>(
+            builder: (context, state) {
+              if (state.status == ChatListStatus.loading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state.status == ChatListStatus.error) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        state.errorMessage ?? '加载失败',
+                        style: TextStyle(
+                          fontSize: 14.w,
+                          color: const Color(0xFF636E72),
+                        ),
+                      ),
+                      SizedBox(height: 10.w),
+                      GestureDetector(
+                        onTap: () {
+                          context.read<ChatListBloc>().add(const LoadChatListEvent());
+                        },
+                        child: Text(
+                          '点击重试',
+                          style: TextStyle(
+                            fontSize: 14.w,
+                            color: const Color(0xFFFF7D45),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return CustomScrollView(
+                slivers: [
+                  // 置顶会话
+                  if (state.pinnedChats.isNotEmpty) ...[
+                    _buildSectionHeader('置顶会话'),
+                    _buildPinnedList(state.pinnedChats),
+                  ],
+                  // 普通消息
+                  _buildSectionHeader('消息'),
+                  _buildRegularList(state.chats),
+                ],
+              );
+            },
           ),
-          GestureDetector(
-            onTap: () => setState(() => _showDropdown = !_showDropdown),
-            child: Container(
-              width: 48.w,
-              height: 48.w,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF7D45),
-                borderRadius: BorderRadius.circular(24.w),
-              ),
-              child: SvgPicture.asset(
-                'assets/icons/plus-icon.svg',
-                width: 24.w,
-                height: 24.w,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
-                ),
-              ),
-            ),
-          ),
+          // 下拉菜单
+          if (_showDropdown) ...[
+            _buildDropdown(),
+            _buildMask(),
+          ],
         ],
       ),
     );
   }
 
+
   Widget _buildDropdown() {
     return Positioned(
-      top: 120.w,
-      right: 32.w,
+      top: 60.w,
+      right: 16.w,
       child: Container(
-        width: 320.w,
+        width: 160.w,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(24.w),
+          borderRadius: BorderRadius.circular(12.w),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
-              offset: Offset(0, 4.w),
-              blurRadius: 24.w,
+              offset: Offset(0, 2.w),
+              blurRadius: 12.w,
             ),
           ],
         ),
@@ -211,15 +152,15 @@ class _ChatListViewState extends State<ChatListView> {
             return GestureDetector(
               onTap: () => _handleMenuClick(menu['id'] as int),
               child: Container(
-                height: 88.w,
-                padding: EdgeInsets.symmetric(horizontal: 32.w),
+                height: 44.w,
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
                       color: menu['id'] != _homeMenus.last['id']
                           ? Colors.grey.withOpacity(0.1)
                           : Colors.transparent,
-                      width: 1.w,
+                      width: 0.5.w,
                     ),
                   ),
                 ),
@@ -227,18 +168,18 @@ class _ChatListViewState extends State<ChatListView> {
                   children: [
                     SvgPicture.asset(
                       menu['icon'] as String,
-                      width: 48.w,
-                      height: 48.w,
+                      width: 24.w,
+                      height: 24.w,
                       colorFilter: const ColorFilter.mode(
                         Color(0xFFFF7D45),
                         BlendMode.srcIn,
                       ),
                     ),
-                    SizedBox(width: 24.w),
+                    SizedBox(width: 12.w),
                     Text(
                       menu['title'] as String,
                       style: TextStyle(
-                        fontSize: 28.w,
+                        fontSize: 14.w,
                         fontWeight: FontWeight.w500,
                         color: const Color(0xFF2D3436),
                       ),
@@ -267,11 +208,11 @@ class _ChatListViewState extends State<ChatListView> {
   Widget _buildSectionHeader(String title) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(32.w, 24.w, 32.w, 12.w),
+        padding: EdgeInsets.fromLTRB(16.w, 12.w, 16.w, 6.w),
         child: Text(
           title,
           style: TextStyle(
-            fontSize: 28.w,
+            fontSize: 14.w,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF636E72),
           ),
@@ -283,27 +224,27 @@ class _ChatListViewState extends State<ChatListView> {
   Widget _buildPinnedList(List<dynamic> pinnedChats) {
     return SliverToBoxAdapter(
       child: SizedBox(
-        height: 120.w,
+        height: 60.w,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.symmetric(horizontal: 32.w),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           itemCount: pinnedChats.length,
           itemBuilder: (context, index) {
             final chat = pinnedChats[index];
             return GestureDetector(
               onTap: () => _handleChatClick(chat),
               child: Container(
-                width: 400.w,
-                margin: EdgeInsets.only(right: 20.w),
-                padding: EdgeInsets.all(16.w),
+                width: 200.w,
+                margin: EdgeInsets.only(right: 10.w),
+                padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(20.w),
+                  borderRadius: BorderRadius.circular(10.w),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.03),
-                      offset: Offset(0, 2.w),
-                      blurRadius: 6.w,
+                      offset: Offset(0, 1.w),
+                      blurRadius: 3.w,
                     ),
                   ],
                 ),
@@ -312,9 +253,9 @@ class _ChatListViewState extends State<ChatListView> {
                     BeaverAvatar(
                       url: chat.avatar,
                       name: chat.nickname,
-                      size: 64.w,
+                      size: 32.w,
                     ),
-                    SizedBox(width: 16.w),
+                    SizedBox(width: 8.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,18 +264,18 @@ class _ChatListViewState extends State<ChatListView> {
                           Text(
                             chat.nickname,
                             style: TextStyle(
-                              fontSize: 24.w,
+                              fontSize: 12.w,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF2D3436),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          SizedBox(height: 4.w),
+                          SizedBox(height: 2.w),
                           Text(
                             chat.msgPreview,
                             style: TextStyle(
-                              fontSize: 20.w,
+                              fontSize: 10.w,
                               color: const Color(0xFF636E72),
                             ),
                             maxLines: 1,
@@ -363,13 +304,13 @@ class _ChatListViewState extends State<ChatListView> {
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 32.w),
+              padding: EdgeInsets.only(right: 16.w),
               color: const Color(0xFFFF5252),
               child: Text(
                 '删除',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 28.w,
+                  fontSize: 14.w,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -379,7 +320,7 @@ class _ChatListViewState extends State<ChatListView> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('提示'),
-                  content: const Text('确定删除该会话吗�?),
+                  content: const Text('确定删除该会话吗？'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
@@ -397,17 +338,17 @@ class _ChatListViewState extends State<ChatListView> {
               context.read<ChatListBloc>().add(
                 DeleteChatEvent(conversationId: chat.conversationId),
               );
-              BeaverToast.show('已删�?);
+              BeaverToast.show(context, '已删除');
             },
             child: GestureDetector(
               onTap: () => _handleChatClick(chat),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 24.w),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
                       color: const Color(0xFFEBEEF5),
-                      width: 1.w,
+                      width: 0.5.w,
                     ),
                   ),
                 ),
@@ -416,9 +357,9 @@ class _ChatListViewState extends State<ChatListView> {
                     BeaverAvatar(
                       url: chat.avatar,
                       name: chat.nickname,
-                      size: 96.w,
+                      size: 48.w,
                     ),
-                    SizedBox(width: 32.w),
+                    SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,7 +371,7 @@ class _ChatListViewState extends State<ChatListView> {
                                 child: Text(
                                   chat.nickname,
                                   style: TextStyle(
-                                    fontSize: 32.w,
+                                    fontSize: 16.w,
                                     fontWeight: FontWeight.w600,
                                     color: const Color(0xFF2D3436),
                                   ),
@@ -441,17 +382,17 @@ class _ChatListViewState extends State<ChatListView> {
                               Text(
                                 chat.updateAt,
                                 style: TextStyle(
-                                  fontSize: 24.w,
+                                  fontSize: 12.w,
                                   color: const Color(0xFFB2BEC3),
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 8.w),
+                          SizedBox(height: 4.w),
                           Text(
                             chat.msgPreview,
                             style: TextStyle(
-                              fontSize: 28.w,
+                              fontSize: 14.w,
                               color: const Color(0xFF636E72),
                             ),
                             maxLines: 1,
@@ -474,5 +415,29 @@ class _ChatListViewState extends State<ChatListView> {
   void _handleChatClick(dynamic chat) {
     context.push('/chat/${chat.conversationId}');
   }
-}
 
+  void _handleMenuClick(int id) {
+    setState(() => _showDropdown = false);
+    switch (id) {
+      case 1: // 发起群聊
+        context.push('/group/create');
+        break;
+      case 2: // 添加朋友
+        context.push('/contact/search');
+        break;
+      case 3: // 扫一扫
+        BeaverToast.show(context, '扫码功能开发中');
+        break;
+      case 4: // 收付款
+        BeaverToast.show(context, '支付功能开发中');
+        break;
+    }
+  }
+
+  final List<Map<String, dynamic>> _homeMenus = [
+    {'id': 1, 'title': '发起群聊', 'icon': 'assets/icons/dropdown-group-icon.svg'},
+    {'id': 2, 'title': '添加朋友', 'icon': 'assets/icons/dropdown-friend-icon.svg'},
+    {'id': 3, 'title': '扫一扫', 'icon': 'assets/icons/dropdown-scan-icon.svg'},
+    {'id': 4, 'title': '收付款', 'icon': 'assets/icons/dropdown-pay-icon.svg'},
+  ];
+}
