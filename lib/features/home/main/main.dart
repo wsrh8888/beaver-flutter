@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/chat/chat_list/chat_list.dart';
 import 'package:beaver/features/contact/pages/contact_page.dart';
-import 'package:beaver/features/moment/pages/moment_page.dart';
-import 'package:beaver/features/user/pages/profile_page.dart';
+import 'package:beaver/features/moment/pages/detail.dart';
+import 'package:beaver/features/user/pages/profile.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/database/database.dart';
@@ -48,7 +48,7 @@ class _MainScreenState extends State<MainScreen> {
           items: [
             _buildNavItem('消息', 'new-chat.png', 'new-chat-active.png', 0),
             _buildNavItem('好友', 'new-friend.png', 'new-friend-active.png', 1),
-            _buildNavItem('朋友圈', 'moment.png', 'moment-active.png', 2),
+            _buildNavItem('朋友�?, 'moment.png', 'moment-active.png', 2),
             _buildNavItem('我的', 'new-mine.png', 'new-mine-active.png', 3),
           ],
         ),
@@ -63,7 +63,7 @@ class _MainScreenState extends State<MainScreen> {
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('数据库未初始化，请重新登录: $e'),
+                content: Text('数据库未初始化，请重新登�? $e'),
                 backgroundColor: Colors.red,
               ),
             );
@@ -99,3 +99,4 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+

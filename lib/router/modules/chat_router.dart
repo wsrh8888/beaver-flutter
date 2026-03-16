@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:beaver/features/chat/chat_list/chat_list.dart';
+import 'package:beaver/features/chat/list/list.dart';
 
 
 class ChatRoutes {
@@ -13,6 +13,7 @@ List<GoRoute> chatRoutes = [
     path: ChatRoutes.chatList,
     builder: (context, state) => const ChatListPage(),
   ),
-  // 可以在这里添加更多聊天相关路由
+  // 可以在这里添加更多聊天相关路�?
 ];
+
 
