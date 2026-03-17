@@ -1,21 +1,13 @@
-class SearchResult {
+class User {
   final String userId;
   final String nickname;
-  final String fileName;
-  final String abstract;
-  final String notice;
-  final bool isFriend;
-  final String conversationId;
-  final String email;
+  final String? avatar;
+  final String? bio;
 
-  const SearchResult({
+  const User({
     required this.userId,
     required this.nickname,
-    required this.fileName,
-    required this.abstract,
-    required this.notice,
-    required this.isFriend,
-    required this.conversationId,
-    required this.email,
+    this.avatar,
+    this.bio,
   });
 }

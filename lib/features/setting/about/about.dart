@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/setting/about/bloc/bloc.dart';
+import 'package:beaver/features/setting/about/data/models/app_info.dart';
 import 'package:beaver/features/setting/about/bloc/event.dart';
 import 'package:beaver/features/setting/about/bloc/state.dart';
 import 'package:beaver/features/setting/about/data/repositories/repository.dart';

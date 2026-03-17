@@ -42,10 +42,10 @@ class _GroupListPageState extends State<GroupListPage> {
             title: '群聊',
             showBack: true,
             child: ListView.separated(
-              itemCount: state.groups.length,
+              itemCount: state.groupList.length,
               separatorBuilder: (context, index) => Divider(height: 1.w, color: Colors.grey.withOpacity(0.1)),
               itemBuilder: (context, index) {
-                final group = state.groups[index];
+                final group = state.groupList[index];
                 return ListTile(
                   leading: BeaverAvatar(url: group.fileName, size: 48.w, nickname: group.title),
                   title: Text(group.title, style: TextStyle(fontSize: 16.w, fontWeight: FontWeight.bold)),

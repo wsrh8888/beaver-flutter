@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/setting/feedback/bloc/event.dart';
 import 'package:beaver/features/setting/feedback/bloc/state.dart';
 import 'package:beaver/features/setting/feedback/data/repositories/repository.dart';
+import 'package:beaver/features/setting/feedback/data/models/feedback.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   final FeedbackRepository _repository;

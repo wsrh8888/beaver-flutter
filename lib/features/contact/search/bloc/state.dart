@@ -1,4 +1,5 @@
 import 'package:beaver/core/database/database.dart';
+import 'package:beaver/features/contact/search/data/models/search.dart';
 
 enum SearchContactStatus { initial, loading, success, error }
 

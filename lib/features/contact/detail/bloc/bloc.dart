@@ -29,7 +29,7 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
       emit(state.copyWith(
         status: DetailStatus.success,
         userInfo: userInfo,
-        isFriend: true, // 模拟是好�?
+        isFriend: true, 
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -114,9 +114,9 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
     SendMessageEvent event,
     Emitter<DetailState> emit,
   ) async {
-    // 模拟发送消�?
+    // 模拟发送消
     if (state.userInfo?.conversationId != null) {
-      // 导航到聊天页�?
+      // 导航到聊天页
     }
   }
 

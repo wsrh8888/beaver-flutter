@@ -222,7 +222,7 @@ class _UserConfigPageState extends State<UserConfigPage> {
                                         ),
                                       ],
                                     ),
-                                    // 开�?
+                                    // 开?
                                     GestureDetector(
                                       onTap: _toggleTopChat,
                                       child: Container(

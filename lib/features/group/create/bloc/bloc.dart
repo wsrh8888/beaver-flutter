@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
 import 'package:beaver/features/group/create/data/repositories/repository.dart';
+import 'package:beaver/features/group/create/data/models/contact.dart';
 
 class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
   final CreateGroupRepository _repository;
@@ -28,7 +29,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
     } catch (e) {
       emit(state.copyWith(
         status: CreateGroupStatus.error,
-        errorMessage: '加载联系人失�? $e',
+        errorMessage: '加载联系人失? $e',
       ));
     }
   }

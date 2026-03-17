@@ -36,14 +36,14 @@ class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
     SelectGroupEvent event,
     Emitter<GroupListState> emit,
   ) async {
-    // 导航到群聊页�?
+    // 导航到群聊页?
   }
 
   Future<void> _onCreateGroup(
     CreateGroupEvent event,
     Emitter<GroupListState> emit,
   ) async {
-    // 导航到创建群聊页�?
+    // 导航到创建群聊页?
   }
 }
 

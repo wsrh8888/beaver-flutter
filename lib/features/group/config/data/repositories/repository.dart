@@ -38,13 +38,13 @@ class GroupConfigRepository {
   }
 
   Future<bool> updateGroupName(String groupId, String name) async {
-    // 模拟更新群名�?
+    // 模拟更新群名?
     await Future.delayed(const Duration(seconds: 1));
     return true;
   }
 
   Future<bool> quitGroup(String groupId) async {
-    // 模拟退出群�?
+    // 模拟退出群?
     await Future.delayed(const Duration(seconds: 1));
     return true;
   }
