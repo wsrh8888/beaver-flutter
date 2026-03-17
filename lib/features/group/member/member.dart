@@ -7,6 +7,7 @@ import 'package:beaver/features/group/member/bloc/state.dart';
 import 'package:beaver/features/group/member/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class GroupMemberPage extends StatefulWidget {
   const GroupMemberPage({super.key});
@@ -23,7 +24,7 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
     super.initState();
     _groupMemberBloc = GroupMemberBloc(GroupMemberRepository());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 假设从路由参数获�?groupId �?mode
+      // 假设从路由参数获�?groupId �?mode
       _groupMemberBloc.add(LoadGroupMembersEvent('123', 'view'));
     });
   }
@@ -57,7 +58,7 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
       case 'remove':
         return '移除成员';
       default:
-        return '群成�?;
+        return '群成�?;
     }
   }
 
@@ -68,13 +69,9 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
       child: BlocConsumer<GroupMemberBloc, GroupMemberState>(
         listener: (context, state) {
           if (state.status == GroupMemberStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           } else if (state.status == GroupMemberStatus.success && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
+            BeaverToast.show(context, state.errorMessage!);
           }
         },
         builder: (context, state) {
@@ -111,7 +108,7 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
                 // 添加模式
                 if (state.mode == 'add') ...[
                   if (state.contacts.isEmpty)
-                    _buildEmptyState('没有可添加的联系�?, '你的所有联系人已经在群里了')
+                    _buildEmptyState('没有可添加的联系�?, '你的所有联系人已经在群里了')
                   else
                     ...state.contacts.map((contact) => _buildContactItem(contact, 'add')),
                 ],
@@ -181,7 +178,7 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
                 ),
                 if (member.role == 1)
                   Text(
-                    '管理�?,
+                    '管理�?,
                     style: TextStyle(
                       fontSize: 12.w,
                       color: const Color(0xFFFF7D45),

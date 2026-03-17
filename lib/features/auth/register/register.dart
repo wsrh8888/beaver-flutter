@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
+import 'package:beaver/features/auth/register/data/repositories/repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,9 +8,10 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/auth/register/bloc/bloc.dart';
 import 'package:beaver/features/auth/register/bloc/event.dart';
 import 'package:beaver/features/auth/register/bloc/state.dart';
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
 import 'package:beaver/core/theme/colors.dart';
 import 'package:beaver/shared/ui/button/index.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/router/router.dart';
 
 class RegisterPage extends StatelessWidget {
@@ -91,54 +92,49 @@ class _RegisterViewState extends State<RegisterView> {
         if (state.status == RegisterStatus.success) {
           context.go(AppRoutes.home);
         } else if (state.status == RegisterStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? '注册失败'),
-              backgroundColor: const Color(0xFFFF7D45),
-            ),
-          );
+          BeaverToast.show(context, state.errorMessage ?? '注册失败');
         }
       },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              // 顶部渐变
-              Container(
-                height: 240.w,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x1AFF7D45),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-              // 内容区域
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 32.w),
-                child: Column(
-                  children: [
-                    // Logo
-                    _buildLogo(),
-                    SizedBox(height: 48.w),
-                    // 标题
-                    _buildTitleSection(),
-                    SizedBox(height: 64.w),
-                    // 表单
-                    _buildForm(),
-                    SizedBox(height: 48.w),
-                    // 底部链接
-                    _buildBottomLinks(),
+      child: BeaverLayout(
+        showBackground: true,
+        showHeader: false,
+        isScrollable: true,
+        child: Column(
+          children: [
+            // 顶部渐变
+            Container(
+              height: 240.w,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x1AFF7D45),
+                    Colors.transparent,
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // 内容区域
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32.w),
+              child: Column(
+                children: [
+                  // Logo
+                  _buildLogo(),
+                  SizedBox(height: 48.w),
+                  // 标题
+                  _buildTitleSection(),
+                  SizedBox(height: 64.w),
+                  // 表单
+                  _buildForm(),
+                  SizedBox(height: 48.w),
+                  // 底部链接
+                  _buildBottomLinks(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

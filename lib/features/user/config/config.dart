@@ -7,6 +7,7 @@ import 'package:beaver/features/user/config/bloc/state.dart';
 import 'package:beaver/features/user/config/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class UserConfigPage extends StatefulWidget {
   const UserConfigPage({super.key});
@@ -23,7 +24,7 @@ class _UserConfigPageState extends State<UserConfigPage> {
     super.initState();
     _userConfigBloc = UserConfigBloc(UserConfigRepository());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 假设从路由参数获�?conversationId
+      // 假设从路由参数获取conversationId
       _userConfigBloc.add(LoadFriendInfoEvent('123'));
     });
   }
@@ -61,13 +62,9 @@ class _UserConfigPageState extends State<UserConfigPage> {
       child: BlocConsumer<UserConfigBloc, UserConfigState>(
         listener: (context, state) {
           if (state.status == UserConfigStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           } else if (state.status == UserConfigStatus.success && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
+            BeaverToast.show(context, state.errorMessage!);
             if (state.errorMessage == '删除成功') {
               Future.delayed(const Duration(seconds: 1), () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -225,7 +222,7 @@ class _UserConfigPageState extends State<UserConfigPage> {
                                         ),
                                       ],
                                     ),
-                                    // 开�?
+                                    // 开�?
                                     GestureDetector(
                                       onTap: _toggleTopChat,
                                       child: Container(
@@ -350,7 +347,7 @@ class _UserConfigPageState extends State<UserConfigPage> {
                         SizedBox(height: 16.w),
                         // 内容
                         Text(
-                          '确定要删除好�?"${friendInfo?.nickname ?? '未知用户'}" 吗？',
+                          '确定要删除好友"${friendInfo?.nickname ?? '未知用户'}" 吗？',
                           style: TextStyle(
                             fontSize: 14.w,
                             color: const Color(0xFF2D3436),

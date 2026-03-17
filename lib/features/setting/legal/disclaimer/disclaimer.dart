@@ -6,6 +6,7 @@ import 'package:beaver/features/setting/legal/disclaimer/bloc/event.dart';
 import 'package:beaver/features/setting/legal/disclaimer/bloc/state.dart';
 import 'package:beaver/features/setting/legal/disclaimer/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DisclaimerPage extends StatefulWidget {
@@ -38,17 +39,13 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开链接')),
-      );
+      BeaverToast.show(context, '无法打开链接');
     }
   }
 
   void _copyQQGroup() {
     // 模拟复制QQ群号
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('QQ群号已复�?)),
-    );
+    BeaverToast.show(context, 'QQ群号已复制');
   }
 
   @override
@@ -58,9 +55,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
       child: BlocConsumer<DisclaimerBloc, DisclaimerState>(
         listener: (context, state) {
           if (state.status == DisclaimerStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           }
         },
         builder: (context, state) {
@@ -118,7 +113,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                         SizedBox(height: 12.w),
                         // 内容
                         Text(
-                          '本项目仅用于技术学习、测试和演示目的，不涉及对外营业。欢迎学习交流�?,
+                          '本项目仅用于技术学习、测试和演示目的，不涉及对外营业。欢迎学习交流！,
                           style: TextStyle(
                             fontSize: 14.w,
                             color: const Color(0xFF636E72),
@@ -231,7 +226,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                       ],
                     ),
                   ),
-                  // 作者信�?
+                  // 作者信�?
                   Container(
                     padding: EdgeInsets.all(20.w),
                     decoration: BoxDecoration(
@@ -247,7 +242,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                     ),
                     child: Column(
                       children: [
-                        // 作者信�?
+                        // 作者信�?
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -286,7 +281,7 @@ class _DisclaimerPageState extends State<DisclaimerPage> {
                                     ),
                                     SizedBox(height: 4.w),
                                     Text(
-                                      state.authorInfo?.description ?? '全栈开发�?,
+                                      state.authorInfo?.description ?? '全栈开发工程师',
                                       style: TextStyle(
                                         fontSize: 14.w,
                                         color: const Color(0xFF636E72),

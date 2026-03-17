@@ -1,4 +1,5 @@
 import 'package:beaver/core/database/database.dart';
+import 'package:beaver/features/chat/detail/data/models/types.dart';
 
 class MessageModel {
   final String id;

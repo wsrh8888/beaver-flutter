@@ -7,6 +7,8 @@ import 'package:beaver/features/auth/forget/bloc/state.dart';
 import 'package:beaver/features/auth/forget/data/models/reset_password.dart';
 import 'package:beaver/features/auth/forget/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/button/button.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class ForgetPage extends StatefulWidget {
   const ForgetPage({super.key});
@@ -111,27 +113,25 @@ class _ForgetPageState extends State<ForgetPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocProvider.value(
-        value: _forgetBloc,
-        child: BlocConsumer<ForgetBloc, ForgetState>(
-          listener: (context, state) {
-            if (state.status == ForgetStatus.success) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '操作成功')),
-              );
-              if (state.errorMessage == '密码重置成功') {
-                Future.delayed(const Duration(seconds: 2), _navigateToLogin);
-              }
-            } else if (state.status == ForgetStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-              );
+    return BlocProvider.value(
+      value: _forgetBloc,
+      child: BlocConsumer<ForgetBloc, ForgetState>(
+        listener: (context, state) {
+          if (state.status == ForgetStatus.success) {
+            BeaverToast.show(context, state.errorMessage ?? '操作成功');
+            if (state.errorMessage == '密码重置成功') {
+              Future.delayed(const Duration(seconds: 2), _navigateToLogin);
             }
-          },
-          builder: (context, state) {
-            return SingleChildScrollView(
+          } else if (state.status == ForgetStatus.error) {
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          }
+        },
+        builder: (context, state) {
+          return BeaverLayout(
+            showBackground: true,
+            showHeader: false,
+            isScrollable: true,
+            child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 32.w),
               child: Column(
                 children: [
@@ -218,8 +218,9 @@ class _ForgetPageState extends State<ForgetPage> {
                       color: const Color(0xFF636E72),
                     ),
                     textAlign: TextAlign.center,
-                    margin: EdgeInsets.only(bottom: 48.w),
+                    // 移除margin属性，使用SizedBox代替
                   ),
+                  SizedBox(height: 48.w),
                   // 表单
                   Container(
                     margin: EdgeInsets.only(top: 20.w),
@@ -228,7 +229,6 @@ class _ForgetPageState extends State<ForgetPage> {
                         // 邮箱输入
                         Container(
                           margin: EdgeInsets.only(bottom: 34.w),
-                          position: RelativeRect.fromLTRB(0, 0, 0, 0),
                           child: Column(
                             children: [
                               Container(
@@ -285,7 +285,6 @@ class _ForgetPageState extends State<ForgetPage> {
                         // 验证码输入
                         Container(
                           margin: EdgeInsets.only(bottom: 34.w),
-                          position: RelativeRect.fromLTRB(0, 0, 0, 0),
                           child: Column(
                             children: [
                               Container(
@@ -384,7 +383,6 @@ class _ForgetPageState extends State<ForgetPage> {
                         // 密码输入
                         Container(
                           margin: EdgeInsets.only(bottom: 34.w),
-                          position: RelativeRect.fromLTRB(0, 0, 0, 0),
                           child: Column(
                             children: [
                               Container(
@@ -439,12 +437,43 @@ class _ForgetPageState extends State<ForgetPage> {
                           ),
                         ),
                         // 重置密码按钮
-                        BeaverButton(
-                          text: '重置密码',
-                          onPressed: _isFormValid ? _resetPassword : null,
-                          width: double.infinity,
-                          height: 96.w,
+                        Container(
                           margin: EdgeInsets.only(top: 48.w),
+                          child: GestureDetector(
+                            onTap: _isFormValid ? _resetPassword : null,
+                            child: Container(
+                              width: double.infinity,
+                              height: 96.w,
+                              decoration: BoxDecoration(
+                                gradient: _isFormValid ? const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFFF7D45),
+                                    Color(0xFFE86835),
+                                  ],
+                                ) : null,
+                                color: _isFormValid ? null : Colors.grey[300],
+                                borderRadius: BorderRadius.circular(28.w),
+                                boxShadow: _isFormValid ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFFF7D45).withOpacity(0.2),
+                                    offset: Offset(0, 4.w),
+                                    blurRadius: 12.w,
+                                  ),
+                                ] : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '重置密码',
+                                style: TextStyle(
+                                  fontSize: 32.w,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                         // 返回登录链接
                         Container(
@@ -478,9 +507,9 @@ class _ForgetPageState extends State<ForgetPage> {
                   ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

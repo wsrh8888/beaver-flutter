@@ -6,6 +6,7 @@ import 'package:beaver/features/setting/update/bloc/event.dart';
 import 'package:beaver/features/setting/update/bloc/state.dart';
 import 'package:beaver/features/setting/update/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class UpdatePage extends StatefulWidget {
   const UpdatePage({super.key});
@@ -54,9 +55,9 @@ class _UpdatePageState extends State<UpdatePage> {
     if (diffInMinutes < 1) {
       return '刚刚';
     } else if (diffInMinutes < 60) {
-      return '${diffInMinutes}分钟�?;
+      return '${diffInMinutes}分钟前';
     } else if (diffInMinutes < 1440) {
-      return '${(diffInMinutes / 60).floor()}小时�?;
+      return '${(diffInMinutes / 60).floor()}小时前';
     } else {
       return '${(diffInMinutes / 1440).floor()}天前';
     }
@@ -69,9 +70,7 @@ class _UpdatePageState extends State<UpdatePage> {
       child: BlocConsumer<UpdateBloc, UpdateState>(
         listener: (context, state) {
           if (state.status == UpdateStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           }
         },
         builder: (context, state) {
@@ -80,7 +79,7 @@ class _UpdatePageState extends State<UpdatePage> {
           return Stack(
             children: [
               BeaverLayout(
-                title: '检查更�?,
+                title: '检查更新',
                 showBack: true,
                 showBackground: false,
                 isScrollable: true,
@@ -142,7 +141,7 @@ class _UpdatePageState extends State<UpdatePage> {
                           ],
                         ),
                       ),
-                      // 检查更新按�?
+                      // 检查更新按钮
                       GestureDetector(
                         onTap: updateInfo?.isChecking == true ? null : _openUpdateModal,
                         child: Container(
@@ -179,7 +178,7 @@ class _UpdatePageState extends State<UpdatePage> {
                                   ],
                                 )
                               : Text(
-                                  '检查更�?,
+                                  '检查更新',
                                   style: TextStyle(
                                     fontSize: 16.w,
                                     color: Colors.white,
@@ -188,7 +187,7 @@ class _UpdatePageState extends State<UpdatePage> {
                                 ),
                         ),
                       ),
-                      // 上次检查时�?
+                      // 上次检查时间
                       if (updateInfo?.lastCheckTime != null)
                         Container(
                           margin: EdgeInsets.only(top: 16.w),
@@ -219,7 +218,7 @@ class _UpdatePageState extends State<UpdatePage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 检查中状�?
+                        // 检查中状态
                         if (updateInfo?.isChecking == true) ...[
                           SizedBox(
                             width: 48.w,
@@ -233,7 +232,7 @@ class _UpdatePageState extends State<UpdatePage> {
                           ),
                           SizedBox(height: 16.w),
                           Text(
-                            '正在检查更�?..',
+                            '正在检查更新..',
                             style: TextStyle(
                               fontSize: 18.w,
                               fontWeight: FontWeight.w600,
@@ -242,14 +241,14 @@ class _UpdatePageState extends State<UpdatePage> {
                           ),
                           SizedBox(height: 8.w),
                           Text(
-                            '请稍候，正在获取最新版本信�?,
+                            '请稍候，正在获取最新版本信息',
                             style: TextStyle(
                               fontSize: 14.w,
                               color: const Color(0xFF636E72),
                             ),
                           ),
                         ],
-                        // 有更�?
+                        // 有更新
                         if (updateInfo?.hasUpdate == true && updateInfo?.latestVersion != null) ...[
                           // 图标
                           Container(
@@ -262,7 +261,7 @@ class _UpdatePageState extends State<UpdatePage> {
                           ),
                           // 标题
                           Text(
-                            '发现新版�?,
+                            '发现新版本',
                             style: TextStyle(
                               fontSize: 18.w,
                               fontWeight: FontWeight.w600,
@@ -270,7 +269,7 @@ class _UpdatePageState extends State<UpdatePage> {
                             ),
                           ),
                           SizedBox(height: 8.w),
-                          // 版本�?
+                          // 版本号
                           Text(
                             'v${updateInfo!.latestVersion!.version}',
                             style: TextStyle(
@@ -299,7 +298,7 @@ class _UpdatePageState extends State<UpdatePage> {
                                 ),
                                 SizedBox(height: 8.w),
                                 Text(
-                                  '文件大小�?{updateInfo.latestVersion!.size}',
+                                  '文件大小：${updateInfo.latestVersion!.size}',
                                   style: TextStyle(
                                     fontSize: 14.w,
                                     color: const Color(0xFF2D3436),
@@ -361,7 +360,7 @@ class _UpdatePageState extends State<UpdatePage> {
                                 ),
                                 SizedBox(height: 8.w),
                                 Text(
-                                  '下载�?${updateInfo.downloadProgress}%',
+                                  '下载进度：${updateInfo.downloadProgress}%',
                                   style: TextStyle(
                                     fontSize: 14.w,
                                     color: const Color(0xFF636E72),
@@ -423,7 +422,7 @@ class _UpdatePageState extends State<UpdatePage> {
                             ),
                           ),
                         ],
-                        // 无更�?
+                        // 无更新
                         if (updateInfo?.hasUpdate == false) ...[
                           // 图标
                           Container(
@@ -436,7 +435,7 @@ class _UpdatePageState extends State<UpdatePage> {
                           ),
                           // 标题
                           Text(
-                            '已是最新版�?,
+                            '已是最新版本',
                             style: TextStyle(
                               fontSize: 18.w,
                               fontWeight: FontWeight.w600,

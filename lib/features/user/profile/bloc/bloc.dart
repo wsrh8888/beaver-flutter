@@ -147,12 +147,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         status: ProfileStatus.success,
         userInfo: updatedUserInfo,
         modals: updatedModals,
-        errorMessage: '个人简介更新成�?,
+        errorMessage: '个人简介更新成功',
       ));
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
-        errorMessage: '个人简介更新失�? $e',
+        errorMessage: '个人简介更新失败: $e',
       ));
     }
   }
@@ -195,13 +195,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     try {
       await _repository.sendEmailCode(state.formData['email']);
-      // 开始倒计�?
+      // 开始倒计时
       emit(state.copyWith(
         isCodeSending: false,
         countdown: 60,
-        errorMessage: '验证码已发�?,
+        errorMessage: '验证码已发送',
       ));
-      // 模拟倒计�?
+      // 模拟倒计时
       for (int i = 59; i >= 0; i--) {
         await Future.delayed(const Duration(seconds: 1));
         emit(state.copyWith(countdown: i));

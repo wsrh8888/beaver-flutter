@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:beaver/features/detail/detail_page/bloc/event.dart';
-import 'package:beaver/features/detail/detail_page/bloc/state.dart';
-import 'package:beaver/features/detail/detail_page/data/repositories/repository.dart';
+import 'package:beaver/features/contact/detail/detail_page/bloc/event.dart';
+import 'package:beaver/features/contact/detail/detail_page/bloc/state.dart';
+import 'package:beaver/features/contact/detail/detail_page/data/repositories/repository.dart';
 
 class DetailBloc extends Bloc<DetailEvent, DetailState> {
   final DetailRepository _repository;

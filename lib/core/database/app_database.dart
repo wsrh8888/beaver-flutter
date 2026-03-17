@@ -22,13 +22,14 @@ part 'app_database.g.dart';
     Datasync,
     Emojis,
     NotificationEvents,
+    CallHistoryTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -64,6 +65,10 @@ class AppDatabase extends _$AppDatabase {
           // Also ensure new tables exist
           try { await m.createTable(emojis); } catch(_) {}
           try { await m.createTable(notificationEvents); } catch(_) {}
+        }
+        if (from < 5) {
+          // Version 4 -> 5: Add call history table
+          try { await m.createTable(callHistoryTable); } catch(_) {}
         }
       },
       beforeOpen: (details) async {

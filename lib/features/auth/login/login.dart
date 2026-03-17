@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
+import 'package:beaver/features/auth/login/data/repositories/repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beaver/di/injection.dart';
-import 'package:beaver/features/auth/bloc/auth_bloc.dart';
-import 'package:beaver/features/auth/bloc/auth_event.dart';
-import 'package:beaver/features/auth/bloc/auth_state.dart';
+import 'package:beaver/features/auth/login/bloc/bloc.dart';
+import 'package:beaver/features/auth/login/bloc/event.dart';
+import 'package:beaver/features/auth/login/bloc/state.dart';
 import 'package:beaver/core/theme/colors.dart';
 import 'package:beaver/router/router.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -17,7 +18,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AuthBloc(authRepository: getIt<AuthRepository>()),
+      create: (context) => LoginBloc(authRepository: getIt<AuthRepository>()),
       child: const LoginView(),
     );
   }
@@ -53,14 +54,12 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
+        if (state.status == LoginStatus.success) {
           context.go(AppRoutes.home);
-        } else if (state.status == AuthStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage ?? '登录失败'), backgroundColor: const Color(0xFFFF7D45)),
-          );
+        } else if (state.status == LoginStatus.error) {
+          BeaverToast.show(context, state.errorMessage ?? '登录失败');
         }
       },
       child: BeaverLayout(
@@ -239,11 +238,11 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Widget _buildLoginBtn() {
-    final isLoading = context.watch<AuthBloc>().state.status == AuthStatus.loading;
+    final isLoading = context.watch<LoginBloc>().state.status == LoginStatus.loading;
     final enabled = _isFormValid && !isLoading;
     return GestureDetector(
       onTap: enabled
-          ? () => context.read<AuthBloc>().add(AuthLoginEvent(username: _emailController.text, password: _passwordController.text))
+          ? () => context.read<LoginBloc>().add(LoginSubmitEvent(email: _emailController.text, password: _passwordController.text))
           : null,
       child: Container(
         width: double.infinity,

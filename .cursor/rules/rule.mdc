@@ -30,18 +30,48 @@ lib/
 │   │   ├── login/    # 登录路由
 │   │   │   ├── bloc/      # 登录状态管理
 │   │   │   ├── data/      # 登录数据
+│   │   │   ├── components/  # 登录相关组件
 │   │   │   └── login_page.dart      # 登录页面
 │   │   └── register/ # 注册路由
 │   │       ├── bloc/      # 注册状态管理
 │   │       ├── data/      # 注册数据
+│   │       ├── components/  # 注册相关组件
 │   │       └── register_page.dart   # 注册页面
 │   ├── chat/         # 聊天模块
 │   │   ├── chat_list/    # 聊天列表路由
+│   │   │   ├── bloc/      # 状态管理
+│   │   │   ├── data/      # 数据
+│   │   │   ├── components/  # 组件
+│   │   │   └── chat_list_page.dart  # 聊天列表页面
 │   │   └── chat_detail/  # 聊天详情路由
+│   │       ├── bloc/      # 状态管理
+│   │       ├── data/      # 数据
+│   │       ├── components/  # 组件
+│   │       └── chat_detail_page.dart  # 聊天详情页面
 │   ├── contact/      # 联系人模块
 │   ├── home/         # 首页模块
 │   ├── moment/       # 动态模块
 │   └── user/         # 用户模块
+│       ├── mine/      # 个人中心
+│       │   ├── bloc/      # 状态管理
+│       │   ├── data/      # 数据
+│       │   ├── components/  # 组件
+│       │   └── mine_page.dart  # 个人中心页面
+│       ├── profile/    # 个人资料
+│       │   ├── bloc/      # 状态管理
+│       │   ├── data/      # 数据
+│       │   ├── components/  # 组件
+│       │   └── profile_page.dart  # 个人资料页面
+│       ├── qrcode/    # 二维码
+│       │   ├── bloc/      # 状态管理
+│       │   ├── data/      # 数据
+│       │   ├── components/  # 组件
+│       │   └── qrcode_page.dart  # 二维码页面
+│       └── config/     # 用户配置
+│           ├── bloc/      # 状态管理
+│           ├── data/      # 数据
+│           ├── components/  # 组件
+│           └── config_page.dart  # 用户配置页面
 ├── router/           # 路由配置
 └── shared/           # 共享组件和工具
     ├── ui/           # UI组件库
@@ -56,6 +86,23 @@ lib/
     ├── utils/        # 通用工具
     └── widgets/      # 业务组件
 ```
+### ui规范
+- 尽可能使用ui组件中的layout作为骨架屏
+- 所有页面都需要使用ui组件中的layout作为骨架屏
+- 如果组件库中有的组件可以直接使用，就直接使用，不需要自己实现
+- ui组件在`shared/ui/`目录下，每个组件都有一个对应的目录，目录名就是组件名。每个目录下都有一个`index.dart`文件，文件中就是组件的实现
+- 对于简单的确认对话框，应使用`BeaverDialog`组件；对于复杂的业务表单弹窗，应创建独立的业务组件
+- 所有提示信息应使用`BeaverToast`组件，避免使用Flutter自带的`ScaffoldMessenger`
+- 所有头像显示应使用`BeaverAvatar`组件
+
+### components层规范
+- 每个功能模块可以创建`components`目录，用于存放该模块的业务组件
+- components层的组件应该是具有完整业务逻辑的独立组件，而不仅仅是UI渲染
+- 组件内部应该处理自己的状态和业务逻辑，减少对父组件的依赖
+- 组件之间通过明确的参数和回调函数进行通信
+- 主入口文件（如`profile_page.dart`）应该保持简洁，主要负责组件的组合和页面布局
+- components不是必须的，但当主入口文件过大时（超过500行），建议进行拆分
+- 拆出去的组件也是业务组件，应包含完整的业务逻辑，不要只拆出去UI部分然后将数据传入，结果又在父组件中处理业务逻辑
 
 ### UI适配规范
 - UI适配基准宽度为 **375**（逻辑像素）。

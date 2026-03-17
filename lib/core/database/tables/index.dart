@@ -13,3 +13,4 @@ export 'group/sync_status.dart';
 export 'datasync/sync.dart';
 export 'emoji/emoji.dart';
 export 'notification/event.dart';
+export 'call/call_history.dart';

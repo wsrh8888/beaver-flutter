@@ -7,6 +7,7 @@ import 'package:beaver/features/group/list/bloc/state.dart';
 import 'package:beaver/features/group/list/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class GroupListPage extends StatefulWidget {
   const GroupListPage({super.key});
@@ -49,9 +50,7 @@ class _GroupListPageState extends State<GroupListPage> {
       child: BlocConsumer<GroupListBloc, GroupListState>(
         listener: (context, state) {
           if (state.status == GroupListStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           }
         },
         builder: (context, state) {
@@ -116,7 +115,7 @@ class _GroupListPageState extends State<GroupListPage> {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         SizedBox(height: 6.w),
-                                        // 最后一条消�?
+                                        // 最后一条消�?
                                         Text(
                                           group.lastMessage ?? '',
                                           style: TextStyle(
@@ -137,7 +136,7 @@ class _GroupListPageState extends State<GroupListPage> {
                                             ),
                                             SizedBox(width: 6.w),
                                             Text(
-                                              '${group.memberCount}�?,
+                                              '${group.memberCount}�?,
                                               style: TextStyle(
                                                 fontSize: 12.w,
                                                 color: const Color(0xFFB2BEC3),

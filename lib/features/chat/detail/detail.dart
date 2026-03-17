@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/chat/detail/bloc/bloc.dart';
@@ -8,6 +8,8 @@ import 'package:beaver/features/chat/detail/components/message_list.dart';
 import 'package:beaver/features/chat/detail/components/input_bar.dart';
 import 'package:beaver/features/chat/detail/data/repositories/repository.dart';
 import 'package:beaver/core/database/database.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class ChatPage extends StatefulWidget {
   final String conversationId;
@@ -69,32 +71,18 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
+    return BeaverLayout(
+      showBackground: true,
+      showHeader: false,
+      isScrollable: false,
+      child: Stack(
         children: [
-          // 顶部渐变区域
-          Container(
-            height: 320.w,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x14FF7D45),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
           BlocProvider.value(
             value: _chatBloc,
             child: BlocConsumer<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state.status == ChatStatus.error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-                  );
+                  BeaverToast.show(context, state.errorMessage ?? '发生错误');
                 }
               },
               builder: (context, state) {

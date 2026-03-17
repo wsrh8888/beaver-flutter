@@ -5,6 +5,8 @@ import 'package:beaver/features/setting/about/bloc/bloc.dart';
 import 'package:beaver/features/setting/about/bloc/event.dart';
 import 'package:beaver/features/setting/about/bloc/state.dart';
 import 'package:beaver/features/setting/about/data/repositories/repository.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -34,183 +36,135 @@ class _AboutPageState extends State<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocProvider.value(
-        value: _aboutBloc,
-        child: BlocConsumer<AboutBloc, AboutState>(
-          listener: (context, state) {
-            if (state.status == AboutState.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-              );
-            }
-          },
-          builder: (context, state) {
-            final appInfo = state.appInfo ?? const AppInfo(
-              name: 'Beaver',
-              version: '1.0.0',
-              developer: 'Beaver Team',
-              description: 'Beaver是一款致力于帮助用户拓展社交圈，发现志同道合朋友的即时通讯应用。我们相信真实的人际连接比以往任何时候都更加珍贵�?,
-            );
+    return BlocProvider.value(
+      value: _aboutBloc,
+      child: BlocConsumer<AboutBloc, AboutState>(
+        listener: (context, state) {
+          if (state.status == AboutState.error) {
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          }
+        },
+        builder: (context, state) {
+          final appInfo = state.appInfo ?? const AppInfo(
+            name: 'Beaver',
+            version: '1.0.0',
+            developer: 'Beaver Team',
+            description: 'Beaver是一款致力于帮助用户拓展社交圈，发现志同道合朋友的即时通讯应用。我们相信真实的人际连接比以往任何时候都更加珍贵',
+          );
 
-            return Stack(
-              children: [
-                // 背景元素
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: Stack(
-                    children: [
-                      // 圆形背景
-                      Positioned(
-                        top: -320.w,
-                        right: -200.w,
-                        child: Container(
-                          width: 600.w,
-                          height: 600.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(300.w),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFFFF7D45),
-                                Color(0xFFE86835),
-                              ],
-                            ),
+          return Stack(
+            children: [
+              // 背景元素
+              Container(
+                width: double.infinity,
+                height: double.infinity,
+                child: Stack(
+                  children: [
+                    // 圆形背景
+                    Positioned(
+                      top: -320.w,
+                      right: -200.w,
+                      child: Container(
+                        width: 600.w,
+                        height: 600.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(300.w),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFF7D45),
+                              Color(0xFFE86835),
+                            ],
                           ),
-                          opacity: 0.1,
                         ),
+                        opacity: 0.1,
                       ),
-                      Positioned(
-                        bottom: -200.w,
-                        left: -200.w,
-                        child: Container(
-                          width: 400.w,
-                          height: 400.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(200.w),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFFFF7D45),
-                                Color(0xFFE86835),
-                              ],
-                            ),
+                    ),
+                    Positioned(
+                      bottom: -200.w,
+                      left: -200.w,
+                      child: Container(
+                        width: 400.w,
+                        height: 400.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(200.w),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFF7D45),
+                              Color(0xFFE86835),
+                            ],
                           ),
-                          opacity: 0.1,
                         ),
+                        opacity: 0.1,
                       ),
-                      // 装饰�?
-                      Positioned(
-                        top: MediaQuery.of(context).size.height * 0.2,
-                        left: MediaQuery.of(context).size.width * 0.1,
-                        child: Container(
-                          width: 24.w,
-                          height: 24.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.w),
-                            color: const Color(0xFFFFE6D9),
-                          ),
-                          opacity: 0.8,
+                    ),
+                    // 装饰
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.2,
+                      left: MediaQuery.of(context).size.width * 0.1,
+                      child: Container(
+                        width: 24.w,
+                        height: 24.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.w),
+                          color: const Color(0xFFFFE6D9),
                         ),
+                        opacity: 0.8,
                       ),
-                      Positioned(
-                        top: MediaQuery.of(context).size.height * 0.3,
-                        right: MediaQuery.of(context).size.width * 0.15,
-                        child: Container(
-                          width: 24.w,
-                          height: 24.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.w),
-                            color: const Color(0xFFFFE6D9),
-                          ),
-                          opacity: 0.5,
+                    ),
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.3,
+                      right: MediaQuery.of(context).size.width * 0.15,
+                      child: Container(
+                        width: 24.w,
+                        height: 24.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.w),
+                          color: const Color(0xFFFFE6D9),
                         ),
+                        opacity: 0.5,
                       ),
-                      Positioned(
-                        bottom: MediaQuery.of(context).size.height * 0.25,
-                        left: MediaQuery.of(context).size.width * 0.2,
-                        child: Container(
-                          width: 24.w,
-                          height: 24.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.w),
-                            color: const Color(0xFFFFE6D9),
-                          ),
-                          opacity: 0.7,
+                    ),
+                    Positioned(
+                      bottom: MediaQuery.of(context).size.height * 0.25,
+                      left: MediaQuery.of(context).size.width * 0.2,
+                      child: Container(
+                        width: 24.w,
+                        height: 24.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.w),
+                          color: const Color(0xFFFFE6D9),
                         ),
+                        opacity: 0.7,
                       ),
-                      Positioned(
-                        bottom: MediaQuery.of(context).size.height * 0.15,
-                        right: MediaQuery.of(context).size.width * 0.1,
-                        child: Container(
-                          width: 24.w,
-                          height: 24.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.w),
-                            color: const Color(0xFFFFE6D9),
-                          ),
-                          opacity: 0.6,
+                    ),
+                    Positioned(
+                      bottom: MediaQuery.of(context).size.height * 0.15,
+                      right: MediaQuery.of(context).size.width * 0.1,
+                      child: Container(
+                        width: 24.w,
+                        height: 24.w,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.w),
+                          color: const Color(0xFFFFE6D9),
                         ),
+                        opacity: 0.6,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                // 导航�?
-                Container(
-                  height: 112.w,
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top,
-                    left: 32.w,
-                    right: 32.w,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned(
-                        left: 0,
-                        child: GestureDetector(
-                          onTap: _goBack,
-                          child: Container(
-                            width: 80.w,
-                            height: 80.w,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(40.w),
-                              color: Colors.white.withOpacity(0.9),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  offset: Offset(0, 8.w),
-                                  blurRadius: 24.w,
-                                ),
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.arrow_back,
-                              size: 40.w,
-                              color: const Color(0xFF2D3436),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '关于我们',
-                        style: TextStyle(
-                          fontSize: 36.w,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF2D3436),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 主要内容
-                Container(
-                  margin: EdgeInsets.only(top: 112.w + MediaQuery.of(context).padding.top),
+              ),
+              // 主要内容
+              BeaverLayout(
+                title: '关于我们',
+                showBack: true,
+                onBack: _goBack,
+                showBackground: false,
+                isScrollable: true,
+                child: Container(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -276,7 +230,7 @@ class _AboutPageState extends State<AboutPage> {
                             ],
                           ),
                         ),
-                        // 版本�?
+                        // 版本
                         Container(
                           margin: EdgeInsets.only(bottom: 48.w),
                           padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.w),
@@ -310,7 +264,7 @@ class _AboutPageState extends State<AboutPage> {
                         Column(
                           children: [
                             Text(
-                              '�?,
+                              '由',
                               style: TextStyle(
                                 fontSize: 28.w,
                                 color: const Color(0xFFB2BEC3),
@@ -327,7 +281,7 @@ class _AboutPageState extends State<AboutPage> {
                             ),
                             SizedBox(height: 48.w),
                             Text(
-                              '© 2025 版权所�?,
+                              '© 2025 版权所有',
                               style: TextStyle(
                                 fontSize: 24.w,
                                 color: const Color(0xFFB2BEC3),
@@ -340,10 +294,10 @@ class _AboutPageState extends State<AboutPage> {
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

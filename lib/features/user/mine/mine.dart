@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:beaver/features/user/mine/bloc/bloc.dart';
 import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
 import 'package:beaver/features/user/mine/data/repositories/repository.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class MinePage extends StatefulWidget {
   const MinePage({super.key});
@@ -33,49 +36,48 @@ class _MinePageState extends State<MinePage> {
   }
 
   void _navigateToProfile() {
-    // 导航到个人资料页�?
+    context.go('/user/profile');
   }
 
   void _navigateToQRCode() {
-    // 导航到二维码页面
+    context.go('/user/qrcode');
   }
 
   void _navigateToSettings() {
-    // 导航到设置页�?
+    context.go('/setting');
   }
 
   void _navigateToFeedback() {
-    // 导航到意见反馈页�?
+    context.go('/setting/feedback');
   }
 
   void _navigateToDisclaimer() {
-    // 导航到项目声明页�?
+    context.go('/setting/disclaimer');
   }
 
   void _navigateToAbout() {
-    // 导航到关于页�?
+    context.go('/setting/about');
   }
 
   void _navigateToUpdate() {
-    // 导航到检查更新页�?
+    context.go('/setting/update');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: BlocProvider.value(
-        value: _mineBloc,
-        child: BlocConsumer<MineBloc, MineState>(
-          listener: (context, state) {
-            if (state.status == MineStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-              );
-            }
-          },
-          builder: (context, state) {
-            return Stack(
+    return BlocProvider.value(
+      value: _mineBloc,
+      child: BlocConsumer<MineBloc, MineState>(
+        listener: (context, state) {
+          if (state.status == MineStatus.error) {
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          }
+        },
+        builder: (context, state) {
+          return BeaverLayout(
+            showBackground: false,
+            isScrollable: true,
+            child: Stack(
               children: [
                 // 个人信息头部
                 Container(
@@ -102,7 +104,7 @@ class _MinePageState extends State<MinePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 顶部操作�?
+                      // 顶部操作栏
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -194,7 +196,7 @@ class _MinePageState extends State<MinePage> {
                               ),
                             ),
                             SizedBox(height: 28.w),
-                            // 设置项列�?
+                            // 设置项列表
                             _buildSettingItem(
                               icon: Icons.settings,
                               title: '通用',
@@ -221,7 +223,7 @@ class _MinePageState extends State<MinePage> {
                             SizedBox(height: 16.w),
                             _buildSettingItem(
                               icon: Icons.update,
-                              title: '检查更�?,
+                              title: '检查更新',
                               onTap: _navigateToUpdate,
                             ),
                           ],
@@ -231,9 +233,9 @@ class _MinePageState extends State<MinePage> {
                   ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

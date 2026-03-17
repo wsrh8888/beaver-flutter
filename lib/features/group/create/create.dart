@@ -6,7 +6,8 @@ import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
 import 'package:beaver/features/group/create/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
-import 'package:beaver/shared/ui/header/header.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class CreateGroupPage extends StatefulWidget {
   const CreateGroupPage({super.key});
@@ -63,7 +64,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       _showQuickJump = true;
     });
 
-    // 模拟滚动到对应字�?section
+    // 模拟滚动到对应字�?section
     Future.delayed(const Duration(milliseconds: 200), () {
       setState(() {
         _showQuickJump = false;
@@ -73,25 +74,19 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: BlocProvider.value(
-        value: _createGroupBloc,
-        child: BlocConsumer<CreateGroupBloc, CreateGroupState>(
-          listener: (context, state) {
-            if (state.status == CreateGroupStatus.error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-              );
-            } else if (state.status == CreateGroupStatus.success && state.groupId != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('群组创建成功')),
-              );
-              Navigator.of(context).pop();
-            }
-          },
+    return BlocProvider.value(
+      value: _createGroupBloc,
+      child: BlocConsumer<CreateGroupBloc, CreateGroupState>(
+        listener: (context, state) {
+          if (state.status == CreateGroupStatus.error) {
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          } else if (state.status == CreateGroupStatus.success && state.groupId != null) {
+            BeaverToast.show(context, '群组创建成功');
+            Navigator.of(context).pop();
+          }
+        },
           builder: (context, state) {
-            // 分组联系�?
+            // 分组联系�?
             final groupedContacts = <String, List<Contact>>{};
             for (final contact in state.contacts) {
               if (contact.nickname.toLowerCase().contains(state.searchQuery.toLowerCase())) {
@@ -106,15 +101,15 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
             // 生成索引列表
             final indexList = groupedContacts.keys.toList()..sort();
 
-            return Column(
-              children: [
-                // 头部
-                BeaverHeader(
-                  title: '发起群聊',
-                  showBack: true,
-                  onBack: _goBack,
-                ),
-                // 搜索�?
+            return BeaverLayout(
+              title: '发起群聊',
+              showBack: true,
+              onBack: _goBack,
+              showBackground: false,
+              isScrollable: false,
+              child: Column(
+                children: [
+                // 搜索�?
                 Container(
                   padding: EdgeInsets.all(16.w),
                   child: Container(
@@ -149,7 +144,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                     ),
                   ),
                 ),
-                // 联系人列�?
+                // 联系人列�?
                 Expanded(
                   child: Stack(
                     children: [
@@ -176,7 +171,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                                   ),
                                 ),
                               ),
-                              // 联系人列�?
+                              // 联系人列�?
                               ...contacts.map((contact) => GestureDetector(
                                     onTap: () => _handleSelect(contact),
                                     child: Container(
@@ -255,7 +250,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                           );
                         },
                       ),
-                      // 字母索引�?
+                      // 字母索引�?
                       Positioned(
                         right: 0,
                         top: 0,
@@ -281,7 +276,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                           ),
                         ),
                       ),
-                      // 快速跳转提�?
+                      // 快速跳转提�?
                       if (_showQuickJump)
                         Positioned(
                           top: MediaQuery.of(context).size.height / 2 - 50.w,
@@ -307,7 +302,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                     ],
                   ),
                 ),
-                // 底部操作�?
+                // 底部操作�?
                 Container(
                   height: 100.w,
                   padding: EdgeInsets.all(16.w),
@@ -322,7 +317,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                   ),
                   child: Row(
                     children: [
-                      // 已选择的头�?
+                      // 已选择的头�?
                       Container(
                         width: 120.w,
                         child: Row(
@@ -368,7 +363,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              '完成${state.selectedContacts.isEmpty ? '' : '(${state.selectedContacts.length}�?'}',
+                              '完成${state.selectedContacts.isEmpty ? '' : '(${state.selectedContacts.length}�?'}',
                               style: TextStyle(
                                 fontSize: 16.w,
                                 color: Colors.white,
@@ -382,9 +377,9 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                   ),
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

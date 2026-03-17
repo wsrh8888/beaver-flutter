@@ -7,6 +7,7 @@ import 'package:beaver/features/group/config/bloc/state.dart';
 import 'package:beaver/features/group/config/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class GroupConfigPage extends StatefulWidget {
   const GroupConfigPage({super.key});
@@ -24,7 +25,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
     super.initState();
     _groupConfigBloc = GroupConfigBloc(GroupConfigRepository());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 假设从路由参数获�?groupId
+      // 假设从路由参数获�?groupId
       _groupConfigBloc.add(LoadGroupInfoEvent('123'));
     });
   }
@@ -71,20 +72,16 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
       child: BlocConsumer<GroupConfigBloc, GroupConfigState>(
         listener: (context, state) {
           if (state.status == GroupConfigStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           } else if (state.status == GroupConfigStatus.success && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
-            if (state.errorMessage == '已退出群�?) {
+            BeaverToast.show(context, state.errorMessage!);
+            if (state.errorMessage == '已退出群聊') {
               Future.delayed(const Duration(seconds: 1), () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               });
             }
           }
-          // 更新控制�?
+          // 更新控制�?
           _nameController.text = state.groupName;
         },
         builder: (context, state) {
@@ -150,7 +147,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                                     ),
                                     SizedBox(height: 4.w),
                                     Text(
-                                      '${groupInfo.memberCount}�?,
+                                      '${groupInfo.memberCount}�?,
                                       style: TextStyle(
                                         fontSize: 14.w,
                                         color: const Color(0xFFB2BEC3),
@@ -162,7 +159,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                             ],
                           ),
                         ),
-                      // 群成员区�?
+                      // 群成员区�?
                       Container(
                         margin: EdgeInsets.only(bottom: 24.w),
                         padding: EdgeInsets.all(20.w),
@@ -193,7 +190,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                                     ),
                                     SizedBox(width: 8.w),
                                     Text(
-                                      '群成�?,
+                                      '群成�?,
                                       style: TextStyle(
                                         fontSize: 16.w,
                                         fontWeight: FontWeight.w600,
@@ -205,7 +202,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                                 GestureDetector(
                                   onTap: () => _navigateToGroupMember('view'),
                                   child: Text(
-                                    '${state.groupMembers.length}�?,
+                                    '${state.groupMembers.length}�?,
                                     style: TextStyle(
                                       fontSize: 14.w,
                                       color: const Color(0xFFFF7D45),
@@ -314,7 +311,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                                           ),
                                         ),
                                         Text(
-                                          '修改群组的显示名�?,
+                                          '修改群组的显示名�?,
                                           style: TextStyle(
                                             fontSize: 12.w,
                                             color: const Color(0xFFB2BEC3),
@@ -350,7 +347,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                   ),
                 ),
               ),
-              // 修改群名称弹�?
+              // 修改群名称弹�?
               if (state.showNameModal)
                 Container(
                   color: Colors.black.withOpacity(0.5),
@@ -367,7 +364,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                       children: [
                         // 标题
                         Text(
-                          '修改群名�?,
+                          '修改群名�?,
                           style: TextStyle(
                             fontSize: 18.w,
                             fontWeight: FontWeight.w600,
@@ -375,7 +372,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                           ),
                         ),
                         SizedBox(height: 24.w),
-                        // 输入�?
+                        // 输入�?
                         TextField(
                           controller: _nameController,
                           onChanged: _updateGroupName,
@@ -433,7 +430,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                     ),
                   ),
                 ),
-              // 退出群聊按�?
+              // 退出群聊按�?
               Positioned(
                 left: 0,
                 right: 0,
@@ -450,7 +447,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        '退出群�?,
+                        '退出群�?,
                         style: TextStyle(
                           fontSize: 16.w,
                           color: Colors.white,
