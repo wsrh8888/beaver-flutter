@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/auth/login/bloc/event.dart';
 import 'package:beaver/features/auth/login/bloc/state.dart';
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
+import 'package:beaver/features/auth/login/data/repositories/repository.dart';
 
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final AuthRepository authRepository;
+  final LoginRepository authRepository;
   
   LoginBloc({required this.authRepository}) : super(const LoginState()) {
     on<LoginSubmitEvent>(_onLoginSubmit);

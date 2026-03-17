@@ -4,6 +4,7 @@ import 'package:beaver/shared/ui/image/image.dart';
 class BeaverAvatar extends StatelessWidget {
   final String? url;
   final String? name;
+  final String? nickname; // Alias for name
   final double size;
   final Color? backgroundColor;
   final TextStyle? textStyle;
@@ -12,6 +13,7 @@ class BeaverAvatar extends StatelessWidget {
     super.key,
     this.url,
     this.name,
+    this.nickname,
     this.size = 40,
     this.backgroundColor,
     this.textStyle,
@@ -19,6 +21,7 @@ class BeaverAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String? displayName = name ?? nickname;
     return Container(
       width: size,
       height: size,
@@ -27,7 +30,7 @@ class BeaverAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(size / 2),
       ),
       alignment: Alignment.center,
-      child: url != null
+      child: url != null && url!.isNotEmpty
           ? ClipRRect(
               borderRadius: BorderRadius.circular(size / 2),
               child: BeaverImage(
@@ -38,7 +41,7 @@ class BeaverAvatar extends StatelessWidget {
               ),
             )
           : Text(
-              name?.isNotEmpty == true ? name![0].toUpperCase() : '?',
+              displayName?.isNotEmpty == true ? displayName![0].toUpperCase() : '?',
               style: textStyle ??
                   TextStyle(
                     fontSize: size * 0.4,

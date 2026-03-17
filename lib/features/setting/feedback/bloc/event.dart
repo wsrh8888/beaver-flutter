@@ -1,3 +1,5 @@
+import 'package:beaver/features/setting/feedback/data/models/feedback.dart';
+
 abstract class FeedbackEvent {
   const FeedbackEvent();
 }

@@ -65,6 +65,10 @@ dependencies:
   
   # 音视频通话
   livekit_client: ^1.0.0
+  url_launcher: ^6.3.1
+  qr_flutter: ^4.1.0
+  image_gallery_saver_plus: ^4.0.1
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

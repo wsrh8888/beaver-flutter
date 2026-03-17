@@ -1,11 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/auth/register/bloc/event.dart';
 import 'package:beaver/features/auth/register/bloc/state.dart';
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
-
+import 'package:beaver/features/auth/register/data/repositories/repository.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
-  final AuthRepository authRepository;
+  final RegisterRepository authRepository;
   
   RegisterBloc({required this.authRepository}) : super(const RegisterState()) {
     on<RegisterSubmitEvent>(_onRegisterSubmit);

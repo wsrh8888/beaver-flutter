@@ -22,15 +22,15 @@ class MessageModel {
     required this.isSent,
   });
 
-  factory MessageModel.fromMessage(Message message, bool isSent) {
+  factory MessageModel.fromChat(Chat chat, bool isSent) {
     return MessageModel(
-      id: message.id,
-      conversationId: message.conversationId,
-      userId: message.senderId,
-      content: message.content,
-      type: message.type,
-      status: message.status,
-      createdAt: message.createdAt,
+      id: chat.messageId,
+      conversationId: chat.conversationId,
+      userId: chat.sendUserId ?? '',
+      content: chat.msg ?? '',
+      type: chat.msgType < MessageType.values.length ? MessageType.values[chat.msgType] : MessageType.text,
+      status: chat.sendStatus < MessageStatus.values.length ? MessageStatus.values[chat.sendStatus] : MessageStatus.sent,
+      createdAt: DateTime.fromMillisecondsSinceEpoch((chat.createdAt ?? 0) * 1000),
       isSent: isSent,
     );
   }

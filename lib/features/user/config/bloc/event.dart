@@ -2,24 +2,17 @@ abstract class UserConfigEvent {
   const UserConfigEvent();
 }
 
-class LoadFriendInfoEvent extends UserConfigEvent {
-  final String conversationId;
-
-  const LoadFriendInfoEvent(this.conversationId);
+class LoadUserConfigEvent extends UserConfigEvent {
+  final String userId;
+  const LoadUserConfigEvent(this.userId);
 }
 
-class ToggleTopChatEvent extends UserConfigEvent {
-  const ToggleTopChatEvent();
+class ToggleStickyEvent extends UserConfigEvent {
+  final String userId;
+  const ToggleStickyEvent(this.userId);
 }
 
-class ShowDeleteModalEvent extends UserConfigEvent {
-  const ShowDeleteModalEvent();
-}
-
-class HideDeleteModalEvent extends UserConfigEvent {
-  const HideDeleteModalEvent();
-}
-
-class ConfirmDeleteEvent extends UserConfigEvent {
-  const ConfirmDeleteEvent();
+class ToggleMuteEvent extends UserConfigEvent {
+  final String userId;
+  const ToggleMuteEvent(this.userId);
 }

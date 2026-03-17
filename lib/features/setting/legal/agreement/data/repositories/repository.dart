@@ -2,13 +2,10 @@ import 'package:beaver/features/setting/legal/agreement/data/models/agreement.da
 
 class AgreementRepository {
   Future<Agreement> getAgreement() async {
-    // 模拟获取用户协议
-    await Future.delayed(const Duration(seconds: 1));
     return const Agreement(
-      title: 'Beaver用户服务协议',
-      updateTime: '2025�?�?�?,
-      content: '欢迎您使用Beaver！本协议是您与Beaver之间关于使用我们提供的产品和服务的法律协议。请您在注册和使用前仔细阅读本协议的全部内容�?,
+      title: '用户协议',
+      updateTime: '2025年01月01日',
+      content: '欢迎来到Beaver。通过使用我们的服务，您同意以下条款。请您仔细阅读。如果您不同意这些条款，请勿使用我们的服务。',
     );
   }
 }
-

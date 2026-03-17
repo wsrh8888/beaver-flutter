@@ -52,10 +52,9 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/share/:type/:id',
       builder: (context, state) {
-        final type = state.params['type'];
-        final id = state.params['id'];
-        // 根据类型和ID跳转到对应页面
-        // 这里可以根据实际需求实现具体逻辑
+        // GoRouter 17.x 使用 pathParameters
+        final type = state.pathParameters['type'];
+        final id = state.pathParameters['id'];
         return const MainScreen();
       },
     ),

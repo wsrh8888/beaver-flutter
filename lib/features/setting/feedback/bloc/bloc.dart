@@ -20,87 +20,85 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) async {
     emit(state.copyWith(status: FeedbackStatus.loading));
-
     try {
-      final feedbackTypes = await _repository.getFeedbackTypes();
+      final types = await _repository.getFeedbackTypes();
       emit(state.copyWith(
         status: FeedbackStatus.success,
-        feedbackTypes: feedbackTypes,
+        feedbackTypes: types,
       ));
     } catch (e) {
       emit(state.copyWith(
         status: FeedbackStatus.error,
-        errorMessage: '加载反馈类型失败: $e',
+        errorMessage: e.toString(),
       ));
     }
   }
 
-  Future<void> _onSelectFeedbackType(
+  void _onSelectFeedbackType(
     SelectFeedbackTypeEvent event,
     Emitter<FeedbackState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(selectedType: event.type));
   }
 
-  Future<void> _onUpdateContent(
+  void _onUpdateContent(
     UpdateContentEvent event,
     Emitter<FeedbackState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(
       content: event.content,
       charCount: event.content.length,
     ));
   }
 
-  Future<void> _onAddImage(
+  void _onAddImage(
     AddImageEvent event,
     Emitter<FeedbackState> emit,
-  ) async {
-    if (state.uploadedImages.length >= 3) return;
-
-    final uploadedImages = List<UploadedImage>.from(state.uploadedImages);
-    uploadedImages.add(event.image);
-    emit(state.copyWith(uploadedImages: uploadedImages));
+  ) {
+    final images = List<UploadedImage>.from(state.uploadedImages ?? [])..add(event.image);
+    emit(state.copyWith(uploadedImages: images));
   }
 
-  Future<void> _onRemoveImage(
+  void _onRemoveImage(
     RemoveImageEvent event,
     Emitter<FeedbackState> emit,
-  ) async {
-    final uploadedImages = List<UploadedImage>.from(state.uploadedImages);
-    if (event.index >= 0 && event.index < uploadedImages.length) {
-      uploadedImages.removeAt(event.index);
-      emit(state.copyWith(uploadedImages: uploadedImages));
-    }
+  ) {
+    final images = List<UploadedImage>.from(state.uploadedImages ?? [])..removeAt(event.index);
+    emit(state.copyWith(uploadedImages: images));
   }
 
   Future<void> _onSubmitFeedback(
     SubmitFeedbackEvent event,
     Emitter<FeedbackState> emit,
   ) async {
-    if (state.selectedType == null || state.content.trim().isEmpty) {
+    if (state.selectedType == null || state.content.isEmpty) {
       emit(state.copyWith(
         status: FeedbackStatus.error,
-        errorMessage: '请选择反馈类型并填写反馈内�?,
+        errorMessage: '请选择反馈类型并填写反馈内容',
       ));
       return;
     }
 
     emit(state.copyWith(status: FeedbackStatus.loading));
-
     try {
-      await _repository.submitFeedback(
+      final success = await _repository.submitFeedback(
         type: state.selectedType!,
         content: state.content,
         images: state.uploadedImages,
       );
-      emit(state.copyWith(status: FeedbackStatus.success));
+      if (success) {
+        emit(state.copyWith(status: FeedbackStatus.success));
+      } else {
+        emit(state.copyWith(
+          status: FeedbackStatus.error,
+          errorMessage: '提交失败，请稍后再试',
+        ));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: FeedbackStatus.error,
-        errorMessage: '提交反馈失败: $e',
+        errorMessage: e.toString(),
       ));
     }
   }
 }
-

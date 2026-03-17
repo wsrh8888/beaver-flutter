@@ -20,8 +20,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const ChatListPage(),
-    const ContactPage(),
-    const MomentPage(),
+    const ContactListPage(),
+    const MomentListPage(),
     const ProfilePage(),
   ];
 

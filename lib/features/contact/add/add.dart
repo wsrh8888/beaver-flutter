@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
-class NewFriendsPage extends StatelessWidget {
-  const NewFriendsPage({super.key});
+class AddContactPage extends StatelessWidget {
+  const AddContactPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const BeaverLayout(
-      title: '新朋友',
+      title: '添加联系人',
       showBack: true,
       child: Center(
-        child: Text('新朋友页面开发中'),
+        child: Text('添加联系人页面开发中'),
       ),
     );
   }

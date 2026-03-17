@@ -8,9 +8,10 @@ import 'package:beaver/features/auth/login/bloc/bloc.dart';
 import 'package:beaver/features/auth/login/bloc/event.dart';
 import 'package:beaver/features/auth/login/bloc/state.dart';
 import 'package:beaver/core/theme/colors.dart';
-import 'package:beaver/router/router.dart';
+import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -18,7 +19,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc(authRepository: getIt<AuthRepository>()),
+      create: (context) => LoginBloc(authRepository: getIt<LoginRepository>()),
       child: const LoginView(),
     );
   }
@@ -57,14 +58,15 @@ class _LoginViewState extends State<LoginView> {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) {
         if (state.status == LoginStatus.success) {
-          context.go(AppRoutes.home);
+          // 修改为 AppRoutes.root
+          context.go(AppRoutes.root);
         } else if (state.status == LoginStatus.error) {
           BeaverToast.show(context, state.errorMessage ?? '登录失败');
         }
       },
       child: BeaverLayout(
         showBackground: true,
-        showHeader: false, // 登录页不需要 header
+        showHeader: false,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Column(
@@ -105,27 +107,8 @@ class _LoginViewState extends State<LoginView> {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 28.w,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0)],
-                ),
-              ),
-            ),
-          ),
-          Center(
-            child: Image.asset('assets/images/logo.png', width: 36.w, height: 36.w, fit: BoxFit.contain),
-          ),
-        ],
+      child: Center(
+        child: Image.asset('assets/images/logo.png', width: 36.w, height: 36.w, fit: BoxFit.contain),
       ),
     );
   }

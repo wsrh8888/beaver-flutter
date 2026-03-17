@@ -5,327 +5,185 @@ import 'package:beaver/features/contact/search/bloc/bloc.dart';
 import 'package:beaver/features/contact/search/bloc/event.dart';
 import 'package:beaver/features/contact/search/bloc/state.dart';
 import 'package:beaver/features/contact/search/data/repositories/repository.dart';
-import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
-class SearchFriendPage extends StatefulWidget {
-  const SearchFriendPage({super.key});
+class SearchContactPage extends StatefulWidget {
+  const SearchContactPage({super.key});
 
   @override
-  State<SearchFriendPage> createState() => _SearchFriendPageState();
+  State<SearchContactPage> createState() => _SearchContactPageState();
 }
 
-class _SearchFriendPageState extends State<SearchFriendPage> {
-  late SearchFriendBloc _searchFriendBloc;
-  final TextEditingController _searchController = TextEditingController();
+class _SearchContactPageState extends State<SearchContactPage> {
+  final _searchController = TextEditingController();
+  late SearchContactBloc _searchBloc;
 
   @override
   void initState() {
     super.initState();
-    _searchFriendBloc = SearchFriendBloc(SearchFriendRepository());
+    final database = AppDatabase.instance;
+    final repository = SearchContactRepository(database);
+    _searchBloc = SearchContactBloc(repository);
   }
 
   @override
   void dispose() {
-    _searchFriendBloc.close();
     _searchController.dispose();
+    _searchBloc.close();
     super.dispose();
   }
 
-  void _goBack() {
-    Navigator.of(context).pop();
-  }
-
-  void _updateSearchQuery(String query) {
-    _searchFriendBloc.add(UpdateSearchQueryEvent(query));
-  }
-
-  void _performSearch() {
-    _searchFriendBloc.add(PerformSearchEvent());
-  }
-
-  void _scanCode() {
-    _searchFriendBloc.add(ScanCodeEvent());
-  }
-
-  void _goToDetail(String userId) {
-    _searchFriendBloc.add(GoToDetailEvent(userId));
-  }
-
-  void _sendFriendRequest(String friendId) {
-    _searchFriendBloc.add(SendFriendRequestEvent(friendId, '我是你的好友'));
+  void _handleSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      _searchBloc.add(SearchUserEvent(query));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: _searchFriendBloc,
-      child: BlocConsumer<SearchFriendBloc, SearchFriendState>(
-        listener: (context, state) {
-          if (state.status == SearchFriendStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
-          } else if (state.status == SearchFriendStatus.success && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
-            if (state.showResult == false) {
-              _searchController.clear();
-            }
-          }
-        },
-        builder: (context, state) {
-          return BeaverLayout(
-            title: '添加好友',
-            showBack: true,
-            showBackground: false,
-            isScrollable: true,
-            child: Container(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                children: [
-                  // 搜索区域
-                  Container(
-                    margin: EdgeInsets.only(bottom: 24.w),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF0F2F5),
-                      borderRadius: BorderRadius.circular(12.w),
-                    ),
-                    child: Row(
-                      children: [
-                        // 搜索图标
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
-                          child: Icon(
-                            Icons.search,
-                            size: 24.w,
-                            color: const Color(0xFFB2BEC3),
-                          ),
-                        ),
-                        // 输入�?
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: _updateSearchQuery,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: '输入邮箱搜索好友',
-                              hintStyle: TextStyle(
-                                fontSize: 14.w,
-                                color: const Color(0xFFB2BEC3),
-                              ),
-                            ),
-                          ),
-                        ),
-                        // 搜索按钮
-                        GestureDetector(
-                          onTap: _performSearch,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Text(
-                              '搜索',
-                              style: TextStyle(
-                                fontSize: 14.w,
-                                color: const Color(0xFFFF7D45),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 初始状态（未搜索）
-                  if (!state.showResult)
-                    Container(
-                      padding: EdgeInsets.all(24.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.w),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            offset: Offset(0, 4.w),
-                            blurRadius: 12.w,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // 添加方式
-                          GestureDetector(
-                            onTap: _scanCode,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 16.w),
-                              child: Row(
-                                children: [
-                                  // 图标
-                                  Container(
-                                    width: 48.w,
-                                    height: 48.w,
-                                    margin: EdgeInsets.only(right: 16.w),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFE6D9),
-                                      borderRadius: BorderRadius.circular(12.w),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.qr_code_scanner,
-                                      size: 24.w,
-                                      color: const Color(0xFFFF7D45),
-                                    ),
-                                  ),
-                                  // 信息
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '扫一�?,
-                                          style: TextStyle(
-                                            fontSize: 16.w,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xFF2D3436),
-                                          ),
-                                        ),
-                                        Text(
-                                          '扫描好友的二维码添加',
-                                          style: TextStyle(
-                                            fontSize: 14.w,
-                                            color: const Color(0xFF636E72),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // 箭头
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16.w,
-                                    color: const Color(0xFFB2BEC3),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  // 搜索结果状�?
-                  if (state.showResult && state.searchResult != null)
-                    Container(
-                      padding: EdgeInsets.all(24.w),
-                      margin: EdgeInsets.only(top: 24.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.w),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            offset: Offset(0, 4.w),
-                            blurRadius: 12.w,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // 搜索结果
-                          GestureDetector(
-                            onTap: () => _goToDetail(state.searchResult!.userId),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 16.w),
-                              child: Row(
-                                children: [
-                                  // 头像
-                                  Container(
-                                    margin: EdgeInsets.only(right: 16.w),
-                                    child: BeaverAvatar(
-                                      url: state.searchResult!.fileName,
-                                      size: 48.w,
-                                    ),
-                                  ),
-                                  // 信息
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          state.searchResult!.nickname,
-                                          style: TextStyle(
-                                            fontSize: 16.w,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xFF2D3436),
-                                          ),
-                                        ),
-                                        Text(
-                                          'ID: ${state.searchResult!.userId}',
-                                          style: TextStyle(
-                                            fontSize: 14.w,
-                                            color: const Color(0xFF636E72),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // 提示
-                                  Row(
-                                    children: [
-                                      Text(
-                                        '点击查看详情',
-                                        style: TextStyle(
-                                          fontSize: 14.w,
-                                          color: const Color(0xFFFF7D45),
-                                        ),
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 14.w,
-                                        color: const Color(0xFFFF7D45),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // 分割�?
-                          Container(
-                            height: 1.w,
-                            color: const Color(0xFFEBEEF5),
-                            margin: EdgeInsets.symmetric(vertical: 16.w),
-                          ),
-                          // 添加好友按钮
-                          GestureDetector(
-                            onTap: () => _sendFriendRequest(state.searchResult!.userId),
-                            child: Container(
-                              height: 48.w,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFF7D45),
-                                borderRadius: BorderRadius.circular(24.w),
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                '添加好友',
-                                style: TextStyle(
-                                  fontSize: 16.w,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
+      value: _searchBloc,
+      child: BeaverLayout(
+        title: '搜索好友',
+        showBack: true,
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              SizedBox(height: 20.w),
+              _buildSearchResult(),
+              SizedBox(height: 40.w),
+              _buildMyQrcode(),
+            ],
+          ),
+        ),
       ),
     );
   }
-}
 
+  Widget _buildSearchBar() {
+    return Container(
+      height: 48.w,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24.w),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Row(
+        children: [
+          Icon(Icons.search, color: Colors.grey, size: 20.w),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                hintText: '搜索手机号/邮箱/海狸号',
+                border: InputBorder.none,
+                isDense: true,
+              ),
+              onSubmitted: (_) => _handleSearch(),
+            ),
+          ),
+          if (_searchController.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchController.clear();
+                setState(() {});
+              },
+              child: Icon(Icons.clear, color: Colors.grey, size: 20.w),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResult() {
+    return BlocBuilder<SearchContactBloc, SearchContactState>(
+      builder: (context, state) {
+        if (state.status == SearchContactStatus.loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state.status == SearchContactStatus.success && state.user != null) {
+          final user = state.user!;
+          return Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.w),
+            ),
+            child: Row(
+              children: [
+                BeaverAvatar(url: user.avatar, size: 48.w, name: user.nickname),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(user.nickname, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                      if (user.bio != null)
+                        Text(user.bio!, style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _searchBloc.add(AddFriendEvent(user.userId));
+                  },
+                  child: const Text('添加'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (state.status == SearchContactStatus.error) {
+          return Center(child: Text(state.errorMessage ?? '搜索失败'));
+        }
+
+        return const SizedBox();
+      },
+    );
+  }
+
+  Widget _buildMyQrcode() {
+    return Column(
+      children: [
+        const Text('我的二维码', style: TextStyle(color: Colors.grey)),
+        SizedBox(height: 12.w),
+        Container(
+          width: 200.w,
+          height: 200.w,
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.qr_code_2, size: 120.w, color: Colors.orange),
+              SizedBox(height: 12.w),
+              const Text('扫一扫，加我好友', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -97,7 +97,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                       'Beaver重视您的隐私。本隐私政策说明了我们如何收集、使用、披露、处理和保护您在使用我们的服务时所提供的信息。请您仔细阅读本政策，了解我们的隐私惯例。',
                       style: TextStyle(
                         fontSize: 14.w,
-                        lineHeight: 1.6,
+                        height: 1.6,
                         color: const Color(0xFF636E72),
                       ),
                       textAlign: TextAlign.justify,
@@ -192,7 +192,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                             '如果您对我们的隐私政策有任何疑问或建议，请通过以下方式与我们联系：',
                             style: TextStyle(
                               fontSize: 14.w,
-                              lineHeight: 1.6,
+                              height: 1.6,
                               color: const Color(0xFF636E72),
                             ),
                           ),
@@ -201,7 +201,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                             'support@beaver.com',
                             style: TextStyle(
                               fontSize: 14.w,
-                              lineHeight: 1.6,
+                              height: 1.6,
                               color: const Color(0xFFFF7D45),
                             ),
                           ),
@@ -242,7 +242,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
             content,
             style: TextStyle(
               fontSize: 14.w,
-              lineHeight: 1.6,
+              height: 1.6,
               color: const Color(0xFF636E72),
             ),
             textAlign: TextAlign.justify,
@@ -259,7 +259,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
               additionalContent,
               style: TextStyle(
                 fontSize: 14.w,
-                lineHeight: 1.6,
+                height: 1.6,
                 color: const Color(0xFF636E72),
               ),
               textAlign: TextAlign.justify,
@@ -290,7 +290,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
               text,
               style: TextStyle(
                 fontSize: 14.w,
-                lineHeight: 1.6,
+                height: 1.6,
                 color: const Color(0xFF636E72),
               ),
               textAlign: TextAlign.justify,

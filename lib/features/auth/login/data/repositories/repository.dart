@@ -1,11 +1,17 @@
-import 'package:beaver/features/auth/data/repositories/auth_repository.dart';
+import 'package:beaver/api/auth.dart';
+import 'package:beaver/types/api/auth.dart';
+import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/request/request.dart';
 
 class LoginRepository {
-  final AuthRepository authRepository;
-  
-  LoginRepository({required this.authRepository});
-  
-  Future<void> login(String email, String password) async {
-    await authRepository.login(email, password);
+  Future<BaseResponse<EmailPasswordLoginRes>> login(String email, String password) async {
+    final req = EmailPasswordLoginReq(email: email, password: password);
+    final response = await emailPasswordLoginApi(req);
+    
+    if (response.code == 0 && response.result != null) {
+      await StorageUtil.setString('token', response.result!.token);
+      await StorageUtil.setString('userId', response.result!.userId);
+    }
+    return response;
   }
 }

@@ -7,90 +7,66 @@ class UserConfigBloc extends Bloc<UserConfigEvent, UserConfigState> {
   final UserConfigRepository _repository;
 
   UserConfigBloc(this._repository) : super(const UserConfigState()) {
-    on<LoadFriendInfoEvent>(_onLoadFriendInfo);
-    on<ToggleTopChatEvent>(_onToggleTopChat);
-    on<ShowDeleteModalEvent>(_onShowDeleteModal);
-    on<HideDeleteModalEvent>(_onHideDeleteModal);
-    on<ConfirmDeleteEvent>(_onConfirmDelete);
+    on<LoadUserConfigEvent>(_onLoadUserConfig);
+    on<ToggleStickyEvent>(_onToggleSticky);
+    on<ToggleMuteEvent>(_onToggleMute);
   }
 
-  Future<void> _onLoadFriendInfo(
-    LoadFriendInfoEvent event,
+  Future<void> _onLoadUserConfig(
+    LoadUserConfigEvent event,
     Emitter<UserConfigState> emit,
   ) async {
-    emit(state.copyWith(
-      status: UserConfigStatus.loading,
-      conversationId: event.conversationId,
-    ));
-
-    try {
-      final friendInfo = await _repository.getFriendInfo(event.conversationId);
-      emit(state.copyWith(
-        status: UserConfigStatus.success,
-        friendInfo: friendInfo,
-        isTopChat: false,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: UserConfigStatus.error,
-        errorMessage: '加载好友信息失败: $e',
-      ));
-    }
-  }
-
-  Future<void> _onToggleTopChat(
-    ToggleTopChatEvent event,
-    Emitter<UserConfigState> emit,
-  ) async {
-    try {
-      final newStatus = !state.isTopChat;
-      await _repository.toggleTopChat(state.conversationId, newStatus);
-      emit(state.copyWith(
-        isTopChat: newStatus,
-        errorMessage: newStatus ? '已置�? : '已取消置�?,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: '操作失败: $e',
-      ));
-    }
-  }
-
-  Future<void> _onShowDeleteModal(
-    ShowDeleteModalEvent event,
-    Emitter<UserConfigState> emit,
-  ) async {
-    emit(state.copyWith(showDeleteModal: true));
-  }
-
-  Future<void> _onHideDeleteModal(
-    HideDeleteModalEvent event,
-    Emitter<UserConfigState> emit,
-  ) async {
-    emit(state.copyWith(showDeleteModal: false));
-  }
-
-  Future<void> _onConfirmDelete(
-    ConfirmDeleteEvent event,
-    Emitter<UserConfigState> emit,
-  ) async {
-    if (state.friendInfo == null) return;
-
     emit(state.copyWith(status: UserConfigStatus.loading));
-
     try {
-      await _repository.deleteFriend(state.friendInfo!.userId);
+      final config = await _repository.getUserConfig(event.userId);
       emit(state.copyWith(
         status: UserConfigStatus.success,
-        showDeleteModal: false,
-        errorMessage: '删除成功',
+        isSticky: config.isSticky,
+        isMute: config.isMute,
       ));
     } catch (e) {
       emit(state.copyWith(
         status: UserConfigStatus.error,
-        errorMessage: '删除失败: $e',
+        errorMessage: e.toString(),
       ));
+    }
+  }
+
+  Future<void> _onToggleSticky(
+    ToggleStickyEvent event,
+    Emitter<UserConfigState> emit,
+  ) async {
+    final oldStatus = state.isSticky;
+    final newStatus = !oldStatus;
+    emit(state.copyWith(isSticky: newStatus));
+    
+    try {
+      final success = await _repository.updateSticky(event.userId, newStatus);
+      if (!success) {
+        emit(state.copyWith(isSticky: oldStatus, errorMessage: '操作失败'));
+      } else {
+        emit(state.copyWith(errorMessage: newStatus ? '已置顶' : '已取消置顶'));
+      }
+    } catch (e) {
+      emit(state.copyWith(isSticky: oldStatus, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onToggleMute(
+    ToggleMuteEvent event,
+    Emitter<UserConfigState> emit,
+  ) async {
+    final oldStatus = state.isMute;
+    final newStatus = !oldStatus;
+    emit(state.copyWith(isMute: newStatus));
+    
+    try {
+      final success = await _repository.updateMute(event.userId, newStatus);
+      if (!success) {
+        emit(state.copyWith(isMute: oldStatus, errorMessage: '操作失败'));
+      }
+    } catch (e) {
+      emit(state.copyWith(isMute: oldStatus, errorMessage: e.toString()));
     }
   }
 }
-

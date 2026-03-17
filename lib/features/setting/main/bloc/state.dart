@@ -1,27 +1,27 @@
 import 'package:beaver/features/setting/main/data/models/setting_item.dart';
 
-enum SettingStatus { initial, loading, success, error }
+enum SettingMainStatus { initial, loading, success, error }
 
-class SettingState {
-  final SettingStatus status;
+class SettingMainState {
+  final SettingMainStatus status;
   final List<SettingItem> settingItems;
   final String? errorMessage;
   final bool showLogoutDialog;
 
-  const SettingState({
-    this.status = SettingStatus.initial,
+  const SettingMainState({
+    this.status = SettingMainStatus.initial,
     this.settingItems = const [],
     this.errorMessage,
     this.showLogoutDialog = false,
   });
 
-  SettingState copyWith({
-    SettingStatus? status,
+  SettingMainState copyWith({
+    SettingMainStatus? status,
     List<SettingItem>? settingItems,
     String? errorMessage,
     bool? showLogoutDialog,
   }) {
-    return SettingState(
+    return SettingMainState(
       status: status ?? this.status,
       settingItems: settingItems ?? this.settingItems,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -29,4 +29,3 @@ class SettingState {
     );
   }
 }
-

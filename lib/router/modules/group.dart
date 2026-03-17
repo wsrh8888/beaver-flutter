@@ -21,7 +21,7 @@ List<GoRoute> groupRoutes() {
     ),
     GoRoute(
       path: AppRoutes.groupMember,
-      builder: (context, state) => const GroupMemberPage(),
+      builder: (context, state) => GroupMemberPage(groupId: state.extra as String? ?? ''),
     ),
   ];
 }

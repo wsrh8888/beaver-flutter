@@ -40,12 +40,12 @@ class _AboutPageState extends State<AboutPage> {
       value: _aboutBloc,
       child: BlocConsumer<AboutBloc, AboutState>(
         listener: (context, state) {
-          if (state.status == AboutState.error) {
+          if (state.status == AboutStatus.error) {
             BeaverToast.show(context, state.errorMessage ?? '发生错误');
           }
         },
         builder: (context, state) {
-          final appInfo = state.appInfo ?? const AppInfo(
+          final appInfo = state.appInfo ?? AppInfo(
             name: 'Beaver',
             version: '1.0.0',
             developer: 'Beaver Team',
@@ -69,16 +69,15 @@ class _AboutPageState extends State<AboutPage> {
                         height: 600.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(300.w),
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFFFF7D45),
-                              Color(0xFFE86835),
+                              const Color(0xFFFF7D45).withOpacity(0.1),
+                              const Color(0xFFE86835).withOpacity(0.1),
                             ],
                           ),
                         ),
-                        opacity: 0.1,
                       ),
                     ),
                     Positioned(
@@ -89,16 +88,15 @@ class _AboutPageState extends State<AboutPage> {
                         height: 400.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(200.w),
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFFFF7D45),
-                              Color(0xFFE86835),
+                              const Color(0xFFFF7D45).withOpacity(0.1),
+                              const Color(0xFFE86835).withOpacity(0.1),
                             ],
                           ),
                         ),
-                        opacity: 0.1,
                       ),
                     ),
                     // 装饰
@@ -110,9 +108,8 @@ class _AboutPageState extends State<AboutPage> {
                         height: 24.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.w),
-                          color: const Color(0xFFFFE6D9),
+                          color: const Color(0xFFFFE6D9).withOpacity(0.8),
                         ),
-                        opacity: 0.8,
                       ),
                     ),
                     Positioned(
@@ -123,9 +120,8 @@ class _AboutPageState extends State<AboutPage> {
                         height: 24.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.w),
-                          color: const Color(0xFFFFE6D9),
+                          color: const Color(0xFFFFE6D9).withOpacity(0.5),
                         ),
-                        opacity: 0.5,
                       ),
                     ),
                     Positioned(
@@ -136,9 +132,8 @@ class _AboutPageState extends State<AboutPage> {
                         height: 24.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.w),
-                          color: const Color(0xFFFFE6D9),
+                          color: const Color(0xFFFFE6D9).withOpacity(0.7),
                         ),
-                        opacity: 0.7,
                       ),
                     ),
                     Positioned(
@@ -149,9 +144,8 @@ class _AboutPageState extends State<AboutPage> {
                         height: 24.w,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.w),
-                          color: const Color(0xFFFFE6D9),
+                          color: const Color(0xFFFFE6D9).withOpacity(0.6),
                         ),
-                        opacity: 0.6,
                       ),
                     ),
                   ],
@@ -254,7 +248,7 @@ class _AboutPageState extends State<AboutPage> {
                             appInfo.description,
                             style: TextStyle(
                               fontSize: 34.w,
-                              lineHeight: 1.8,
+                              height: 1.8,
                               color: const Color(0xFF636E72),
                             ),
                             textAlign: TextAlign.center,

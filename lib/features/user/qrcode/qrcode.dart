@@ -15,7 +15,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class QrcodePage extends StatefulWidget {
@@ -34,7 +34,7 @@ class _QrcodePageState extends State<QrcodePage> {
   void initState() {
     super.initState();
     final database = AppDatabase.instance;
-    final repository = QrcodeRepository(database);
+    final repository = QrcodeRepository();
     _qrcodeBloc = QrcodeBloc(repository)..add(LoadUserInfoEvent());
   }
 
@@ -72,9 +72,9 @@ class _QrcodePageState extends State<QrcodePage> {
       final pngBytes = byteData!.buffer.asUint8List();
 
       // 保存到相册
-      final result = await ImageGallerySaver.saveImage(pngBytes, quality: 100);
+      final success = await ImageGallerySaverPlus.saveImage(pngBytes, quality: 100);
       
-      if (result['isSuccess']) {
+      if (success == true) {
         _showToast('已保存到相册');
       } else {
         _showToast('保存失败，请重试');
@@ -176,17 +176,17 @@ class _QrcodePageState extends State<QrcodePage> {
                                     borderRadius: BorderRadius.circular(32.w),
                                     color: const Color(0xFFFF7D45).withOpacity(0.1),
                                   ),
-                                  child: state.userInfo.fileName != null
+                                  child: state.qrCodeData.fileName != null
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(32.w),
                                           child: Image.network(
-                                            state.userInfo.fileName!,
+                                            state.qrCodeData.fileName!,
                                             fit: BoxFit.cover,
                                           ),
                                         )
                                       : Center(
                                           child: Text(
-                                            _getUserInitial(state.userInfo.nickname),
+                                            _getUserInitial(state.qrCodeData.nickname),
                                             style: TextStyle(
                                               fontSize: 40.w,
                                               fontWeight: FontWeight.w600,
@@ -200,7 +200,7 @@ class _QrcodePageState extends State<QrcodePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      state.userInfo.nickname ?? 'Beaver',
+                                      state.qrCodeData.nickname ?? 'Beaver',
                                       style: TextStyle(
                                         fontSize: 36.w,
                                         fontWeight: FontWeight.w600,
@@ -209,7 +209,7 @@ class _QrcodePageState extends State<QrcodePage> {
                                     ),
                                     SizedBox(height: 8.w),
                                     Text(
-                                      'ID: ${state.userInfo.userId ?? '未设置'}',
+                                      'ID: ${state.qrCodeData.userId ?? '未设置'}',
                                       style: TextStyle(
                                         fontSize: 20.w,
                                         color: const Color(0xFF636E72),
@@ -243,12 +243,12 @@ class _QrcodePageState extends State<QrcodePage> {
                                   ],
                                 ),
                                 child: QrImageView(
-                                  data: _generateQrValue(state.userInfo.userId),
+                                  data: _generateQrValue(state.qrCodeData.userId),
                                   version: QrVersions.auto,
                                   size: 336.w,
                                   gapless: false,
-                                  embeddedImage: state.userInfo.fileName != null
-                                      ? NetworkImage(state.userInfo.fileName!)
+                                  embeddedImage: state.qrCodeData.fileName != null
+                                      ? NetworkImage(state.qrCodeData.fileName!)
                                       : null,
                                   embeddedImageStyle: QrEmbeddedImageStyle(
                                     size: Size(60.w, 60.w),

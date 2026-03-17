@@ -4,7 +4,7 @@ import 'package:beaver/features/discover/main/bloc/state.dart';
 import 'package:beaver/features/discover/main/data/repositories/repository.dart';
 
 class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
-  final DiscoverRepository _repository;
+  final DiscoverMainRepository _repository;
 
   DiscoverBloc(this._repository) : super(const DiscoverState()) {
     on<LoadDiscoverItemsEvent>(_onLoadDiscoverItems);

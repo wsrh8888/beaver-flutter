@@ -11,8 +11,8 @@ import 'package:beaver/features/moment/list/data/repositories/repository.dart';
 import 'package:beaver/types/api/moment.dart';
 import 'package:beaver/shared/widgets/skeleton.dart';
 
-class MomentPage extends StatelessWidget {
-  const MomentPage({super.key});
+class MomentListPage extends StatelessWidget {
+  const MomentListPage({super.key});
 
   @override
   Widget build(BuildContext context) {

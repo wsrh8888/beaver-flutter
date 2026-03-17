@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/chat/detail/detail.dart';
+import 'package:beaver/features/chat/detail/chat_setting.dart';
 import 'package:beaver/router/routes.dart';
 
 List<GoRoute> chatRoutes() {

@@ -28,7 +28,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
     } catch (e) {
       emit(state.copyWith(
         status: CreateGroupStatus.error,
-        errorMessage: '加载联系人失�? $e',
+        errorMessage: '加载联系人失�? $e',
       ));
     }
   }

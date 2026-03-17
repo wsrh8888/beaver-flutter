@@ -97,7 +97,7 @@ class _AgreementPageState extends State<AgreementPage> {
                       '欢迎您使用Beaver！本协议是您与Beaver之间关于使用我们提供的产品和服务的法律协议。请您在注册和使用前仔细阅读本协议的全部内容。',
                       style: TextStyle(
                         fontSize: 14.w,
-                        lineHeight: 1.6,
+                        height: 1.6,
                         color: const Color(0xFF636E72),
                       ),
                       textAlign: TextAlign.justify,
@@ -199,7 +199,7 @@ class _AgreementPageState extends State<AgreementPage> {
                             '如果您对我们的服务条款有任何疑问或建议，请通过以下方式与我们联系：',
                             style: TextStyle(
                               fontSize: 14.w,
-                              lineHeight: 1.6,
+                              height: 1.6,
                               color: const Color(0xFF636E72),
                             ),
                           ),
@@ -208,7 +208,7 @@ class _AgreementPageState extends State<AgreementPage> {
                             'support@beaver.com',
                             style: TextStyle(
                               fontSize: 14.w,
-                              lineHeight: 1.6,
+                              height: 1.6,
                               color: const Color(0xFFFF7D45),
                             ),
                           ),
@@ -249,7 +249,7 @@ class _AgreementPageState extends State<AgreementPage> {
             content,
             style: TextStyle(
               fontSize: 14.w,
-              lineHeight: 1.6,
+              height: 1.6,
               color: const Color(0xFF636E72),
             ),
             textAlign: TextAlign.justify,
@@ -266,7 +266,7 @@ class _AgreementPageState extends State<AgreementPage> {
               additionalContent,
               style: TextStyle(
                 fontSize: 14.w,
-                lineHeight: 1.6,
+                height: 1.6,
                 color: const Color(0xFF636E72),
               ),
               textAlign: TextAlign.justify,
@@ -297,7 +297,7 @@ class _AgreementPageState extends State<AgreementPage> {
               text,
               style: TextStyle(
                 fontSize: 14.w,
-                lineHeight: 1.6,
+                height: 1.6,
                 color: const Color(0xFF636E72),
               ),
               textAlign: TextAlign.justify,

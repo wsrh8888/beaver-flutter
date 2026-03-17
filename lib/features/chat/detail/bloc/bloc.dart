@@ -1,168 +1,80 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/features/chat/detail/data/repositories/repository.dart';
-import 'package:beaver/core/database/database.dart';
+import 'package:beaver/features/chat/detail/data/models/types.dart';
+import 'package:beaver/features/chat/detail/data/models/message.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final ChatRepository _repository;
-  final String _conversationId;
-  int _offset = 0;
-  static const int _limit = 50;
+  StreamSubscription? _messageSubscription;
+  final _uuid = const Uuid();
 
-  ChatBloc({
-    required ChatRepository repository,
-    required String conversationId,
-  })  : _repository = repository,
-        _conversationId = conversationId,
-        super(const ChatState()) {
+  ChatBloc(this._repository) : super(const ChatState()) {
     on<LoadMessagesEvent>(_onLoadMessages);
-    on<LoadMoreMessagesEvent>(_onLoadMoreMessages);
     on<SendMessageEvent>(_onSendMessage);
-    on<UpdateMessageStatusEvent>(_onUpdateMessageStatus);
     on<MessageReceivedEvent>(_onMessageReceived);
   }
 
-  Future<void> _onLoadMessages(
-    LoadMessagesEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(state.copyWith(status: ChatStatus.loading));
+  Future<void> _onLoadMessages(LoadMessagesEvent event, Emitter<ChatState> emit) async {
+    emit(state.copyWith(status: ChatStatus.loading, conversationId: event.conversationId));
 
     try {
-      _offset = 0;
-      final messages = await _repository.getMessages(
-        _conversationId,
-        limit: _limit,
-        offset: _offset,
-      );
-      final conversation = await _repository.getConversation(_conversationId);
+      final conversation = await _repository.getConversation(event.conversationId);
+      final messages = await _repository.getMessages(event.conversationId);
+
+      _messageSubscription?.cancel();
+      _messageSubscription = _repository.watchMessages(event.conversationId).listen((messages) {
+        add(MessageReceivedEvent(event.conversationId));
+      });
 
       emit(state.copyWith(
         status: ChatStatus.success,
-        messages: messages,
         conversation: conversation,
-        hasMore: messages.length >= _limit,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: ChatStatus.error,
-        errorMessage: '加载消息失败: $e',
-      ));
-    }
-  }
-
-  Future<void> _onLoadMoreMessages(
-    LoadMoreMessagesEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    if (!state.hasMore || state.isLoadingMore) return;
-
-    emit(state.copyWith(isLoadingMore: true));
-
-    try {
-      _offset += _limit;
-      final moreMessages = await _repository.getMessages(
-        _conversationId,
-        limit: _limit,
-        offset: _offset,
-      );
-
-      final updatedMessages = [...state.messages, ...moreMessages];
-
-      emit(state.copyWith(
-        messages: updatedMessages,
-        hasMore: moreMessages.length >= _limit,
-        isLoadingMore: false,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        isLoadingMore: false,
-        errorMessage: '加载更多消息失败: $e',
-      ));
-    }
-  }
-
-  Future<void> _onSendMessage(
-    SendMessageEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(state.copyWith(status: ChatStatus.sending));
-
-    try {
-      // 先创建一个临时消息模型用于UI显示
-      final tempMessage = MessageModel(
-        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
-        conversationId: _conversationId,
-        userId: 'current_user', // 假设当前用户
-        content: event.content,
-        type: event.type,
-        status: MessageStatus.sending,
-        createdAt: DateTime.now(),
-        isSent: true,
-      );
-
-      // 立即更新UI，显示发送中的消�?
-      final updatedMessages = [...state.messages, tempMessage];
-      emit(state.copyWith(
-        status: ChatStatus.success,
-        messages: updatedMessages,
-      ));
-
-      // 实际发送消�?
-      final message = await _repository.sendMessage(
-        _conversationId,
-        event.content,
-        event.type,
-      );
-
-      // 重新加载消息列表以获取最新状�?
-      add(MessageReceivedEvent(_conversationId));
-    } catch (e) {
-      emit(state.copyWith(
-        status: ChatStatus.error,
-        errorMessage: '发送消息失�? $e',
-      ));
-    }
-  }
-
-  Future<void> _onUpdateMessageStatus(
-    UpdateMessageStatusEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    try {
-      await _repository.updateMessageStatus(event.messageId, event.status);
-
-      final updatedMessages = state.messages.map((message) {
-        if (message.id == event.messageId) {
-          return message.copyWith(status: event.status);
-        }
-        return message;
-      }).toList();
-
-      emit(state.copyWith(messages: updatedMessages));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: '更新消息状态失�? $e',
-      ));
-    }
-  }
-
-  Future<void> _onMessageReceived(
-    MessageReceivedEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    try {
-      final messages = await _repository.getMessages(_conversationId);
-      emit(state.copyWith(
-        status: ChatStatus.success,
         messages: messages,
       ));
     } catch (e) {
-      emit(state.copyWith(
-        errorMessage: '接收消息失败: $e',
-      ));
+      emit(state.copyWith(status: ChatStatus.error, errorMessage: e.toString()));
     }
+  }
+
+  Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
+    if (state.conversationId == null) return;
+
+    final tempMessageId = _uuid.v4();
+    final tempMessage = MessageModel(
+      id: tempMessageId,
+      conversationId: state.conversationId!,
+      userId: 'me',
+      content: event.content,
+      type: event.type,
+      status: MessageStatus.sending,
+      createdAt: DateTime.now(),
+      isSent: true,
+    );
+
+    final updatedMessages = List<MessageModel>.from(state.messages)..add(tempMessage);
+    emit(state.copyWith(messages: updatedMessages));
+
+    try {
+      await _repository.sendMessage(state.conversationId!, event.content, event.type);
+    } catch (e) {
+      // 实际上 repository 已经处理了发送逻辑
+    }
+  }
+
+  Future<void> _onMessageReceived(MessageReceivedEvent event, Emitter<ChatState> emit) async {
+    if (event.conversationId == state.conversationId) {
+      final messages = await _repository.getMessages(event.conversationId);
+      emit(state.copyWith(messages: messages));
+    }
+  }
+
+  @override
+  Future<void> close() {
+    _messageSubscription?.cancel();
+    return super.close();
   }
 }
-

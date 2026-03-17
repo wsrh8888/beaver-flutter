@@ -8,7 +8,9 @@ enum HeaderMode { fixed, static, transparent }
 class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
   final HeaderMode mode;
   final String? title;
+  final Color? titleColor;
   final String leftIcon;
+  final Color? backButtonColor;
   final String? rightIcon;
   final bool showBack;
   final Color background;
@@ -21,7 +23,9 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.mode = HeaderMode.static,
     this.title,
+    this.titleColor,
     this.leftIcon = 'assets/icons/common/arrow-back.svg',
+    this.backButtonColor,
     this.rightIcon,
     this.showBack = true,
     this.background = Colors.transparent,
@@ -33,7 +37,6 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 模拟 UniApp 的状态栏占位 + 88rpx 内容
     return Container(
       width: double.infinity,
       color: background,
@@ -61,7 +64,7 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
                     style: TextStyle(
                       fontSize: 18.w,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF333333),
+                      color: titleColor ?? const Color(0xFF333333),
                     ),
                   ),
                 // 右侧
@@ -86,7 +89,13 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
         child: SizedBox(
           width: 20.w,
           height: 20.w,
-          child: SvgPicture.asset(leftIcon, fit: BoxFit.contain),
+          child: SvgPicture.asset(
+            leftIcon,
+            fit: BoxFit.contain,
+            colorFilter: backButtonColor != null
+                ? ColorFilter.mode(backButtonColor!, BlendMode.srcIn)
+                : null,
+          ),
         ),
       );
     }

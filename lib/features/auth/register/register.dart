@@ -12,7 +12,7 @@ import 'package:beaver/core/theme/colors.dart';
 import 'package:beaver/shared/ui/button/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
-import 'package:beaver/router/router.dart';
+import 'package:beaver/router/routes.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -21,7 +21,7 @@ class RegisterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => RegisterBloc(
-        authRepository: getIt<AuthRepository>(),
+        authRepository: getIt<RegisterRepository>(),
       ),
       child: const RegisterView(),
     );
@@ -90,7 +90,7 @@ class _RegisterViewState extends State<RegisterView> {
     return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
         if (state.status == RegisterStatus.success) {
-          context.go(AppRoutes.home);
+          context.go(AppRoutes.root);
         } else if (state.status == RegisterStatus.error) {
           BeaverToast.show(context, state.errorMessage ?? '注册失败');
         }

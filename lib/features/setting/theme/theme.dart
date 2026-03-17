@@ -171,8 +171,10 @@ class _ThemePageState extends State<ThemePage> {
                                                 Container(
                                                   height: 12.w,
                                                   width: 60.w,
-                                                  color: theme.colors.primary,
-                                                  borderRadius: BorderRadius.circular(6.w),
+                                                  decoration: BoxDecoration(
+                                                    color: theme.colors.primary,
+                                                    borderRadius: BorderRadius.circular(6.w),
+                                                  ),
                                                 ),
                                               ],
                                             ),

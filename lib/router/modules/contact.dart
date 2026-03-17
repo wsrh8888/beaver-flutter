@@ -3,6 +3,7 @@ import 'package:beaver/features/contact/list/list.dart';
 import 'package:beaver/features/contact/detail/detail.dart';
 import 'package:beaver/features/contact/new_friends/new_friends.dart';
 import 'package:beaver/features/contact/search/search.dart';
+import 'package:beaver/features/contact/add/add.dart';
 import 'package:beaver/router/routes.dart';
 
 List<GoRoute> contactRoutes() {

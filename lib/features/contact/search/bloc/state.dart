@@ -1,33 +1,33 @@
-import 'package:beaver/features/contact/search/data/models/search.dart';
+import 'package:beaver/core/database/database.dart';
 
-enum SearchFriendStatus { initial, loading, success, error }
+enum SearchContactStatus { initial, loading, success, error }
 
-class SearchFriendState {
-  final SearchFriendStatus status;
+class SearchContactState {
+  final SearchContactStatus status;
   final String searchQuery;
-  final SearchResult? searchResult;
+  final User? user;
   final bool showResult;
   final String? errorMessage;
 
-  const SearchFriendState({
-    this.status = SearchFriendStatus.initial,
+  const SearchContactState({
+    this.status = SearchContactStatus.initial,
     this.searchQuery = '',
-    this.searchResult,
+    this.user,
     this.showResult = false,
     this.errorMessage,
   });
 
-  SearchFriendState copyWith({
-    SearchFriendStatus? status,
+  SearchContactState copyWith({
+    SearchContactStatus? status,
     String? searchQuery,
-    SearchResult? searchResult,
+    User? user,
     bool? showResult,
     String? errorMessage,
   }) {
-    return SearchFriendState(
+    return SearchContactState(
       status: status ?? this.status,
       searchQuery: searchQuery ?? this.searchQuery,
-      searchResult: searchResult ?? this.searchResult,
+      user: user ?? this.user,
       showResult: showResult ?? this.showResult,
       errorMessage: errorMessage ?? this.errorMessage,
     );

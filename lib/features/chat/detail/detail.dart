@@ -7,41 +7,41 @@ import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/features/chat/detail/components/message_list.dart';
 import 'package:beaver/features/chat/detail/components/input_bar.dart';
 import 'package:beaver/features/chat/detail/data/repositories/repository.dart';
+import 'package:beaver/features/chat/detail/data/models/types.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
-class ChatPage extends StatefulWidget {
-  final String conversationId;
+class ChatDetailPage extends StatefulWidget {
+  final String? conversationId;
 
-  const ChatPage({
+  const ChatDetailPage({
     super.key,
-    required this.conversationId,
+    this.conversationId,
   });
 
   @override
-  State<ChatPage> createState() => _ChatPageState();
+  State<ChatDetailPage> createState() => _ChatDetailPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatDetailPageState extends State<ChatDetailPage> {
   late ChatBloc _chatBloc;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     final database = AppDatabase.instance;
     final repository = ChatRepository(database);
-    _chatBloc = ChatBloc(
-      repository: repository,
-      conversationId: widget.conversationId,
-    )..add(LoadMessagesEvent(widget.conversationId));
+    _chatBloc = ChatBloc(repository);
+    
+    if (widget.conversationId != null) {
+      _chatBloc.add(LoadMessagesEvent(widget.conversationId!));
+    }
   }
 
   @override
   void dispose() {
     _chatBloc.close();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -49,125 +49,41 @@ class _ChatPageState extends State<ChatPage> {
     _chatBloc.add(SendMessageEvent(content, type));
   }
 
-  void _handleLoadMore() {
-    _chatBloc.add(LoadMoreMessagesEvent());
-  }
-
-  void _handleBack() {
-    Navigator.of(context).pop();
-  }
-
-  void _handleClickMore() {
-    // 这里可以根据聊天类型导航到不同的设置页面
-  }
-
-  String _getDisplayTitle(Conversation? conversation) {
-    final nickname = conversation?.nickname ?? '';
-    if (nickname.length >= 10) {
-      return '${nickname.substring(0, 10)}...';
-    }
-    return nickname;
+  String _getDisplayTitle(ChatConversation? conversation) {
+    return conversation?.title ?? '聊天';
   }
 
   @override
   Widget build(BuildContext context) {
-    return BeaverLayout(
-      showBackground: true,
-      showHeader: false,
-      isScrollable: false,
-      child: Stack(
-        children: [
-          BlocProvider.value(
-            value: _chatBloc,
-            child: BlocConsumer<ChatBloc, ChatState>(
-              listener: (context, state) {
-                if (state.status == ChatStatus.error) {
-                  BeaverToast.show(context, state.errorMessage ?? '发生错误');
-                }
-              },
-              builder: (context, state) {
-                return Container(
-                  height: MediaQuery.of(context).size.height,
-                  child: Column(
-                    children: [
-                      // 头部导航
-                      Container(
-                        padding: EdgeInsets.only(
-                          top: MediaQuery.of(context).padding.top,
-                          left: 32.w,
-                          right: 32.w,
-                          bottom: 16.w,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: _handleBack,
-                                  child: Container(
-                                    width: 64.w,
-                                    height: 64.w,
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      Icons.arrow_back,
-                                      size: 32.w,
-                                      color: const Color(0xFF2D3436),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 16.w),
-                                Text(
-                                  _getDisplayTitle(state.conversation),
-                                  style: TextStyle(
-                                    fontSize: 36.w,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2D3436),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            GestureDetector(
-                              onTap: _handleClickMore,
-                              child: Container(
-                                width: 72.w,
-                                height: 72.w,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(36.w),
-                                ),
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  Icons.more_vert,
-                                  size: 32.w,
-                                  color: const Color(0xFF2D3436),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // 聊天内容区域
-                      Expanded(
-                        child: MessageList(
-                          messages: state.messages,
-                          isLoadingMore: state.isLoadingMore,
-                          onLoadMore: _handleLoadMore,
-                        ),
-                      ),
-                      // 底部输入区域
-                      InputBar(
-                        onSendMessage: _handleSendMessage,
-                      ),
-                    ],
+    return BlocProvider.value(
+      value: _chatBloc,
+      child: BlocConsumer<ChatBloc, ChatState>(
+        listener: (context, state) {
+          if (state.status == ChatStatus.error) {
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          }
+        },
+        builder: (context, state) {
+          return BeaverLayout(
+            title: _getDisplayTitle(state.conversation),
+            showBack: true,
+            isScrollable: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: MessageList(
+                    messages: state.messages,
+                    isLoadingMore: state.isLoadingMore,
+                    onLoadMore: () => _chatBloc.add(const LoadMoreMessagesEvent()),
                   ),
-                );
-              },
+                ),
+                InputBar(
+                  onSendMessage: _handleSendMessage,
+                ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

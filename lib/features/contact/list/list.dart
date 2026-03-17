@@ -12,8 +12,8 @@ import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/core/database/database.dart';
 
-class ContactPage extends StatelessWidget {
-  const ContactPage({super.key});
+class ContactListPage extends StatelessWidget {
+  const ContactListPage({super.key});
 
   @override
   Widget build(BuildContext context) {

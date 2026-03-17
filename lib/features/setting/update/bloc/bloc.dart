@@ -8,9 +8,7 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
 
   UpdateBloc(this._repository) : super(const UpdateState()) {
     on<CheckUpdateEvent>(_onCheckUpdate);
-    on<OpenUpdateModalEvent>(_onOpenUpdateModal);
     on<CloseUpdateModalEvent>(_onCloseUpdateModal);
-    on<DownloadUpdateEvent>(_onDownloadUpdate);
   }
 
   Future<void> _onCheckUpdate(
@@ -18,81 +16,33 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
     Emitter<UpdateState> emit,
   ) async {
     emit(state.copyWith(status: UpdateStatus.loading));
-
     try {
       final updateInfo = await _repository.checkUpdate(state.currentVersion);
-      emit(state.copyWith(
-        status: UpdateStatus.success,
-        updateInfo: updateInfo,
-      ));
+      if (updateInfo != null) {
+        emit(state.copyWith(
+          status: UpdateStatus.success,
+          updateInfo: updateInfo,
+          showUpdateModal: true,
+        ));
+      } else {
+        emit(state.copyWith(
+          status: UpdateStatus.success,
+          showUpdateModal: false,
+          errorMessage: '当前已是最新版本',
+        ));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: UpdateStatus.error,
-        errorMessage: '检查更新失�? $e',
+        errorMessage: e.toString(),
       ));
     }
   }
 
-  Future<void> _onOpenUpdateModal(
-    OpenUpdateModalEvent event,
-    Emitter<UpdateState> emit,
-  ) async {
-    emit(state.copyWith(showUpdateModal: true));
-    add(CheckUpdateEvent());
-  }
-
-  Future<void> _onCloseUpdateModal(
+  void _onCloseUpdateModal(
     CloseUpdateModalEvent event,
     Emitter<UpdateState> emit,
-  ) async {
+  ) {
     emit(state.copyWith(showUpdateModal: false));
   }
-
-  Future<void> _onDownloadUpdate(
-    DownloadUpdateEvent event,
-    Emitter<UpdateState> emit,
-  ) async {
-    if (state.updateInfo?.latestVersion == null) return;
-
-    final updatedUpdateInfo = UpdateInfo(
-      hasUpdate: state.updateInfo!.hasUpdate,
-      latestVersion: state.updateInfo!.latestVersion,
-      isChecking: false,
-      isDownloading: true,
-      downloadProgress: 0,
-      lastCheckTime: state.updateInfo!.lastCheckTime,
-    );
-
-    emit(state.copyWith(updateInfo: updatedUpdateInfo));
-
-    try {
-      await _repository.downloadUpdate(state.updateInfo!.latestVersion!.downloadUrl);
-      final completedUpdateInfo = UpdateInfo(
-        hasUpdate: state.updateInfo!.hasUpdate,
-        latestVersion: state.updateInfo!.latestVersion,
-        isChecking: false,
-        isDownloading: false,
-        downloadProgress: 100,
-        lastCheckTime: state.updateInfo!.lastCheckTime,
-      );
-      emit(state.copyWith(
-        updateInfo: completedUpdateInfo,
-        errorMessage: '下载完成',
-      ));
-    } catch (e) {
-      final failedUpdateInfo = UpdateInfo(
-        hasUpdate: state.updateInfo!.hasUpdate,
-        latestVersion: state.updateInfo!.latestVersion,
-        isChecking: false,
-        isDownloading: false,
-        downloadProgress: 0,
-        lastCheckTime: state.updateInfo!.lastCheckTime,
-      );
-      emit(state.copyWith(
-        updateInfo: failedUpdateInfo,
-        errorMessage: '下载失败: $e',
-      ));
-    }
-  }
 }
-

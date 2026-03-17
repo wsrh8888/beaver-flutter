@@ -2,17 +2,15 @@ import 'package:flutter/material.dart';
 
 class BeaverDialog {
   static Future<void> show(
-    BuildContext context,
-    {
-      required String title,
-      required String content,
-      String? confirmText,
-      String? cancelText,
-      VoidCallback? onConfirm,
-      VoidCallback? onCancel,
-      bool barrierDismissible = true,
-    },
-  ) {
+    BuildContext context, {
+    required String title,
+    required String content,
+    String? confirmText,
+    String? cancelText,
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    bool barrierDismissible = true,
+  }) {
     return showDialog(
       context: context,
       barrierDismissible: barrierDismissible,

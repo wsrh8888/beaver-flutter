@@ -1,30 +1,13 @@
-abstract class SearchFriendEvent {
-  const SearchFriendEvent();
+abstract class SearchContactEvent {
+  const SearchContactEvent();
 }
 
-class UpdateSearchQueryEvent extends SearchFriendEvent {
+class SearchUserEvent extends SearchContactEvent {
   final String query;
-
-  const UpdateSearchQueryEvent(this.query);
+  const SearchUserEvent(this.query);
 }
 
-class PerformSearchEvent extends SearchFriendEvent {
-  const PerformSearchEvent();
-}
-
-class ScanCodeEvent extends SearchFriendEvent {
-  const ScanCodeEvent();
-}
-
-class GoToDetailEvent extends SearchFriendEvent {
+class AddFriendEvent extends SearchContactEvent {
   final String userId;
-
-  const GoToDetailEvent(this.userId);
-}
-
-class SendFriendRequestEvent extends SearchFriendEvent {
-  final String friendId;
-  final String message;
-
-  const SendFriendRequestEvent(this.friendId, this.message);
+  const AddFriendEvent(this.userId);
 }

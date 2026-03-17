@@ -5,209 +5,118 @@ import 'package:beaver/features/setting/main/bloc/bloc.dart';
 import 'package:beaver/features/setting/main/bloc/event.dart';
 import 'package:beaver/features/setting/main/bloc/state.dart';
 import 'package:beaver/features/setting/main/data/repositories/repository.dart';
-import 'package:beaver/shared/ui/button/button.dart';
-import 'package:beaver/shared/ui/dialog/dialog.dart';
-import 'package:beaver/shared/ui/header/header.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/dialog/index.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:go_router/go_router.dart';
 
-class SettingPage extends StatefulWidget {
-  const SettingPage({super.key});
+class SettingMainPage extends StatefulWidget {
+  const SettingMainPage({super.key});
 
   @override
-  State<SettingPage> createState() => _SettingPageState();
+  State<SettingMainPage> createState() => _SettingMainPageState();
 }
 
-class _SettingPageState extends State<SettingPage> {
-  late SettingBloc _settingBloc;
+class _SettingMainPageState extends State<SettingMainPage> {
+  late SettingMainBloc _settingMainBloc;
 
   @override
   void initState() {
     super.initState();
-    _settingBloc = SettingBloc(SettingRepository())..add(LoadSettingItemsEvent());
+    _settingMainBloc = SettingMainBloc(SettingMainRepository())..add(LoadSettingItemsEvent());
   }
 
   @override
   void dispose() {
-    _settingBloc.close();
+    _settingMainBloc.close();
     super.dispose();
-  }
-
-  void _goBack() {
-    Navigator.of(context).pop();
-  }
-
-  void _handleClickItem(int id) {
-    switch (id) {
-      case 1:
-        // 账号与安全
-        break;
-      case 2:
-        // 隐私政策
-        break;
-      case 3:
-        // 用户协议
-        break;
-      case 4:
-        // 检查更新
-        break;
-      case 5:
-        // 主题设置
-        break;
-    }
-  }
-
-  void _handleLogout() {
-    _settingBloc.add(LogoutEvent());
-    // 显示成功提示
-    BeaverToast.show(context, '已退出登录');
-    // 延迟跳转
-    Future.delayed(const Duration(seconds: 1), () {
-      Navigator.of(context).pushReplacementNamed('/login');
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: _settingBloc,
-      child: BlocConsumer<SettingBloc, SettingState>(
+      value: _settingMainBloc,
+      child: BlocConsumer<SettingMainBloc, SettingMainState>(
         listener: (context, state) {
-          if (state.status == SettingStatus.error) {
-            BeaverToast.show(context, state.errorMessage ?? '发生错误');
+          if (state.status == SettingMainStatus.error) {
+            BeaverToast.show(context, state.errorMessage ?? "错误");
           }
         },
         builder: (context, state) {
-          return Stack(
-            children: [
-              BeaverLayout(
-                title: '通用设置',
-                showBack: true,
-                onBack: _goBack,
-                showBackground: true,
-                isScrollable: true,
-                child: Container(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    children: [
-                      // 账号与安全设置
-                      _buildSettingCard([
-                        _buildSettingItem(1, '账号与安全'),
-                      ]),
-                      SizedBox(height: 24.w),
-                      // 主题设置
-                      _buildSettingCard([
-                        _buildSettingItem(5, '主题设置'),
-                      ]),
-                      SizedBox(height: 24.w),
-                      // 关于与支持
-                      _buildSettingCard([
-                        _buildSettingItem(2, '隐私政策'),
-                        _buildSettingItem(3, '用户协议'),
-                        _buildSettingItem(4, '检查更新'),
-                      ]),
-                      SizedBox(height: 40.w),
-                      // 退出登录按钮
-                      GestureDetector(
-                        onTap: () => _settingBloc.add(ShowLogoutDialogEvent()),
-                        child: Container(
-                          width: double.infinity,
-                          height: 56.w,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF7D45),
-                            borderRadius: BorderRadius.circular(28.w),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFFF7D45).withOpacity(0.2),
-                                offset: Offset(0, 4.w),
-                                blurRadius: 12.w,
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '退出登录',
-                            style: TextStyle(
-                              fontSize: 16.w,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // 退出登录对话框
-              if (state.showLogoutDialog)
-                BeaverDialog(
-                  title: '确认退出登录',
-                  content: '退出后需要重新登录才能使用 Beaver ，确定要退出吗？',
-                  type: 'warning',
-                  size: 'medium',
-                  confirmText: '确认退出',
-                  cancelText: '取消',
-                  onConfirm: _handleLogout,
-                  onCancel: () => _settingBloc.add(HideLogoutDialogEvent()),
-                ),
-            ],
+          return BeaverLayout(
+            title: '设置',
+            showBack: true,
+            child: ListView(
+              children: [
+                _buildProfileItem(state),
+                SizedBox(height: 12.w),
+                ...state.settingItems.map((item) => _buildMenuItem(item)),
+                SizedBox(height: 24.w),
+                _buildLogoutButton(),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildSettingCard(List<Widget> children) {
+  Widget _buildProfileItem(SettingMainState state) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.w),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            offset: Offset(0, 4.w),
-            blurRadius: 12.w,
+      color: Colors.white,
+      padding: EdgeInsets.all(16.w),
+      child: Row(
+        children: [
+          BeaverAvatar(url: '', size: 64.w, nickname: '用户'),
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('用户昵称', style: TextStyle(fontSize: 18.w, fontWeight: FontWeight.bold)),
+                Text('账号: beaver_123', style: TextStyle(fontSize: 14.w, color: Colors.grey)),
+              ],
+            ),
           ),
+          Icon(Icons.qr_code, size: 24.w, color: Colors.grey),
+          Icon(Icons.arrow_forward_ios, size: 16.w, color: Colors.grey),
         ],
-      ),
-      child: Column(
-        children: children,
       ),
     );
   }
 
-  Widget _buildSettingItem(int id, String title) {
-    return GestureDetector(
-      onTap: () => _handleClickItem(id),
-      child: Container(
-        height: 56.w,
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: const Color(0xFFEBEEF5),
-              width: 1.w,
-            ),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14.w,
-                color: const Color(0xFF2D3436),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16.w,
-              color: const Color(0xFFB2BEC3),
-            ),
-          ],
-        ),
+  Widget _buildMenuItem(dynamic item) {
+    return Container(
+      color: Colors.white,
+      child: ListTile(
+        title: Text(item.title, style: TextStyle(fontSize: 16.w)),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16.w),
+        onTap: () => context.push(item.route),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return Container(
+      color: Colors.white,
+      child: TextButton(
+        onPressed: _showLogoutDialog,
+        child: const Text('退出登录', style: TextStyle(color: Colors.red)),
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确认退出当前登录状态吗？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('取消')),
+          TextButton(onPressed: () {}, child: const Text('确认', style: TextStyle(color: Colors.red))),
+        ],
       ),
     );
   }
