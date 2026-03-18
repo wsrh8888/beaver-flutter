@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import '../base.dart';
-import 'package:beaver/core/database/tables/notification/inbox.dart';
 
 // 通知收件箱服务
 class NotificationInboxService extends BaseService {
@@ -63,9 +62,9 @@ class NotificationInboxService extends BaseService {
   Future<List<dynamic>> getInboxByUserIdAndCategory(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
     final category = req['category'] as String;
-    final result = await db.select(db.notificationInboxTable)
-      .where((t) => t.userId.equals(userId) & t.category.equals(category))
-      .orderBy((t) => t.createdAt, order: Order.desc)
+    final result = await (db.select(db.notificationInboxTable)
+      ..where((t) => t.userId.equals(userId) & t.category.equals(category))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
       .get();
     return result.map((item) => item.toJson()).toList();
   }
@@ -75,9 +74,9 @@ class NotificationInboxService extends BaseService {
    */
   Future<List<dynamic>> getInboxByUserId(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
-    final result = await db.select(db.notificationInboxTable)
-      .where((t) => t.userId.equals(userId))
-      .orderBy((t) => t.createdAt, order: Order.desc)
+    final result = await (db.select(db.notificationInboxTable)
+      ..where((t) => t.userId.equals(userId))
+      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
       .get();
     return result.map((item) => item.toJson()).toList();
   }
@@ -88,14 +87,13 @@ class NotificationInboxService extends BaseService {
   Future<void> markAsRead(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
     final eventId = req['eventId'] as String;
-    await db.update(db.notificationInboxTable)
-      .set({
-        db.notificationInboxTable.isRead: Value(1),
-        db.notificationInboxTable.readAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        db.notificationInboxTable.updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-      })
-      .where((t) => t.userId.equals(userId) & t.eventId.equals(eventId))
-      .go();
+    await (db.update(db.notificationInboxTable)
+      ..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId)))
+      .write(NotificationInboxTableCompanion(
+        isRead: const Value(1),
+        readAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      ));
   }
 
   /**
@@ -104,8 +102,8 @@ class NotificationInboxService extends BaseService {
   Future<void> delete(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
     final eventId = req['eventId'] as String;
-    await db.delete(db.notificationInboxTable)
-      .where((t) => t.userId.equals(userId) & t.eventId.equals(eventId))
+    await (db.delete(db.notificationInboxTable)
+      ..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId)))
       .go();
   }
 }

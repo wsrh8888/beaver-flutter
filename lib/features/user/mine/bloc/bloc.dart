@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
-import 'package:beaver/features/user/mine/data/repositories/repository.dart';
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/di/injection.dart';
 
 class MineBloc extends Bloc<MineEvent, MineState> {
-  final MineRepository _repository;
+  final _userBusiness = getIt<UserBusiness>();
 
-  MineBloc(this._repository) : super(const MineState()) {
+  MineBloc() : super(const MineState()) {
     on<LoadUserInfoEvent>(_onLoadUserInfo);
   }
 
@@ -17,7 +18,7 @@ class MineBloc extends Bloc<MineEvent, MineState> {
     emit(state.copyWith(status: MineStatus.loading));
 
     try {
-      final userInfo = await _repository.getUserInfo();
+      final userInfo = await _userBusiness.getMyUserInfo();
       emit(state.copyWith(
         status: MineStatus.success,
         userInfo: userInfo,

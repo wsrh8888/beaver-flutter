@@ -71,4 +71,29 @@ class ChatService extends BaseService {
       }
     });
   }
+
+  /// 获取会话列表
+  Future<List<ChatConversation>> getConversations() async {
+    return (db.select(db.chatConversations)..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)])).get();
+  }
+
+  /// 标记已读 (TODO)
+  Future<void> markAsRead(String conversationId) async {
+    // 逻辑根据业务更新回复序列号或未读数
+  }
+
+  /// 置顶/取消置顶会话
+  Future<void> togglePinConversation(String conversationId, bool isPinned) async {
+    await (db.update(db.chatUserConversations)
+          ..where((t) => t.conversationId.equals(conversationId)))
+        .write(ChatUserConversationsCompanion(
+      isPinned: Value(isPinned ? 1 : 0),
+    ));
+  }
+
+  /// 删除会话
+  Future<void> deleteConversation(String conversationId) async {
+    await (db.delete(db.chatConversations)..where((t) => t.conversationId.equals(conversationId))).go();
+    await (db.delete(db.chatUserConversations)..where((t) => t.conversationId.equals(conversationId))).go();
+  }
 }

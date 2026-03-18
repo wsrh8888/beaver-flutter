@@ -1,4 +1,4 @@
-import 'package:beaver/features/chat/list/data/models/chat.dart';
+import 'package:beaver/types/business/chat.dart';
 
 enum ChatListStatus { initial, loading, success, error }
 
@@ -29,4 +29,3 @@ class ChatListState {
     );
   }
 }
-

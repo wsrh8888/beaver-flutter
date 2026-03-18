@@ -26,6 +26,7 @@ class UserService extends BaseService {
             updatedAt: Value(user.updatedAt),
           ),
           mode: InsertMode.insertOrReplace,
+          // 如果 userId 重复则更新
         );
       }
     });
@@ -47,5 +48,10 @@ class UserService extends BaseService {
         );
       }
     });
+  }
+
+  /// 根据 userId 获取用户
+  Future<User?> getUserByUserId(String userId) async {
+    return (db.select(db.users)..where((t) => t.userId.equals(userId))).getSingleOrNull();
   }
 }

@@ -11,6 +11,17 @@ class FriendService extends BaseService {
     return (db.select(db.friends)..where((t) => t.friendId.isIn(friendshipIds))).get();
   }
 
+  /// 获取所有好友列表
+  Future<List<Friend>> getFriends() async {
+    return (db.select(db.friends)..where((t) => t.isDeleted.equals(0))).get();
+  }
+
+  /// 删除好友 (本地标识删除)
+  Future<void> deleteFriend(String friendId) async {
+    await (db.update(db.friends)..where((t) => t.friendId.equals(friendId)))
+        .write(const FriendsCompanion(isDeleted: Value(1)));
+  }
+
   /// 根据 IDs 获取验证记录
   Future<List<FriendVerify>> getFriendVerifiesByIds(List<String> verifyIds) async {
     return (db.select(db.friendVerifies)..where((t) => t.verifyId.isIn(verifyIds))).get();

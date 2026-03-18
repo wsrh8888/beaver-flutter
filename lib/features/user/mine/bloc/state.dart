@@ -1,4 +1,4 @@
-import 'package:beaver/features/user/mine/data/models/user_info.dart';
+import 'package:beaver/types/business/user.dart';
 
 enum MineStatus { initial, loading, success, error }
 
@@ -25,4 +25,3 @@ class MineState {
     );
   }
 }
-

@@ -8,6 +8,16 @@ import 'package:beaver/features/auth/register/data/repositories/repository.dart'
 import 'package:beaver/shared/utils/storage_util.dart';
 // import 'package:beaver/core/database/services/index.dart';
 
+import 'package:beaver/core/database/services/index.dart';
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
+import 'package:beaver/core/business/chat/message.dart';
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/core/business/group/group.dart';
+import 'package:beaver/core/business/notification/notification.dart';
+
+import 'package:beaver/core/business/moment/moment.dart';
+
 final getIt = GetIt.instance;
 
 /// 依赖注入初始化
@@ -19,30 +29,30 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<HttpClient>(httpClient);
   getIt.registerLazySingleton<WsConnectionManager>(() => WsConnectionManager());
 
-  // 3. 业务仓库实现 (跟随 feature 规范)
-  getIt.registerLazySingleton<LoginRepository>(() => LoginRepository());
-  getIt.registerLazySingleton<RegisterRepository>(() => RegisterRepository());
-
-  // 4. 数据同步管理器
-  getIt.registerLazySingleton<SyncManager>(() => SyncManager());
-
-  // 5. 数据库
+  // 3. 数据库
   getIt.registerLazySingleton<AppDatabase>(() => DatabaseManager.instance);
 
-  // 6. 数据访问层
-  // getIt.registerFactory<UserService>(() => UserService(getIt<AppDatabase>()));
-  // getIt.registerFactory<MessageService>(() => MessageService(getIt<AppDatabase>()));
-  // getIt.registerFactory<ConversationService>(() => ConversationService(getIt<AppDatabase>()));
-  // getIt.registerFactory<FriendService>(() => FriendService(getIt<AppDatabase>()));
-  // getIt.registerFactory<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
-  // getIt.registerFactory<GroupService>(() => GroupService(getIt<AppDatabase>()));
-  // getIt.registerFactory<GroupMemberService>(() => GroupMemberService(getIt<AppDatabase>()));
-  // getIt.registerFactory<GroupJoinRequestService>(() => GroupJoinRequestService(getIt<AppDatabase>()));
-  // getIt.registerFactory<ChatSyncStatusService>(() => ChatSyncStatusService(getIt<AppDatabase>()));
-  // getIt.registerFactory<ChatService>(() => ChatService(getIt<AppDatabase>()));
-  // getIt.registerFactory<EmojiService>(() => EmojiService(getIt<AppDatabase>()));
-  // getIt.registerFactory<NotificationService>(() => NotificationService(getIt<AppDatabase>()));
-  // getIt.registerFactory<CallService>(() => CallService(getIt<AppDatabase>()));
+  // 4. 数据处理层 (Services - Direct DB Access)
+  getIt.registerLazySingleton<UserService>(() => UserService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<FriendService>(() => FriendService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<GroupService>(() => GroupService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<MediaService>(() => MediaService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<NotificationInboxService>(() => NotificationInboxService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<NotificationReadCursorService>(() => NotificationReadCursorService(getIt<AppDatabase>()));
+  // ... 其他 service
+
+  // 5. 业务门面层 (Business Facades - UI calls these)
+  getIt.registerLazySingleton<UserBusiness>(() => UserBusiness());
+  getIt.registerLazySingleton<FriendBusiness>(() => FriendBusiness());
+  getIt.registerLazySingleton<GroupBusiness>(() => GroupBusiness());
+  getIt.registerLazySingleton<NotificationBusiness>(() => NotificationBusiness());
+  getIt.registerLazySingleton<ConversationBusiness>(() => ConversationBusiness());
+  getIt.registerLazySingleton<MessageBusiness>(() => MessageBusiness());
+  getIt.registerLazySingleton<MomentBusiness>(() => MomentBusiness());
+
+  // 6. 数据同步层
+  getIt.registerLazySingleton<SyncManager>(() => SyncManager());
 
   print('[DI] 依赖注入配置完成');
 }

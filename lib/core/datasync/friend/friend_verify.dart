@@ -52,9 +52,17 @@ class FriendVerifySync {
     if (serverVersions.isEmpty) return [];
 
     final verifyIds = serverVersions.map((e) => e.verifyId).toList();
-    // 这里需要 FriendService 提供 getFriendVerifiesByIds
-    // 由于之前我只实现了 getFriendRecordsByIds (好友关系)，我现在去补一下
-    return verifyIds; // 先默认都要，待会补 service 逻辑
+    final localRecords = await friendService.getFriendVerifiesByIds(verifyIds);
+    final localMap = {for (var r in localRecords) r.verifyId: r.version};
+
+    final List<String> needUpdate = [];
+    for (final sv in serverVersions) {
+      final localVersion = localMap[sv.verifyId] ?? 0;
+      if (localVersion < sv.version) {
+        needUpdate.add(sv.verifyId);
+      }
+    }
+    return needUpdate;
   }
 
   Future<void> _syncVerifyData(FriendService friendService, List<String> verifyIds) async {

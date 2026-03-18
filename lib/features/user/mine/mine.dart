@@ -5,8 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:beaver/features/user/mine/bloc/bloc.dart';
 import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
-import 'package:beaver/features/user/mine/data/repositories/repository.dart';
-import 'package:beaver/core/database/database.dart';
+import 'package:beaver/features/user/mine/bloc/state.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -24,9 +23,7 @@ class _MinePageState extends State<MinePage> {
   @override
   void initState() {
     super.initState();
-    final database = AppDatabase.instance;
-    final repository = MineRepository(database);
-    _mineBloc = MineBloc(repository)..add(LoadUserInfoEvent());
+    _mineBloc = MineBloc()..add(LoadUserInfoEvent());
   }
 
   @override

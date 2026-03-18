@@ -1,14 +1,14 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
-import 'package:beaver/features/moment/list/data/repositories/repository.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/core/business/moment/moment.dart';
+import 'package:beaver/di/injection.dart';
 
 class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
-  final MomentListRepository repository;
+  final _momentBusiness = getIt<MomentBusiness>();
   final int limit = 10;
 
-  MomentListBloc({required this.repository}) : super(const MomentListState()) {
+  MomentListBloc() : super(const MomentListState()) {
     on<LoadMomentListEvent>(_onLoadMomentList);
     on<ToggleLikeMomentEvent>(_onToggleLikeMoment);
   }

@@ -1,14 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
-import 'package:beaver/features/contact/list/data/repositories/repository.dart';
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/di/injection.dart';
 
 class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
-  final ContactListRepository _repository;
+  final _friendBusiness = getIt<FriendBusiness>();
 
-  ContactListBloc({required ContactListRepository repository})
-      : _repository = repository,
-        super(const ContactListState()) {
+  ContactListBloc() : super(const ContactListState()) {
     on<LoadContactListEvent>(_onLoadContactList);
     on<UpdateCurrentIndexEvent>(_onUpdateCurrentIndex);
   }
@@ -20,9 +19,9 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
     emit(state.copyWith(status: ContactListStatus.loading));
 
     try {
-      final contacts = await _repository.getContactList();
-      final groupedContacts = _repository.groupContactsByLetter(contacts);
-      final indexList = _repository.getIndexList(groupedContacts);
+      final contacts = await _friendBusiness.getContactList();
+      final groupedContacts = _friendBusiness.groupContactsByLetter(contacts);
+      final indexList = _friendBusiness.getIndexList(groupedContacts);
 
       emit(state.copyWith(
         status: ContactListStatus.success,
@@ -33,7 +32,7 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
     } catch (e) {
       emit(state.copyWith(
         status: ContactListStatus.error,
-        errorMessage: '加载联系人失�? $e',
+        errorMessage: '加载联系人失败: $e',
       ));
     }
   }
@@ -45,4 +44,3 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
     emit(state.copyWith(currentIndex: event.index));
   }
 }
-

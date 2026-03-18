@@ -163,32 +163,43 @@ class BaseResponse<T> {
 - **服务层实现**: 数据库服务层（services）的方法应与 `beaver-desktop` 中的实现保持一致，确保业务逻辑的统一性。
 - **类型定义**: 数据库相关的类型定义应使用 Drift 生成的模型类，位于 `lib/core/database/tables` 目录下，不应手动创建类型定义文件。
 
+### 架构分层规范 (Architecture Layering)
+
+为了保证 IM 复杂业务下的数据一致性和代码可维护性，必须严格执行以下分层逻辑：
+
+1.  **UI 层 (features/)**:
+    *   职责：页面渲染与交互。
+    *   状态管理：使用 BLoC/Cubit。
+    *   **限制**：禁止直接调用 `AppDatabase`、`api` 或 `datasync`。**必须且仅能通过 `business` 层获取数据或发起操作。**
+
+2.  **业务门面层 (core/business/)**:
+    *   职责：作为 UI 层的唯一入口。聚合多个 `services` 和 `datasync` 逻辑。
+    *   功能：负责读写分离、缓存优先策略、离线发送逻辑等。
+    *   **依赖**：依赖 `core/database/services`、`core/datasync` 和 `api`。
+
+3.  **持久化层 (core/database/services/)**:
+    *   职责：底层的 CRUD 操作。
+    *   **限制**：仅由 `business` 或 `datasync` 调用。
+
+4.  **数据同步层 (core/datasync/)**:
+    *   职责：负责与后端进行数据版本比对、增量拉取。
+    *   **限制**：仅由 `business` 层触发增量同步。
+
 ### 数据流说明
 
-#### 1. 启动流程
+#### 1. 读操作 (Read Flow)
 ```
-应用启动 -> 检查本地token -> 有token进入首页，无token进入登录页 -> 首页加载本地数据库 -> 同时建立WebSocket连接 -> WebSocket连接成功 -> 启动同步流程
-```
-
-#### 2. 启动同步流程
-```
-ws连接成功 -> 同步管理器(sync)协调各模块同步 -> 各模块同步器执行同步 -> 数据存储到本地数据库 -> 通知业务层 -> BLoC状态更新 -> UI层更新
+UI (Bloc) -> Business -> Database (Cache) -> (IfNeeded) Datasync/API -> Database -> Business -> UI
 ```
 
-#### 3. 发送消息流程
+#### 2. 写操作 (Write Flow)
 ```
-UI层发起消息发送 -> 业务层(business)处理消息逻辑 -> 调用API服务发送消息 -> WebSocket发送实时消息 -> 服务端确认 -> 本地数据库存储 -> 业务层通知BLoC -> BLoC状态更新 -> UI层更新
-```
-
-#### 4. 接收消息流程
-```
-WebSocket接收消息 -> 消息管理器(message_manager)分发消息 -> 对应业务接收器处理 -> 业务层(business)处理业务逻辑 -> 本地数据库存储 -> 业务层通知BLoC -> BLoC状态更新 -> UI层更新
+UI (Bloc) -> Business -> Local Database (Status: Sending) -> API Call -> Local Database (Status: Sent/Failed) -> Business (Stream/Event) -> UI
 ```
 
-#### 5. 数据库操作到UI更新流程
-```
-database操作完成 -> 业务层(business)处理结果 -> 触发BLoC事件 -> BLoC生成新状态 -> UI层(BlocBuilder/BlocListener)响应状态变化 -> UI更新
-```
+#### 3. 依赖注入规范 (DI)
+*   所有 `Business` 类必须在 `lib/di/injection.dart` 中注册为 `LazySingleton`。
+*   所有 `Service` 类必须在 `lib/di/injection.dart` 中注册并由 `Business` 层通过 `getIt` 获取。
 
 ### 切记
 - 严格遵循文件命名和路径规范。

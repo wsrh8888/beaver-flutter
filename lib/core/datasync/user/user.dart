@@ -51,7 +51,7 @@ class UserSync {
     print('[UserSync] 用户数据同步完成');
   }
 
-  Future<List<user_types.IUserVersionItem>> _compareAndFilterUserVersions(
+  Future<List<IUserVersionItem>> _compareAndFilterUserVersions(
     UserService userService,
     List<IUserVersionItem> serverVersions,
   ) async {
@@ -60,18 +60,18 @@ class UserSync {
     final localStatuses = await userService.getAllUsersSyncStatus();
     final localVersionMap = {for (var s in localStatuses) s.userId: s.userVersion};
 
-    final List<user_types.IUserVersionItem> needUpdate = [];
+    final List<IUserVersionItem> needUpdate = [];
     for (final sv in serverVersions) {
       final localVersion = localVersionMap[sv.userId] ?? 0;
       if (localVersion < sv.version) {
         // 使用本地版本号请求，以便服务器返回增量
-        needUpdate.add(user_types.IUserVersionItem(userId: sv.userId, version: localVersion));
+        needUpdate.add(IUserVersionItem(userId: sv.userId, version: localVersion));
       }
     }
     return needUpdate;
   }
 
-  Future<void> _syncUserData(UserService userService, List<user_types.IUserVersionItem> usersWithVersions) async {
+  Future<void> _syncUserData(UserService userService, List<IUserVersionItem> usersWithVersions) async {
     if (usersWithVersions.isEmpty) return;
 
     final response = await userSyncApi(user_types.IUserSyncReq(userVersions: usersWithVersions));

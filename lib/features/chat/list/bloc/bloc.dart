@@ -1,14 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/chat/list/bloc/event.dart';
 import 'package:beaver/features/chat/list/bloc/state.dart';
-import 'package:beaver/features/chat/list/data/repositories/repository.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/types/business/chat.dart';
 
 class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
-  final ChatListRepository _repository;
+  final _conversationBusiness = getIt<ConversationBusiness>();
 
-  ChatListBloc({required ChatListRepository repository})
-      : _repository = repository,
-        super(const ChatListState()) {
+  ChatListBloc() : super(const ChatListState()) {
     on<LoadChatListEvent>(_onLoadChatList);
     on<TogglePinChatEvent>(_onTogglePinChat);
     on<DeleteChatEvent>(_onDeleteChat);
@@ -22,7 +22,7 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     emit(state.copyWith(status: ChatListStatus.loading));
 
     try {
-      final chats = await _repository.getChatList();
+      final chats = await _conversationBusiness.getChatList();
       final pinnedChats = chats.where((c) => c.isTop).toList();
       final regularChats = chats.where((c) => !c.isTop).toList();
 
@@ -44,7 +44,7 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     Emitter<ChatListState> emit,
   ) async {
     try {
-      await _repository.togglePinChat(event.conversationId, event.isPinned);
+      await _conversationBusiness.togglePinChat(event.conversationId, event.isPinned);
       add(const LoadChatListEvent());
     } catch (e) {
       emit(state.copyWith(
@@ -59,7 +59,7 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     Emitter<ChatListState> emit,
   ) async {
     try {
-      await _repository.deleteChat(event.conversationId);
+      await _conversationBusiness.deleteChat(event.conversationId);
       add(const LoadChatListEvent());
     } catch (e) {
       emit(state.copyWith(
@@ -83,4 +83,3 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     ));
   }
 }
-

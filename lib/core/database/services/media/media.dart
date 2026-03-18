@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import '../base.dart';
-import 'package:beaver/core/database/tables/media/media.dart';
 
 // 媒体服务
 class MediaService extends BaseService {
@@ -52,7 +51,7 @@ class MediaService extends BaseService {
    */
   Future<dynamic> getMediaByFileKey(Map<String, dynamic> req) async {
     final fileKey = req['fileKey'] as String;
-    final result = await db.select(db.mediaTable).where((t) => t.fileKey.equals(fileKey)).get();
+    final result = await (db.select(db.mediaTable)..where((t) => t.fileKey.equals(fileKey))).get();
     return result.isNotEmpty ? result.first.toJson() : null;
   }
 
@@ -61,7 +60,7 @@ class MediaService extends BaseService {
    */
   Future<List<dynamic>> getMediaByType(Map<String, dynamic> req) async {
     final type = req['type'] as String;
-    final result = await db.select(db.mediaTable).where((t) => t.type.equals(type)).get();
+    final result = await (db.select(db.mediaTable)..where((t) => t.type.equals(type))).get();
     return result.map((item) => item.toJson()).toList();
   }
 
@@ -70,21 +69,16 @@ class MediaService extends BaseService {
    */
   Future<void> update(Map<String, dynamic> req) async {
     final fileKey = req['fileKey'] as String;
-    final updates = <SetColumn, Expression>{};
-    if (req.containsKey('path')) updates[db.mediaTable.path] = Value(req['path']);
-    if (req.containsKey('type')) updates[db.mediaTable.type] = Value(req['type']);
-    if (req.containsKey('size')) updates[db.mediaTable.size] = Value(req['size']);
-    if (req.containsKey('isDeleted')) updates[db.mediaTable.isDeleted] = Value(req['isDeleted']);
-    if (req.containsKey('updatedAt')) {
-      updates[db.mediaTable.updatedAt] = Value(req['updatedAt']);
-    } else {
-      updates[db.mediaTable.updatedAt] = Value(DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    }
 
-    await db.update(db.mediaTable)
-      .set(updates)
-      .where((t) => t.fileKey.equals(fileKey))
-      .go();
+    await (db.update(db.mediaTable)
+      ..where((t) => t.fileKey.equals(fileKey)))
+      .write(MediaTableCompanion(
+        path: req.containsKey('path') ? Value(req['path']) : const Value.absent(),
+        type: req.containsKey('type') ? Value(req['type']) : const Value.absent(),
+        size: req.containsKey('size') ? Value(req['size']) : const Value.absent(),
+        isDeleted: req.containsKey('isDeleted') ? Value(req['isDeleted']) : const Value.absent(),
+        updatedAt: Value(req['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      ));
   }
 
   /**
@@ -92,6 +86,6 @@ class MediaService extends BaseService {
    */
   Future<void> delete(Map<String, dynamic> req) async {
     final fileKey = req['fileKey'] as String;
-    await db.delete(db.mediaTable).where((t) => t.fileKey.equals(fileKey)).go();
+    await (db.delete(db.mediaTable)..where((t) => t.fileKey.equals(fileKey))).go();
   }
 }

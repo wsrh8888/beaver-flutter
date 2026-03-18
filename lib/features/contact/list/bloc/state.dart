@@ -1,4 +1,4 @@
-import 'package:beaver/features/contact/list/data/models/contact.dart';
+import 'package:beaver/types/business/contact.dart';
 
 enum ContactListStatus { initial, loading, success, error }
 
