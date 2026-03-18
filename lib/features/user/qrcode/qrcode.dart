@@ -33,7 +33,6 @@ class _QrcodePageState extends State<QrcodePage> {
   @override
   void initState() {
     super.initState();
-    final database = AppDatabase.instance;
     final repository = QrcodeRepository();
     _qrcodeBloc = QrcodeBloc(repository)..add(const LoadQrCodeEvent());
   }

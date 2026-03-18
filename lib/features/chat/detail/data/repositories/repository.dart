@@ -19,7 +19,7 @@ class ChatRepository {
 
     // 获取当前用户ID
     final currentUser = await _database.select(_database.users).getSingleOrNull();
-    final currentUserId = currentUser?.id ?? '';
+    final currentUserId = currentUser?.userId ?? '';
 
     // 注意：drift 库生成的类名为 Chat，而不是 Message
     return messagesList
@@ -31,7 +31,7 @@ class ChatRepository {
 
   Future<Chat> sendMessage(String conversationId, String content, MessageType type) async {
     final currentUser = await _database.select(_database.users).getSingleOrNull();
-    final currentUserId = currentUser?.id ?? '';
+    final currentUserId = currentUser?.userId ?? '';
 
     // 之前写的是 MessagesCompanion，实际是 ChatsCompanion
     final companion = ChatsCompanion(

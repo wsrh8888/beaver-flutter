@@ -6,7 +6,7 @@ import 'package:beaver/core/datasync/sync.dart';
 import 'package:beaver/features/auth/login/data/repositories/repository.dart';
 import 'package:beaver/features/auth/register/data/repositories/repository.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
-import 'package:beaver/core/database/services/index.dart';
+// import 'package:beaver/core/database/services/index.dart';
 
 final getIt = GetIt.instance;
 
@@ -30,18 +30,19 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<AppDatabase>(() => DatabaseManager.instance);
 
   // 6. 数据访问层
-  getIt.registerFactory<UserService>(() => UserService(getIt<AppDatabase>()));
-  getIt.registerFactory<MessageService>(() => MessageService(getIt<AppDatabase>()));
-  getIt.registerFactory<ConversationService>(() => ConversationService(getIt<AppDatabase>()));
-  getIt.registerFactory<FriendService>(() => FriendService(getIt<AppDatabase>()));
-  getIt.registerFactory<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
-  getIt.registerFactory<GroupService>(() => GroupService(getIt<AppDatabase>()));
-  getIt.registerFactory<GroupMemberService>(() => GroupMemberService(getIt<AppDatabase>()));
-  getIt.registerFactory<GroupJoinRequestService>(() => GroupJoinRequestService(getIt<AppDatabase>()));
-  getIt.registerFactory<ChatSyncStatusService>(() => ChatSyncStatusService(getIt<AppDatabase>()));
-  getIt.registerFactory<ChatService>(() => ChatService(getIt<AppDatabase>()));
-  getIt.registerFactory<EmojiService>(() => EmojiService(getIt<AppDatabase>()));
-  getIt.registerFactory<NotificationService>(() => NotificationService(getIt<AppDatabase>()));
+  // getIt.registerFactory<UserService>(() => UserService(getIt<AppDatabase>()));
+  // getIt.registerFactory<MessageService>(() => MessageService(getIt<AppDatabase>()));
+  // getIt.registerFactory<ConversationService>(() => ConversationService(getIt<AppDatabase>()));
+  // getIt.registerFactory<FriendService>(() => FriendService(getIt<AppDatabase>()));
+  // getIt.registerFactory<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
+  // getIt.registerFactory<GroupService>(() => GroupService(getIt<AppDatabase>()));
+  // getIt.registerFactory<GroupMemberService>(() => GroupMemberService(getIt<AppDatabase>()));
+  // getIt.registerFactory<GroupJoinRequestService>(() => GroupJoinRequestService(getIt<AppDatabase>()));
+  // getIt.registerFactory<ChatSyncStatusService>(() => ChatSyncStatusService(getIt<AppDatabase>()));
+  // getIt.registerFactory<ChatService>(() => ChatService(getIt<AppDatabase>()));
+  // getIt.registerFactory<EmojiService>(() => EmojiService(getIt<AppDatabase>()));
+  // getIt.registerFactory<NotificationService>(() => NotificationService(getIt<AppDatabase>()));
+  // getIt.registerFactory<CallService>(() => CallService(getIt<AppDatabase>()));
 
   print('[DI] 依赖注入配置完成');
 }

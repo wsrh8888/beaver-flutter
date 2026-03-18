@@ -5,8 +5,64 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
+import 'tables/index.dart';
 
-import 'app_database.dart';
+part 'db.g.dart';
+
+/// 数据库核心定义
+@DriftDatabase(
+  tables: [
+    Users,
+    UserSyncStatus,
+    Chats,
+    ChatConversations,
+    ChatUserConversations,
+    ChatSyncStatus,
+    Friends,
+    FriendVerifies,
+    Groups,
+    GroupMembers,
+    GroupJoinRequests,
+    GroupSyncStatus,
+    Datasync,
+    Emojis,
+    EmojiCollectTable,
+    EmojiPackageTable,
+    EmojiPackageCollectTable,
+    EmojiPackageEmojiTable,
+    MediaTable,
+    NotificationEvents,
+    NotificationInboxTable,
+    NotificationReadTable,
+  ],
+)
+class AppDatabase extends _$AppDatabase {
+  AppDatabase(QueryExecutor e) : super(e);
+
+  @override
+  int get schemaVersion => 5;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (m) async {
+        await m.createAll();
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 5) {
+          await m.createAll();
+        }
+      },
+      beforeOpen: (details) async {
+        if (details.wasCreated) {
+          print('[Database] Database created successfully');
+        } else if (details.hadUpgrade) {
+          print('[Database] Database upgraded from ${details.versionBefore} to ${details.versionNow}');
+        }
+      },
+    );
+  }
+}
 
 /// 数据库连接管理 (与 PC db.ts DBManager 一致：按 userId 分库、init/close)
 class DatabaseManager {

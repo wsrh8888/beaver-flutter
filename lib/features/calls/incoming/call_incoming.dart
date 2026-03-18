@@ -5,9 +5,9 @@ import 'package:beaver/features/calls/incoming/bloc/bloc.dart';
 import 'package:beaver/features/calls/incoming/bloc/event.dart';
 import 'package:beaver/features/calls/incoming/bloc/state.dart';
 import 'package:beaver/features/calls/incoming/data/repositories/repository.dart';
+import 'package:beaver/features/calls/data/models/call.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/toast/toast.dart';
 
 class CallIncomingPage extends StatefulWidget {
   final String conversationId;
@@ -65,9 +65,7 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
       value: _callIncomingBloc,
       child: BlocConsumer<CallIncomingBloc, CallIncomingState>(
         listener: (context, state) {
-          if (state.status == CallStatus.error) {
-            BeaverToast.show(state.errorMessage ?? '发生错误');
-          } else if (state.status == CallStatus.connected) {
+          if (state.status == CallStatus.connected) {
             // 跳转到通话中页面
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
@@ -113,8 +111,6 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                   BeaverAvatar(
                     url: state.callInfo?.callerAvatar,
                     size: 120.w,
-                    borderWidth: 4,
-                    borderColor: Colors.white,
                   ),
                   SizedBox(height: 24.w),
                   

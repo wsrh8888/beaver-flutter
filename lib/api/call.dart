@@ -1,122 +1,56 @@
-import 'dart:convert';
-import 'package:dio/dio.dart';
-import 'package:beaver/api/index.dart';
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/common/request/request.dart';
+import 'package:beaver/types/api/call.dart';
 
-class CallApi {
-  static Future<BaseResponse<CallInfo>> getCallInfo(String conversationId) async {
-    try {
-      final response = await dio.get('/call/info', queryParameters: {
-        'conversationId': conversationId,
-      });
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => CallInfo.fromJson(json),
-      );
-    } catch (e) {
-      return BaseResponse.error('获取通话信息失败');
-    }
-  }
-  
-  static Future<BaseResponse<bool>> acceptCall(String conversationId) async {
-    try {
-      final response = await dio.post('/call/accept', data: {
-        'conversationId': conversationId,
-      });
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => json as bool,
-      );
-    } catch (e) {
-      return BaseResponse.error('接受通话失败');
-    }
-  }
-  
-  static Future<BaseResponse<bool>> rejectCall(String conversationId) async {
-    try {
-      final response = await dio.post('/call/reject', data: {
-        'conversationId': conversationId,
-      });
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => json as bool,
-      );
-    } catch (e) {
-      return BaseResponse.error('拒绝通话失败');
-    }
-  }
-  
-  static Future<BaseResponse<CallInfo>> startCall(String conversationId, CallType callType) async {
-    try {
-      final response = await dio.post('/call/start', data: {
-        'conversationId': conversationId,
-        'callType': callType == CallType.video ? 'video' : 'audio',
-      });
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => CallInfo.fromJson(json),
-      );
-    } catch (e) {
-      return BaseResponse.error('开始通话失败');
-    }
-  }
-  
-  static Future<BaseResponse<bool>> endCall(String conversationId, int duration) async {
-    try {
-      final response = await dio.post('/call/end', data: {
-        'conversationId': conversationId,
-        'duration': duration,
-      });
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => json as bool,
-      );
-    } catch (e) {
-      return BaseResponse.error('结束通话失败');
-    }
-  }
-  
-  static Future<BaseResponse<List<CallHistory>>> getCallHistory() async {
-    try {
-      final response = await dio.get('/call/history');
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => (json as List).map((item) => CallHistory.fromJson(item)).toList(),
-      );
-    } catch (e) {
-      return BaseResponse.error('获取通话历史失败');
-    }
-  }
-  
-  static Future<BaseResponse<bool>> deleteCallHistory(String callId) async {
-    try {
-      final response = await dio.delete('/call/history/$callId');
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => json as bool,
-      );
-    } catch (e) {
-      return BaseResponse.error('删除通话历史失败');
-    }
-  }
-  
-  static Future<BaseResponse<bool>> clearCallHistory() async {
-    try {
-      final response = await dio.delete('/call/history');
-      
-      return BaseResponse.fromJson(
-        response.data,
-        (json) => json as bool,
-      );
-    } catch (e) {
-      return BaseResponse.error('清空通话历史失败');
-    }
-  }
+/// 获取通话信息
+Future<BaseResponse<CallInfoRes>> getCallInfoApi(String conversationId) {
+  const url = '/call/info';
+  return httpClient.get<CallInfoRes>(url, 
+    queryParameters: {'conversationId': conversationId},
+    fromJsonT: (json) => CallInfoRes.fromJson(json),
+  );
 }
+
+/// 接受通话
+Future<BaseResponse<bool>> acceptCallApi(AcceptCallReq data) {
+  const url = '/call/accept';
+  return httpClient.post<bool>(url, data: data.toJson(), fromJsonT: (json) => json as bool);
+}
+
+/// 拒绝通话
+Future<BaseResponse<bool>> rejectCallApi(RejectCallReq data) {
+  const url = '/call/reject';
+  return httpClient.post<bool>(url, data: data.toJson(), fromJsonT: (json) => json as bool);
+}
+
+/// 开始通话
+Future<BaseResponse<CallInfoRes>> startCallApi(StartCallReq data) {
+  const url = '/call/start';
+  return httpClient.post<CallInfoRes>(url, data: data.toJson(), fromJsonT: (json) => CallInfoRes.fromJson(json));
+}
+
+/// 结束通话
+Future<BaseResponse<bool>> endCallApi(EndCallReq data) {
+  const url = '/call/end';
+  return httpClient.post<bool>(url, data: data.toJson(), fromJsonT: (json) => json as bool);
+}
+
+/// 获取通话历史
+Future<BaseResponse<List<CallHistoryRes>>> getCallHistoryApi() {
+  const url = '/call/history';
+  return httpClient.get<List<CallHistoryRes>>(url, 
+    fromJsonT: (json) => (json as List).map((item) => CallHistoryRes.fromJson(item)).toList(),
+  );
+}
+
+/// 删除通话历史
+Future<BaseResponse<bool>> deleteCallHistoryApi(String callId) {
+  final url = '/call/history/$callId';
+  return httpClient.post<bool>(url, fromJsonT: (json) => json as bool);
+}
+
+/// 清空通话历史
+Future<BaseResponse<bool>> clearCallHistoryApi() {
+  const url = '/call/history';
+  return httpClient.post<bool>(url, fromJsonT: (json) => json as bool);
+}
+

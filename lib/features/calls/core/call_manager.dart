@@ -19,13 +19,7 @@ class CallManager {
     if (_isInitialized) return;
     
     try {
-      _room = Room(
-        adaptiveStream: true,
-        dynacast: true,
-        videoCaptureDefaults: const VideoCaptureOptions(
-          resolution: VideoResolution.h720,
-        ),
-      );
+      _room = Room();
       
       _setupRoomListeners();
       
@@ -56,7 +50,7 @@ class CallManager {
   
   // 开始通话
   Future<void> startCall() async {
-    if (_room?.state != RoomState.connected) return;
+    if (_room == null || !_isInitialized) return;
     
     try {
       // 发布本地音视频轨道
@@ -74,18 +68,20 @@ class CallManager {
   
   // 切换静音
   Future<void> toggleMute() async {
-    if (_room?.state != RoomState.connected) return;
+    if (_room == null || !_isInitialized) return;
     
-    final isMuted = _room?.localParticipant?.isMicrophoneEnabled ?? false;
-    await _room?.localParticipant?.setMicrophoneEnabled(!isMuted);
+    final audioTrack = _room?.localParticipant?.audioTracks.firstOrNull;
+    final isMuted = audioTrack?.isMuted ?? false;
+    await audioTrack?.setMuted(!isMuted);
   }
   
   // 切换摄像头
   Future<void> toggleCamera() async {
-    if (_room?.state != RoomState.connected) return;
+    if (_room == null || !_isInitialized) return;
     
-    final isCameraOn = _room?.localParticipant?.isCameraEnabled ?? false;
-    await _room?.localParticipant?.setCameraEnabled(!isCameraOn);
+    final videoTrack = _room?.localParticipant?.videoTracks.firstOrNull;
+    final isCameraOn = !videoTrack?.isMuted ?? false;
+    await videoTrack?.setMuted(!isCameraOn);
   }
   
   // 切换扬声器
@@ -103,11 +99,13 @@ class CallManager {
     return _participants.firstWhere(
       (p) => p.userId == _room?.localParticipant?.identity,
       orElse: () {
+        final audioTrack = _room!.localParticipant!.audioTracks.firstOrNull;
+        final videoTrack = _room!.localParticipant!.videoTracks.firstOrNull;
         final participant = CallParticipant(
           userId: _room!.localParticipant!.identity,
           name: _room!.localParticipant!.name,
-          isMuted: !(_room!.localParticipant!.isMicrophoneEnabled),
-          isCameraOff: !(_room!.localParticipant!.isCameraEnabled),
+          isMuted: audioTrack?.isMuted ?? true,
+          isCameraOff: videoTrack?.isMuted ?? true,
           status: CallParticipantStatus.joined,
         );
         _participants.add(participant);
@@ -130,90 +128,95 @@ class CallManager {
   void _setupRoomListeners() {
     if (_room == null) return;
     
-    _room!
-      ..onConnected = () {
-        debugPrint('LiveKit房间连接成功');
-      }
-      ..onDisconnected = () {
-        debugPrint('LiveKit房间断开连接');
-        _isInitialized = false;
-      }
-      ..onParticipantConnected = (participant) {
-        debugPrint('参与者加入: ${participant.identity}');
-        
-        final newParticipant = CallParticipant(
-          userId: participant.identity,
-          name: participant.name,
-          isMuted: false,
-          isCameraOff: true,
-          status: CallParticipantStatus.joined,
-        );
-        
-        _participants.add(newParticipant);
-        
-        for (var listener in _listeners) {
-          listener.onParticipantJoined(newParticipant);
-        }
-      }
-      ..onParticipantDisconnected = (participant) {
-        debugPrint('参与者离开: ${participant.identity}');
-        
-        final index = _participants.indexWhere((p) => p.userId == participant.identity);
-        if (index != -1) {
-          final removedParticipant = _participants.removeAt(index);
-          for (var listener in _listeners) {
-            listener.onParticipantLeft(removedParticipant);
-          }
-        }
-      }
-      ..onTrackSubscribed = (track, publication, participant) {
-        debugPrint('轨道订阅: ${track.kind}');
-        
-        final index = _participants.indexWhere((p) => p.userId == participant.identity);
-        if (index != -1) {
-          final updatedParticipant = _participants[index].copyWith(
-            isCameraOff: track.kind != TrackType.video,
-            isMuted: track.kind != TrackType.audio,
+    _room!.addListener(
+      (RoomEvent event) {
+        if (event is RoomConnectedEvent) {
+          debugPrint('LiveKit房间连接成功');
+        } else if (event is RoomDisconnectedEvent) {
+          debugPrint('LiveKit房间断开连接');
+          _isInitialized = false;
+        } else if (event is ParticipantConnectedEvent) {
+          final participant = event.participant;
+          debugPrint('参与者加入: ${participant.identity}');
+          
+          final newParticipant = CallParticipant(
+            userId: participant.identity,
+            name: participant.name,
+            isMuted: false,
+            isCameraOff: true,
+            status: CallParticipantStatus.joined,
           );
-          _participants[index] = updatedParticipant;
+          
+          _participants.add(newParticipant);
           
           for (var listener in _listeners) {
-            listener.onParticipantUpdated(updatedParticipant);
+            listener.onParticipantJoined(newParticipant);
           }
-        }
-      }
-      ..onTrackMuted = (publication, participant) {
-        debugPrint('轨道静音: ${publication.kind}');
-        
-        final index = _participants.indexWhere((p) => p.userId == participant?.identity);
-        if (index != -1) {
-          final updatedParticipant = _participants[index].copyWith(
-            isMuted: publication.kind == TrackType.audio,
-            isCameraOff: publication.kind == TrackType.video,
-          );
-          _participants[index] = updatedParticipant;
+        } else if (event is ParticipantDisconnectedEvent) {
+          final participant = event.participant;
+          debugPrint('参与者离开: ${participant.identity}');
           
-          for (var listener in _listeners) {
-            listener.onParticipantUpdated(updatedParticipant);
+          final index = _participants.indexWhere((p) => p.userId == participant.identity);
+          if (index != -1) {
+            final removedParticipant = _participants.removeAt(index);
+            for (var listener in _listeners) {
+              listener.onParticipantLeft(removedParticipant);
+            }
           }
-        }
-      }
-      ..onTrackUnmuted = (publication, participant) {
-        debugPrint('轨道取消静音: ${publication.kind}');
-        
-        final index = _participants.indexWhere((p) => p.userId == participant?.identity);
-        if (index != -1) {
-          final updatedParticipant = _participants[index].copyWith(
-            isMuted: publication.kind != TrackType.audio,
-            isCameraOff: publication.kind != TrackType.video,
-          );
-          _participants[index] = updatedParticipant;
+        } else if (event is TrackSubscribedEvent) {
+          final track = event.track;
+          final participant = event.participant;
+          debugPrint('轨道订阅: ${track.kind}');
           
-          for (var listener in _listeners) {
-            listener.onParticipantUpdated(updatedParticipant);
+          final index = _participants.indexWhere((p) => p.userId == participant.identity);
+          if (index != -1) {
+            final updatedParticipant = _participants[index].copyWith(
+              isCameraOff: track.kind != TrackKind.video,
+              isMuted: track.kind != TrackKind.audio,
+            );
+            _participants[index] = updatedParticipant;
+            
+            for (var listener in _listeners) {
+              listener.onParticipantUpdated(updatedParticipant);
+            }
+          }
+        } else if (event is TrackMutedEvent) {
+          final publication = event.publication;
+          final participant = event.participant;
+          debugPrint('轨道静音: ${publication.kind}');
+          
+          final index = _participants.indexWhere((p) => p.userId == participant?.identity);
+          if (index != -1) {
+            final updatedParticipant = _participants[index].copyWith(
+              isMuted: publication.kind == TrackKind.audio,
+              isCameraOff: publication.kind == TrackKind.video,
+            );
+            _participants[index] = updatedParticipant;
+            
+            for (var listener in _listeners) {
+              listener.onParticipantUpdated(updatedParticipant);
+            }
+          }
+        } else if (event is TrackUnmutedEvent) {
+          final publication = event.publication;
+          final participant = event.participant;
+          debugPrint('轨道取消静音: ${publication.kind}');
+          
+          final index = _participants.indexWhere((p) => p.userId == participant?.identity);
+          if (index != -1) {
+            final updatedParticipant = _participants[index].copyWith(
+              isMuted: publication.kind != TrackKind.audio,
+              isCameraOff: publication.kind != TrackKind.video,
+            );
+            _participants[index] = updatedParticipant;
+            
+            for (var listener in _listeners) {
+              listener.onParticipantUpdated(updatedParticipant);
+            }
           }
         }
-      };
+      },
+    );
   }
 }
 

@@ -1,6 +1,5 @@
-// 数据库模块统一入口 (与 PC database 目录对应，一处 import 即可)
+// 数据库模块统一入口
+// 注意：其他模块应该只使用 services 层，不要直接访问数据库
 
-export 'app_database.dart';
 export 'db.dart';
-export 'tables/index.dart';
-export 'services/index.dart';
+// export 'services/index.dart';

@@ -188,7 +188,7 @@ class _CallHistoryPageState extends State<CallHistoryPage> {
       child: BlocConsumer<CallHistoryBloc, CallHistoryState>(
         listener: (context, state) {
           if (state.errorMessage != null) {
-            BeaverToast.show(state.errorMessage!);
+            BeaverToast.show(context, state.errorMessage!);
           }
         },
         builder: (context, state) {

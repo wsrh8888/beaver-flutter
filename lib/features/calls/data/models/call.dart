@@ -55,6 +55,19 @@ class CallInfo extends Equatable {
       liveKitUrl: liveKitUrl ?? this.liveKitUrl,
     );
   }
+  
+  factory CallInfo.fromJson(Map<String, dynamic> json) {
+    return CallInfo(
+      conversationId: json['conversationId'] ?? '',
+      callerName: json['callerName'] ?? '',
+      callerAvatar: json['callerAvatar'] ?? '',
+      isIncoming: json['isIncoming'] ?? false,
+      callType: json['callType'] == 'video' ? CallType.video : CallType.audio,
+      roomId: json['roomId'] ?? '',
+      roomToken: json['roomToken'] ?? '',
+      liveKitUrl: json['liveKitUrl'] ?? '',
+    );
+  }
 }
 
 // 通话类型
@@ -125,4 +138,23 @@ class CallHistory extends Equatable {
     endTime,
     duration,
   ];
+  
+  factory CallHistory.fromJson(Map<String, dynamic> json) {
+    return CallHistory(
+      id: json['id'] ?? '',
+      conversationId: json['conversationId'] ?? '',
+      callerId: json['callerId'] ?? '',
+      callerName: json['callerName'] ?? '',
+      callerAvatar: json['callerAvatar'] ?? '',
+      receiverId: json['receiverId'] ?? '',
+      receiverName: json['receiverName'] ?? '',
+      receiverAvatar: json['receiverAvatar'] ?? '',
+      callType: json['callType'] == 'video' ? CallType.video : CallType.audio,
+      isIncoming: json['isIncoming'] ?? false,
+      isMissed: json['isMissed'] ?? false,
+      startTime: DateTime.parse(json['startTime'] ?? DateTime.now().toIso8601String()),
+      endTime: json['endTime'] != null ? DateTime.parse(json['endTime']) : null,
+      duration: json['duration'] ?? 0,
+    );
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/calls/incoming/bloc/event.dart';
 import 'package:beaver/features/calls/incoming/bloc/state.dart';
 import 'package:beaver/features/calls/incoming/data/repositories/repository.dart';
+import 'package:beaver/features/calls/data/models/call.dart';
 
 class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
   final CallIncomingRepository _repository;

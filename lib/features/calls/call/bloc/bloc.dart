@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/calls/call/bloc/event.dart';
 import 'package:beaver/features/calls/call/bloc/state.dart';
 import 'package:beaver/features/calls/core/call_manager.dart';
+import 'package:beaver/features/calls/data/models/call.dart';
 
 class CallPageBloc extends Bloc<CallPageEvent, CallPageState> implements CallManagerListener {
   final CallManager _callManager = CallManager();

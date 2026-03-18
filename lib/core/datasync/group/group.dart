@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/api/datasync.dart';
 import 'package:beaver/api/group.dart';
-import 'package:beaver/core/database/app_database.dart';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';

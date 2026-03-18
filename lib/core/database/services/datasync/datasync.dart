@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:beaver/core/database/app_database.dart';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class DatasyncService extends BaseService {

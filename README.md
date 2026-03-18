@@ -54,3 +54,7 @@ fvm flutter clean
 # 获取项目依赖
 fvm flutter pub get
 ```
+## 数据库
+<!--  -->
+
+fvm flutter pub run build_runner build --delete-conflicting-outputs

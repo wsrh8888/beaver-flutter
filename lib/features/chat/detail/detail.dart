@@ -30,7 +30,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   void initState() {
     super.initState();
-    final database = AppDatabase.instance;
+    final database = DatabaseManager.instance;
     final repository = ChatRepository(database);
     _chatBloc = ChatBloc(repository);
     

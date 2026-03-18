@@ -9,7 +9,6 @@ class BeaverApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      // 基于 375x812 的主流设计稿 (1.w = 1 logical pixel)
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
@@ -26,7 +25,7 @@ class BeaverApp extends StatelessWidget {
               seedColor: AppColors.primary,
               primary: AppColors.primary,
               onPrimary: Colors.white,
-              background: Colors.white,
+              surface: Colors.white,
             ),
           ),
         );
