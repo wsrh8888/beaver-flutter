@@ -8,6 +8,7 @@ class BeaverAvatar extends StatelessWidget {
   final double size;
   final Color? backgroundColor;
   final TextStyle? textStyle;
+  final double? borderRadius;
 
   const BeaverAvatar({
     super.key,
@@ -17,22 +18,24 @@ class BeaverAvatar extends StatelessWidget {
     this.size = 40,
     this.backgroundColor,
     this.textStyle,
+    this.borderRadius,
   });
 
   @override
   Widget build(BuildContext context) {
     final String? displayName = name ?? nickname;
+    final double br = borderRadius ?? (size / 2);
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.grey[200],
-        borderRadius: BorderRadius.circular(size / 2),
+        borderRadius: BorderRadius.circular(br),
       ),
       alignment: Alignment.center,
       child: url != null && url!.isNotEmpty
           ? ClipRRect(
-              borderRadius: BorderRadius.circular(size / 2),
+              borderRadius: BorderRadius.circular(br),
               child: BeaverImage(
                 url: url!,
                 width: size,

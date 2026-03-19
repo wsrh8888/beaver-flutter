@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
 import 'package:beaver/features/moment/list/list.dart';
-import 'package:beaver/features/user/profile/profile.dart';
+import 'package:beaver/features/user/mine/mine.dart';
 import 'package:beaver/di/injection.dart';
 
 class MainScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
     const ChatListPage(),
     const ContactListPage(),
     const MomentListPage(),
-    const ProfilePage(),
+    const MinePage(),
   ];
 
   @override

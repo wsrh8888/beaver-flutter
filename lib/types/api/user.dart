@@ -64,3 +64,81 @@ class IUserSyncRes {
     users: (json['users'] as List?)?.map((e) => IUserSyncItem.fromJson(e)).toList() ?? [],
   );
 }
+
+/// 更新用户信息请求
+class IUpdateInfoReq {
+  final String? nickName;
+  final String? avatar;
+  final String? abstract;
+  final int? gender;
+
+  IUpdateInfoReq({
+    this.nickName,
+    this.avatar,
+    this.abstract,
+    this.gender,
+  });
+
+  Map<String, dynamic> toJson() {
+    final val = <String, dynamic>{};
+
+    void writeNotNull(String key, dynamic value) {
+      if (value != null) {
+        val[key] = value;
+      }
+    }
+
+    writeNotNull('nickName', nickName);
+    writeNotNull('avatar', avatar);
+    writeNotNull('abstract', abstract);
+    writeNotNull('gender', gender);
+    return val;
+  }
+}
+
+/// 更新邮箱请求
+class IUpdateEmailReq {
+  final String email;
+  final String code;
+
+  IUpdateEmailReq({required this.email, required this.code});
+
+  Map<String, dynamic> toJson() => {
+    'email': email,
+    'code': code,
+  };
+}
+
+/// 用户基础信息响应
+class IUserInfoRes {
+  final String userId;
+  final String nickName;
+  final String avatar;
+  final String abstract;
+  final String? phone;
+  final String? email;
+  final int gender;
+  final int version;
+
+  IUserInfoRes({
+    required this.userId,
+    required this.nickName,
+    required this.avatar,
+    required this.abstract,
+    this.phone,
+    this.email,
+    required this.gender,
+    required this.version,
+  });
+
+  factory IUserInfoRes.fromJson(Map<String, dynamic> json) => IUserInfoRes(
+    userId: json['userId'] ?? '',
+    nickName: json['nickName'] ?? '',
+    avatar: json['avatar'] ?? '',
+    abstract: json['abstract'] ?? '',
+    phone: json['phone'],
+    email: json['email'],
+    gender: json['gender'] ?? 0,
+    version: json['version'] ?? 0,
+  );
+}

@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/user/profile/bloc/event.dart';
 import 'package:beaver/features/user/profile/bloc/state.dart';
-import 'package:beaver/features/user/profile/data/repositories/repository.dart';
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/di/injection.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final ProfileRepository _repository;
+  final UserBusiness _userBusiness = getIt<UserBusiness>();
 
-  ProfileBloc(this._repository) : super(const ProfileState()) {
+  ProfileBloc() : super(const ProfileState()) {
     on<LoadUserInfoEvent>(_onLoadUserInfo);
     on<OpenModalEvent>(_onOpenModal);
     on<CloseModalEvent>(_onCloseModal);
@@ -26,13 +27,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final userInfo = await _repository.getUserInfo();
+      final userInfo = await _userBusiness.getMyUserInfo();
       emit(state.copyWith(
         status: ProfileStatus.success,
         userInfo: userInfo,
         formData: {
-          'nickname': userInfo.nickName,
-          'email': userInfo.email,
+          'nickname': userInfo.nickname,
+          'email': userInfo.email ?? '',
           'bio': userInfo.abstract ?? '',
           'gender': userInfo.gender,
           'emailCode': '',
@@ -82,16 +83,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      await _repository.updateUserInfo({'nickName': state.formData['nickname']});
-      final updatedUserInfo = state.userInfo!.copyWith(nickName: state.formData['nickname']);
-      final updatedModals = Map<String, bool>.from(state.modals);
-      updatedModals['nickname'] = false;
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        userInfo: updatedUserInfo,
-        modals: updatedModals,
-        errorMessage: '昵称更新成功',
-      ));
+      final success = await _userBusiness.updateProfile(nickname: state.formData['nickname']);
+      if (success) {
+        final updatedUserInfo = state.userInfo!.copyWith(nickname: state.formData['nickname']);
+        final updatedModals = Map<String, bool>.from(state.modals);
+        updatedModals['nickname'] = false;
+        emit(state.copyWith(
+          status: ProfileStatus.success,
+          userInfo: updatedUserInfo,
+          modals: updatedModals,
+          errorMessage: '昵称更新成功',
+        ));
+      } else {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '昵称更新失败'));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
@@ -109,19 +114,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      await _repository.updateEmail(
+      final success = await _userBusiness.updateEmail(
         state.formData['email'],
         state.formData['emailCode'],
       );
-      final updatedUserInfo = state.userInfo!.copyWith(email: state.formData['email']);
-      final updatedModals = Map<String, bool>.from(state.modals);
-      updatedModals['email'] = false;
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        userInfo: updatedUserInfo,
-        modals: updatedModals,
-        errorMessage: '邮箱更新成功',
-      ));
+      if (success) {
+        final updatedUserInfo = state.userInfo!.copyWith(email: state.formData['email']);
+        final updatedModals = Map<String, bool>.from(state.modals);
+        updatedModals['email'] = false;
+        emit(state.copyWith(
+          status: ProfileStatus.success,
+          userInfo: updatedUserInfo,
+          modals: updatedModals,
+          errorMessage: '邮箱更新成功',
+        ));
+      } else {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '邮箱更新失败'));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
@@ -139,16 +148,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      await _repository.updateUserInfo({'abstract': state.formData['bio']});
-      final updatedUserInfo = state.userInfo!.copyWith(abstract: state.formData['bio']);
-      final updatedModals = Map<String, bool>.from(state.modals);
-      updatedModals['description'] = false;
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        userInfo: updatedUserInfo,
-        modals: updatedModals,
-        errorMessage: '个人简介更新成功',
-      ));
+      final success = await _userBusiness.updateProfile(abstract: state.formData['bio']);
+      if (success) {
+        final updatedUserInfo = state.userInfo!.copyWith(abstract: state.formData['bio']);
+        final updatedModals = Map<String, bool>.from(state.modals);
+        updatedModals['description'] = false;
+        emit(state.copyWith(
+          status: ProfileStatus.success,
+          userInfo: updatedUserInfo,
+          modals: updatedModals,
+          errorMessage: '个人简介更新成功',
+        ));
+      } else {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '个人简介更新失败'));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
@@ -166,16 +179,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      await _repository.updateUserInfo({'gender': state.formData['gender']});
-      final updatedUserInfo = state.userInfo!.copyWith(gender: state.formData['gender']);
-      final updatedModals = Map<String, bool>.from(state.modals);
-      updatedModals['gender'] = false;
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        userInfo: updatedUserInfo,
-        modals: updatedModals,
-        errorMessage: '性别更新成功',
-      ));
+      final success = await _userBusiness.updateProfile(gender: state.formData['gender']);
+      if (success) {
+        final updatedUserInfo = state.userInfo!.copyWith(gender: state.formData['gender']);
+        final updatedModals = Map<String, bool>.from(state.modals);
+        updatedModals['gender'] = false;
+        emit(state.copyWith(
+          status: ProfileStatus.success,
+          userInfo: updatedUserInfo,
+          modals: updatedModals,
+          errorMessage: '性别更新成功',
+        ));
+      } else {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '性别更新失败'));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
@@ -194,17 +211,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ));
 
     try {
-      await _repository.sendEmailCode(state.formData['email']);
-      // 开始倒计时
-      emit(state.copyWith(
-        isCodeSending: false,
-        countdown: 60,
-        errorMessage: '验证码已发送',
-      ));
-      // 模拟倒计时
-      for (int i = 59; i >= 0; i--) {
-        await Future.delayed(const Duration(seconds: 1));
-        emit(state.copyWith(countdown: i));
+      final success = await _userBusiness.getEmailCode(state.formData['email'], 'update_email');
+      if (success) {
+        emit(state.copyWith(
+          isCodeSending: false,
+          countdown: 60,
+          errorMessage: '验证码已发送',
+        ));
+        // 开始倒计时逻辑（简单处理，实际生产可能需要更稳健的计时器）
+        for (int i = 59; i >= 0; i--) {
+          if (emit.isDone) break;
+          await Future.delayed(const Duration(seconds: 1));
+          emit(state.copyWith(countdown: i));
+        }
+      } else {
+        emit(state.copyWith(isCodeSending: false, errorMessage: '发送失败'));
       }
     } catch (e) {
       emit(state.copyWith(
@@ -220,19 +241,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     if (state.userInfo == null) return;
 
+    // 这里应该先选择图片并上传
+    // 暂时保持空逻辑或使用模拟上传
     emit(state.copyWith(status: ProfileStatus.loading));
-
     try {
-      // 模拟更换头像
-      await _repository.updateUserInfo({'fileName': 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20new&size=512x512'});
-      final updatedUserInfo = state.userInfo!.copyWith(
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20new&size=512x512',
-      );
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        userInfo: updatedUserInfo,
-        errorMessage: '头像更新成功',
-      ));
+      // 假设上传后拿到 fileKey
+      const mockFileKey = 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20new&size=512x512';
+      final success = await _userBusiness.updateProfile(avatar: mockFileKey);
+      if (success) {
+        final updatedUserInfo = state.userInfo!.copyWith(avatar: mockFileKey);
+        emit(state.copyWith(
+          status: ProfileStatus.success,
+          userInfo: updatedUserInfo,
+          errorMessage: '头像更新成功',
+        ));
+      } else {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '头像更新失败'));
+      }
     } catch (e) {
       emit(state.copyWith(
         status: ProfileStatus.error,
@@ -241,4 +266,3 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     }
   }
 }
-

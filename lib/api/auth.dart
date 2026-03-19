@@ -1,6 +1,5 @@
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/auth.dart';
-import 'package:beaver/common/config/env.dart';
 
 /// 手机号登录
 Future<BaseResponse<PhoneLoginRes>> phoneLoginApi(PhoneLoginReq data) {

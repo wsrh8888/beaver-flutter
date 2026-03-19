@@ -47,4 +47,10 @@ class AppRoutes {
   
   // 引导模块
   static const String guideMain = '/guide';
+  
+  // 用户模块
+  static const String profile = '/user/profile';
+  static const String mine = '/user/mine';
+  static const String qrcode = '/user/qrcode';
+  static const String userConfig = '/user/config';
 }

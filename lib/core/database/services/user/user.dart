@@ -125,4 +125,27 @@ class UserService extends BaseService {
   Future<User?> getUserByUserId(String userId) async {
     return (db.select(db.users)..where((t) => t.userId.equals(userId))).getSingleOrNull();
   }
+
+  /// 更新用户信息
+  Future<void> updateUser({
+    required String userId,
+    String? nickName,
+    String? avatar,
+    String? abstract,
+    String? email,
+    int? gender,
+    int? version,
+  }) async {
+    await (db.update(db.users)..where((t) => t.userId.equals(userId))).write(
+      UsersCompanion(
+        nickName: nickName != null ? Value(nickName) : const Value.absent(),
+        avatar: avatar != null ? Value(avatar) : const Value.absent(),
+        abstract: abstract != null ? Value(abstract) : const Value.absent(),
+        email: email != null ? Value(email) : const Value.absent(),
+        gender: gender != null ? Value(gender) : const Value.absent(),
+        version: version != null ? Value(version) : const Value.absent(),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
 }

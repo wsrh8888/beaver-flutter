@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/ui/dialog/index.dart';
 
 class GenderDialog extends StatefulWidget {
   final int initialValue;
@@ -19,265 +19,82 @@ class GenderDialog extends StatefulWidget {
 }
 
 class _GenderDialogState extends State<GenderDialog> {
-  late int _selectedGender;
+  late int _gender;
 
   @override
   void initState() {
     super.initState();
-    _selectedGender = widget.initialValue;
+    _gender = widget.initialValue == 0 ? 1 : widget.initialValue;
   }
 
-  void _selectGender(int gender) {
-    setState(() => _selectedGender = gender);
+  void _save() {
+    widget.onSave(_gender);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.w),
+    return BeaverDialog(
+      title: '选择性别',
+      onConfirm: _save,
+      onCancel: widget.onCancel,
+      child: Column(
+        children: [
+          _buildItem('男', 1),
+          SizedBox(height: 12.w),
+          _buildItem('女', 2),
+          SizedBox(height: 12.w),
+        ],
       ),
+    );
+  }
+
+  Widget _buildItem(String label, int value) {
+    bool active = _gender == value;
+    return GestureDetector(
+      onTap: () => setState(() => _gender = value),
+      behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.all(32.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFFFFF7F2) : const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12.w),
+          border: Border.all(
+            color: active ? const Color(0xFFFF7D45) : Colors.transparent,
+            width: 1.w,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '选择性别',
+              label,
               style: TextStyle(
-                fontSize: 32.w,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D3436),
+                fontSize: 14.sp,
+                fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+                color: active ? const Color(0xFFFF7D45) : const Color(0xFF2D3436),
               ),
             ),
-            SizedBox(height: 32.w),
-            Column(
-              children: [
-                GestureDetector(
-                  onTap: () => _selectGender(1),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.w),
-                    margin: EdgeInsets.only(bottom: 16.w),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: _selectedGender == 1 
-                            ? const Color(0xFFFF7D45)
-                            : const Color(0xFFE1E8ED),
-                        width: 2.w,
-                      ),
-                      borderRadius: BorderRadius.circular(16.w),
-                      color: _selectedGender == 1
-                          ? const Color(0xFFFF7D45).withOpacity(0.05)
-                          : Colors.white,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '男',
-                          style: TextStyle(
-                            fontSize: 28.w,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF2D3436),
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          width: 36.w,
-                          height: 36.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _selectedGender == 1
-                                  ? const Color(0xFFFF7D45)
-                                  : const Color(0xFFE1E8ED),
-                              width: 2.w,
-                            ),
-                            color: _selectedGender == 1
-                                ? const Color(0xFFFF7D45)
-                                : Colors.white,
-                          ),
-                          child: _selectedGender == 1
-                              ? Icon(
-                                  Icons.check,
-                                  size: 24.w,
-                                  color: Colors.white,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
+            Container(
+              width: 18.w,
+              height: 18.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: active ? const Color(0xFFFF7D45) : const Color(0xFFDCDFE6),
+                  width: 1.5.w,
                 ),
-                GestureDetector(
-                  onTap: () => _selectGender(2),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.w),
-                    margin: EdgeInsets.only(bottom: 16.w),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: _selectedGender == 2 
-                            ? const Color(0xFFFF7D45)
-                            : const Color(0xFFE1E8ED),
-                        width: 2.w,
-                      ),
-                      borderRadius: BorderRadius.circular(16.w),
-                      color: _selectedGender == 2
-                          ? const Color(0xFFFF7D45).withOpacity(0.05)
-                          : Colors.white,
+              ),
+              alignment: Alignment.center,
+              child: active 
+                ? Container(
+                    width: 10.w,
+                    height: 10.w,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFFF7D45),
                     ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '女',
-                          style: TextStyle(
-                            fontSize: 28.w,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF2D3436),
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          width: 36.w,
-                          height: 36.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _selectedGender == 2
-                                  ? const Color(0xFFFF7D45)
-                                  : const Color(0xFFE1E8ED),
-                              width: 2.w,
-                            ),
-                            color: _selectedGender == 2
-                                ? const Color(0xFFFF7D45)
-                                : Colors.white,
-                          ),
-                          child: _selectedGender == 2
-                              ? Icon(
-                                  Icons.check,
-                                  size: 24.w,
-                                  color: Colors.white,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => _selectGender(0),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.w),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: _selectedGender == 0 
-                            ? const Color(0xFFFF7D45)
-                            : const Color(0xFFE1E8ED),
-                        width: 2.w,
-                      ),
-                      borderRadius: BorderRadius.circular(16.w),
-                      color: _selectedGender == 0
-                          ? const Color(0xFFFF7D45).withOpacity(0.05)
-                          : Colors.white,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          '保密',
-                          style: TextStyle(
-                            fontSize: 28.w,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF2D3436),
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          width: 36.w,
-                          height: 36.w,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _selectedGender == 0
-                                  ? const Color(0xFFFF7D45)
-                                  : const Color(0xFFE1E8ED),
-                              width: 2.w,
-                            ),
-                            color: _selectedGender == 0
-                                ? const Color(0xFFFF7D45)
-                                : Colors.white,
-                          ),
-                          child: _selectedGender == 0
-                              ? Icon(
-                                  Icons.check,
-                                  size: 24.w,
-                                  color: Colors.white,
-                                )
-                              : null,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 32.w),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: widget.onCancel,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 20.w),
-                      margin: EdgeInsets.only(right: 16.w),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
-                        border: Border.all(
-                          color: const Color(0xFFE9ECEF),
-                          width: 2.w,
-                        ),
-                        borderRadius: BorderRadius.circular(12.w),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          fontSize: 28.w,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF636E72),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => widget.onSave(_selectedGender),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 20.w),
-                      margin: EdgeInsets.only(left: 16.w),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFFF7D45),
-                            Color(0xFFE86835),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12.w),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '确定',
-                        style: TextStyle(
-                          fontSize: 28.w,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                  )
+                : null,
             ),
           ],
         ),

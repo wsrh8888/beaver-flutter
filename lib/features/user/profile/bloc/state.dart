@@ -1,4 +1,4 @@
-import 'package:beaver/features/user/profile/data/models/profile.dart';
+import 'package:beaver/types/business/user.dart';
 
 enum ProfileStatus { initial, loading, success, error }
 
@@ -46,4 +46,3 @@ class ProfileState {
     );
   }
 }
-

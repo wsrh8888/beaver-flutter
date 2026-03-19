@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/ui/dialog/index.dart';
 
 class BioDialog extends StatefulWidget {
   final String initialValue;
@@ -34,134 +34,57 @@ class _BioDialogState extends State<BioDialog> {
   }
 
   void _save() {
-    final bio = _controller.text.trim();
-    widget.onSave(bio);
+    widget.onSave(_controller.text.trim());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.w),
-      ),
-      child: Container(
-        padding: EdgeInsets.all(32.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '个人简介',
-              style: TextStyle(
-                fontSize: 32.w,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF2D3436),
-              ),
+    return BeaverDialog(
+      title: '修改个人简介',
+      onConfirm: _save,
+      onCancel: widget.onCancel,
+      child: Column(
+        children: [
+          Container(
+            height: 120.w, // 240rpx
+            padding: EdgeInsets.all(12.w), // 24rpx
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12.w), // 24rpx
             ),
-            SizedBox(height: 32.w),
-            TextField(
+            child: TextField(
               controller: _controller,
-              maxLength: 100,
               maxLines: 5,
-              decoration: InputDecoration(
-                hintText: '介绍一下自己吧～',
-                hintStyle: TextStyle(
-                  fontSize: 28.w,
-                  color: const Color(0xFFB2BEC3),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.w),
-                  borderSide: BorderSide(
-                    color: const Color(0xFFE1E8ED),
-                    width: 2.w,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.w),
-                  borderSide: BorderSide(
-                    color: const Color(0xFFFF7D45),
-                    width: 2.w,
-                  ),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.w),
-              ),
+              maxLength: 100,
+              autofocus: true,
               style: TextStyle(
-                fontSize: 28.w,
+                fontSize: 14.sp, // 28rpx
                 color: const Color(0xFF2D3436),
                 height: 1.5,
               ),
+              decoration: const InputDecoration(
+                hintText: '介绍一下自己，让更多人了解你',
+                hintStyle: TextStyle(color: Color(0xFFB2BEC3)),
+                border: InputBorder.none,
+                counterText: '',
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (_) => setState(() {}),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${_controller.text.length}/100',
-                style: TextStyle(
-                  fontSize: 22.w,
-                  color: const Color(0xFFB2BEC3),
-                ),
+          ),
+          SizedBox(height: 8.w),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '${_controller.text.length}/100',
+              style: TextStyle(
+                fontSize: 11.sp, // 22rpx
+                color: const Color(0xFFB2BEC3),
               ),
             ),
-            SizedBox(height: 32.w),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: widget.onCancel,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 20.w),
-                      margin: EdgeInsets.only(right: 16.w),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
-                        border: Border.all(
-                          color: const Color(0xFFE9ECEF),
-                          width: 2.w,
-                        ),
-                        borderRadius: BorderRadius.circular(12.w),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '取消',
-                        style: TextStyle(
-                          fontSize: 28.w,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF636E72),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _save,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 20.w),
-                      margin: EdgeInsets.only(left: 16.w),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFFF7D45),
-                            Color(0xFFE86835),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12.w),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '确定',
-                        style: TextStyle(
-                          fontSize: 28.w,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
