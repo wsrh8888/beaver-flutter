@@ -5,50 +5,51 @@ import 'package:beaver/core/datasync/user/user.dart';
 import 'package:beaver/core/datasync/emoji/emoji.dart';
 import 'package:beaver/core/datasync/notification/notification.dart';
 
-/// 数据同步状态
-enum DataSyncStatus {
-  idle,
-  syncing,
-  ready,
-  syncError,
-}
-
 /// 数据同步管理器
-///
+/// 
 /// 职责：协调全局数据同步
 /// - 管理同步状态
 /// - 按顺序执行各模块同步
 /// - 处理同步错误
-class SyncManager {
-  DataSyncStatus _status = DataSyncStatus.idle;
-  DataSyncStatus get status => _status;
-  bool get isSyncing => _status == DataSyncStatus.syncing;
+class DataSyncManager {
+  bool _isSyncing = false;
+  bool get isSyncing => _isSyncing;
+
+  /// 获取当前同步状态
+  String getStatus() {
+    return _isSyncing ? 'syncing' : 'idle';
+  }
 
   /// 自动开始全量同步流程
   Future<void> autoSync() async {
-    print('[SyncManager] 开始全模块自动同步');
-    _status = DataSyncStatus.syncing;
+    print('[DataSyncManager] 开始自动同步');
+    
     try {
+      _isSyncing = true;
+      // TODO: 发送状态变更通知
+
       // 1. 同步用户资料
-      await userSync.checkAndSync();
-      // 2. 同步聊天及会话 (含消息摘要、会话元数据、用户会话设置)
-      await messageSync.checkAndSync();
-      // 3. 同步好友关系 (含好友资料、好友验证)
-      await friendSync.checkAndSync();
-      // 4. 同步群组资料 (含群资料、群成员、入群申请)
-      await groupSync.checkAndSync();
-      // 5. 同步表情列表
+      await userDatasync.checkAndSync();
+      // 2. 聊天相关同步 (含消息、会话元数据、用户会话设置)
+      await chatDatasync.checkAndSync();
+      // 3. 好友关系同步 (含好友资料、好友验证)
+      await friendDatasync.checkAndSync();
+      // 4. 群组资料同步 (含群资料、群成员、入群申请)
+      await groupDatasync.checkAndSync();
+      // 5. 表情同步
       await emojiSync.checkAndSync();
-      // 6. 同步通知事件
+      // 6. 通知事件同步
       await notificationSync.checkAndSync();
 
-      _status = DataSyncStatus.ready;
-      print('[SyncManager] 全模块数据同步完成，系统就绪');
+      _isSyncing = false;
+      // TODO: 发送状态变更通知 (ready)
+      print('[DataSyncManager] 数据同步完成');
     } catch (e) {
-      _status = DataSyncStatus.idle;
-      print('[SyncManager] 同步发生错误: $e');
+      _isSyncing = false;
+      // TODO: 发送状态变更通知 (sync_error)
+      print('[DataSyncManager] 数据同步失败: $e');
     }
   }
 }
 
-final syncManager = SyncManager();
+final syncManager = DataSyncManager();

@@ -102,7 +102,7 @@ class GroupMemberSync {
 
       await groupMemberService.batchCreate(members);
 
-      // 更新本地群成员版本状态
+      // 更新本地群成员版本状态 (这里注意同步响应包里没有聚合版本，我们根据返回的 member 来更新)
       for (final member in response.result!.groupMembers) {
          await syncStatusService.upsertSyncStatus(
           module: 'members',
@@ -110,6 +110,8 @@ class GroupMemberSync {
           version: member.version,
         );
       }
+
+      // TODO: 发送通知到渲染进程
     }
   }
 }

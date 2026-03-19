@@ -12,6 +12,7 @@ enum EDataType {
   notificationEvents,
   notificationInboxes,
   notificationReads,
+  emojiCollects,
 }
 
 extension EDataTypeExtension on EDataType {
@@ -29,6 +30,7 @@ extension EDataTypeExtension on EDataType {
       case EDataType.notificationEvents: return 'notification_events';
       case EDataType.notificationInboxes: return 'notification_inboxes';
       case EDataType.notificationReads: return 'notification_reads';
+      case EDataType.emojiCollects: return 'emoji_collects';
     }
   }
 }
@@ -175,6 +177,90 @@ class IGetSyncEmojisRes {
 
   factory IGetSyncEmojisRes.fromJson(Map<String, dynamic> json) => IGetSyncEmojisRes(
     emojiVersions: (json['emojiVersions'] as List?)?.map((e) => IEmojiVersionItem.fromJson(e)).toList() ?? [],
+    serverTimestamp: json['serverTimestamp'] ?? 0,
+  );
+}
+
+/// 表情收藏版本信息
+class IEmojiCollectVersionItem {
+  final String emojiCollectId;
+  final int version;
+
+  IEmojiCollectVersionItem({required this.emojiCollectId, required this.version});
+
+  factory IEmojiCollectVersionItem.fromJson(Map<String, dynamic> json) => IEmojiCollectVersionItem(
+    emojiCollectId: json['emojiCollectId'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 表情包收藏版本信息
+class IEmojiPackageCollectVersionItem {
+  final String packageCollectId;
+  final int version;
+
+  IEmojiPackageCollectVersionItem({required this.packageCollectId, required this.version});
+
+  factory IEmojiPackageCollectVersionItem.fromJson(Map<String, dynamic> json) => IEmojiPackageCollectVersionItem(
+    packageCollectId: json['packageCollectId'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 表情包版本信息
+class IEmojiPackageVersionItem {
+  final String packageId;
+  final int version;
+
+  IEmojiPackageVersionItem({required this.packageId, required this.version});
+
+  factory IEmojiPackageVersionItem.fromJson(Map<String, dynamic> json) => IEmojiPackageVersionItem(
+    packageId: json['packageId'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 表情包内容版本信息
+class IEmojiPackageContentVersionItem {
+  final String packageId;
+  final int version;
+
+  IEmojiPackageContentVersionItem({required this.packageId, required this.version});
+
+  factory IEmojiPackageContentVersionItem.fromJson(Map<String, dynamic> json) => IEmojiPackageContentVersionItem(
+    packageId: json['packageId'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 获取表情收藏同步请求
+class IGetSyncEmojiCollectsReq {
+  final int? since;
+  IGetSyncEmojiCollectsReq({this.since});
+  Map<String, dynamic> toJson() => {if (since != null) 'since': since};
+}
+
+/// 获取表情收藏同步响应
+class IGetSyncEmojiCollectsRes {
+  final List<IEmojiCollectVersionItem> emojiCollectVersions;
+  final List<IEmojiPackageCollectVersionItem> emojiPackageCollectVersions;
+  final List<IEmojiPackageVersionItem> emojiPackageVersions;
+  final List<IEmojiPackageContentVersionItem> emojiPackageContentVersions;
+  final int serverTimestamp;
+
+  IGetSyncEmojiCollectsRes({
+    required this.emojiCollectVersions,
+    required this.emojiPackageCollectVersions,
+    required this.emojiPackageVersions,
+    required this.emojiPackageContentVersions,
+    required this.serverTimestamp,
+  });
+
+  factory IGetSyncEmojiCollectsRes.fromJson(Map<String, dynamic> json) => IGetSyncEmojiCollectsRes(
+    emojiCollectVersions: (json['emojiCollectVersions'] as List?)?.map((e) => IEmojiCollectVersionItem.fromJson(e)).toList() ?? [],
+    emojiPackageCollectVersions: (json['emojiPackageCollectVersions'] as List?)?.map((e) => IEmojiPackageCollectVersionItem.fromJson(e)).toList() ?? [],
+    emojiPackageVersions: (json['emojiPackageVersions'] as List?)?.map((e) => IEmojiPackageVersionItem.fromJson(e)).toList() ?? [],
+    emojiPackageContentVersions: (json['emojiPackageContentVersions'] as List?)?.map((e) => IEmojiPackageContentVersionItem.fromJson(e)).toList() ?? [],
     serverTimestamp: json['serverTimestamp'] ?? 0,
   );
 }
@@ -426,4 +512,86 @@ class IGetSyncGroupRequestsReq {
   final int? since;
   IGetSyncGroupRequestsReq({this.since});
   Map<String, dynamic> toJson() => {if (since != null) 'since': since};
+}
+
+/// 获取通知收件箱摘要请求
+class IGetSyncNotificationInboxesReq {
+  final int? sinceVersion;
+  final int? limit;
+  IGetSyncNotificationInboxesReq({this.sinceVersion, this.limit});
+  Map<String, dynamic> toJson() => {
+    if (sinceVersion != null) 'sinceVersion': sinceVersion,
+    if (limit != null) 'limit': limit,
+  };
+}
+
+/// 通知收件箱版本信息
+class INotificationInboxVersionItem {
+  final String eventId;
+  final int version;
+
+  INotificationInboxVersionItem({required this.eventId, required this.version});
+
+  factory INotificationInboxVersionItem.fromJson(Map<String, dynamic> json) => INotificationInboxVersionItem(
+    eventId: json['eventId'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 获取通知收件箱摘要响应
+class IGetSyncNotificationInboxesRes {
+  final List<INotificationInboxVersionItem> inboxVersions;
+  final int maxVersion;
+  final int serverTimestamp;
+
+  IGetSyncNotificationInboxesRes({
+    required this.inboxVersions,
+    required this.maxVersion,
+    required this.serverTimestamp,
+  });
+
+  factory IGetSyncNotificationInboxesRes.fromJson(Map<String, dynamic> json) => IGetSyncNotificationInboxesRes(
+    inboxVersions: (json['inboxVersions'] as List?)?.map((e) => INotificationInboxVersionItem.fromJson(e)).toList() ?? [],
+    maxVersion: json['maxVersion'] ?? 0,
+    serverTimestamp: json['serverTimestamp'] ?? 0,
+  );
+}
+
+/// 获取通知已读游标摘要请求
+class IGetSyncNotificationReadCursorsReq {
+  final int? sinceVersion;
+  IGetSyncNotificationReadCursorsReq({this.sinceVersion});
+  Map<String, dynamic> toJson() => {if (sinceVersion != null) 'sinceVersion': sinceVersion};
+}
+
+/// 通知已读游标版本信息
+class INotificationReadCursorVersionItem {
+  final String category;
+  final int version;
+
+  INotificationReadCursorVersionItem({required this.category, required this.version});
+
+  factory INotificationReadCursorVersionItem.fromJson(Map<String, dynamic> json) => INotificationReadCursorVersionItem(
+    category: json['category'] ?? '',
+    version: json['version'] ?? 0,
+  );
+}
+
+/// 获取通知已读游标摘要响应
+class IGetSyncNotificationReadCursorsRes {
+  final List<INotificationReadCursorVersionItem> cursorVersions;
+  final int maxVersion;
+  final int serverTimestamp;
+
+  IGetSyncNotificationReadCursorsRes({
+    required this.cursorVersions,
+    required this.maxVersion,
+    required this.serverTimestamp,
+  });
+
+  factory IGetSyncNotificationReadCursorsRes.fromJson(Map<String, dynamic> json) => IGetSyncNotificationReadCursorsRes(
+    cursorVersions: (json['cursorVersions'] as List?)?.map((e) => INotificationReadCursorVersionItem.fromJson(e)).toList() ?? [],
+    maxVersion: json['maxVersion'] ?? 0,
+    serverTimestamp: json['serverTimestamp'] ?? 0,
+  );
 }

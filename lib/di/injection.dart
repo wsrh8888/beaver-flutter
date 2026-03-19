@@ -3,8 +3,6 @@ import 'package:beaver/core/database/database.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/core/datasync/sync.dart';
-import 'package:beaver/features/auth/login/data/repositories/repository.dart';
-import 'package:beaver/features/auth/register/data/repositories/repository.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 // import 'package:beaver/core/database/services/index.dart';
 
@@ -52,7 +50,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<MomentBusiness>(() => MomentBusiness());
 
   // 6. 数据同步层
-  getIt.registerLazySingleton<SyncManager>(() => SyncManager());
+  getIt.registerLazySingleton<DataSyncManager>(() => syncManager);
 
   print('[DI] 依赖注入配置完成');
 }

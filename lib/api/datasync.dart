@@ -66,3 +66,21 @@ Future<BaseResponse<IGetSyncGroupRequestsRes>> datasyncGetSyncGroupRequestsApi(I
   const url = '/api/datasync/getSyncGroupRequests';
   return httpClient.post<IGetSyncGroupRequestsRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncGroupRequestsRes.fromJson(json));
 }
+
+/// 获取所有需要更新的表情收藏版本
+Future<BaseResponse<IGetSyncEmojiCollectsRes>> datasyncGetSyncEmojiCollectsApi(IGetSyncEmojiCollectsReq data) {
+  const url = '/api/datasync/getSyncEmojiCollects';
+  return httpClient.post<IGetSyncEmojiCollectsRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncEmojiCollectsRes.fromJson(json));
+}
+
+/// 获取通知收件箱版本摘要
+Future<BaseResponse<IGetSyncNotificationInboxesRes>> datasyncGetSyncNotificationInboxesApi(IGetSyncNotificationInboxesReq data) {
+  const url = '/api/datasync/getSyncNotificationInboxes';
+  return httpClient.post<IGetSyncNotificationInboxesRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncNotificationInboxesRes.fromJson(json));
+}
+
+/// 获取通知已读游标版本摘要
+Future<BaseResponse<IGetSyncNotificationReadCursorsRes>> datasyncGetSyncNotificationReadCursorsApi(IGetSyncNotificationReadCursorsReq data) {
+  const url = '/api/datasync/getSyncNotificationReadCursors';
+  return httpClient.post<IGetSyncNotificationReadCursorsRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncNotificationReadCursorsRes.fromJson(json));
+}

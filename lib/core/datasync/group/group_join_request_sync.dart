@@ -7,7 +7,7 @@ import 'package:beaver/types/api/group.dart';
 
 /// 入群申请同步器
 class GroupJoinRequestSync {
-  /// 检查并同步入群申请数据
+  /// 检查并同步入群申请
   Future<void> checkAndSync() async {
     print('[GroupJoinRequestSync] 开始同步入群申请数据');
     try {
@@ -19,18 +19,18 @@ class GroupJoinRequestSync {
       final cursor = await datasyncService.get('group_join_requests');
       final lastSyncTime = cursor?.version ?? 0;
 
-      // 获取服务器上变更的版本信息
+      // 获取服务器上变更的入群申请版本信息
       final response = await datasyncGetSyncGroupRequestsApi(IGetSyncGroupRequestsReq(since: lastSyncTime));
       if (response.code != 0 || response.result == null) {
-        print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');
+        print('[GroupJoinRequestSync] 获取入群申请版本失败: ${response.msg}');
         return;
       }
 
-      // 对比过滤
+      // 对比本地数据
       final needUpdateGroups = await _compareAndFilterRequestVersions(syncStatusService, response.result!.groupVersions);
 
       if (needUpdateGroups.isNotEmpty) {
-        // 同步具体数据
+        // 有需要更新的入群申请
         await _syncRequestData(groupJoinRequestService, syncStatusService, needUpdateGroups);
       }
 
@@ -41,11 +41,11 @@ class GroupJoinRequestSync {
         response.result!.serverTimestamp,
       );
     } catch (error) {
-      print('[GroupJoinRequestSync] 同步失败: $error');
+      print('[GroupJoinRequestSync] 入群申请同步失败: $error');
     }
   }
 
-  /// 对比过滤版本
+  /// 对比本地数据
   Future<List<IGroupVersionSyncItem>> _compareAndFilterRequestVersions(
     GroupSyncStatusService syncStatusService,
     List<IGroupRequestsVersionItem> groupVersions,
@@ -70,7 +70,7 @@ class GroupJoinRequestSync {
     return needUpdateGroups;
   }
 
-  /// 同步入群申请
+  /// 同步入群申请数据
   Future<void> _syncRequestData(
     GroupJoinRequestService groupJoinRequestService,
     GroupSyncStatusService syncStatusService,

@@ -81,4 +81,10 @@ class MessageBusiness {
     // 模拟流
     return Stream.periodic(const Duration(seconds: 5), (_) => []);
   }
+
+  /// 清除特定消息的计时器 (ACK 确认后)
+  void clearTimers(List<String> messageIds) {
+    // TODO: 实现消息发送状态管理和超时计时器
+    print('[MessageBusiness] 清除消息计时器: ${messageIds.length} 条');
+  }
 }
