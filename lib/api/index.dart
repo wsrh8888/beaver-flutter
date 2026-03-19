@@ -1,4 +1,13 @@
 export 'auth.dart';
-export 'chat.dart';
 export 'call.dart';
+export 'chat.dart';
+export 'datasync.dart';
+export 'emoji.dart';
+export 'file.dart';
+export 'friend.dart';
+export 'group.dart';
+export 'index.dart';
+export 'mcp.dart';
+export 'moment.dart';
+export 'notification.dart';
 export 'user.dart';
