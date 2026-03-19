@@ -19,89 +19,59 @@ final getIt = GetIt.instance;
 
 /// 依赖注入初始化
 Future<void> configureDependencies() async {
-  // 1. 基础工具初始化
-  // StorageUtil.init() 在 main.dart 中已调用，这里可省
-
-  // 2. 核心网络客户端
+  // 1. 核心网络客户端
   if (!getIt.isRegistered<HttpClient>()) {
     getIt.registerSingleton<HttpClient>(httpClient);
   }
   if (!getIt.isRegistered<WsConnectionManager>()) {
-    getIt.registerLazySingleton<WsConnectionManager>(
-      () => WsConnectionManager(),
-    );
+    getIt.registerLazySingleton<WsConnectionManager>(() => WsConnectionManager());
   }
 
-  // 3. 数据库
+  // 2. 数据库
   if (!getIt.isRegistered<AppDatabase>()) {
     getIt.registerLazySingleton<AppDatabase>(() => DatabaseManager.instance);
   }
 
-  // 4. 数据处理层 (Services - Direct DB Access)
-  final db = getIt<AppDatabase>();
-
+  // 3. 数据处理层 (Services - 注册为 Lazy，直到真正用到且数据库 init 后才初始化)
+  
   // 用户模块
-  getIt.registerLazySingleton<UserService>(() => UserService(db));
-  getIt.registerLazySingleton<UserSyncStatusService>(
-    () => UserSyncStatusService(db),
-  );
-
+  getIt.registerLazySingleton<UserService>(() => UserService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<UserSyncStatusService>(() => UserSyncStatusService(getIt<AppDatabase>()));
+  
   // 好友模块
-  getIt.registerLazySingleton<FriendService>(() => FriendService(db));
-  getIt.registerLazySingleton<FriendVerifyService>(
-    () => FriendVerifyService(db),
-  );
-
+  getIt.registerLazySingleton<FriendService>(() => FriendService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<FriendVerifyService>(() => FriendVerifyService(getIt<AppDatabase>()));
+  
   // 聊天模块
-  getIt.registerLazySingleton<ChatConversationService>(
-    () => ChatConversationService(db),
-  );
-  getIt.registerLazySingleton<ChatMessageService>(() => ChatMessageService(db));
-  getIt.registerLazySingleton<ChatUserConversationService>(
-    () => ChatUserConversationService(db),
-  );
-  getIt.registerLazySingleton<ChatSyncStatusService>(
-    () => ChatSyncStatusService(db),
-  );
-
+  getIt.registerLazySingleton<ChatConversationService>(() => ChatConversationService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<ChatMessageService>(() => ChatMessageService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<ChatUserConversationService>(() => ChatUserConversationService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<ChatSyncStatusService>(() => ChatSyncStatusService(getIt<AppDatabase>()));
+  
   // 群组模块
-  getIt.registerLazySingleton<GroupService>(() => GroupService(db));
-  getIt.registerLazySingleton<GroupMemberService>(() => GroupMemberService(db));
-  getIt.registerLazySingleton<GroupJoinRequestService>(
-    () => GroupJoinRequestService(db),
-  );
-  getIt.registerLazySingleton<GroupSyncStatusService>(
-    () => GroupSyncStatusService(db),
-  );
-
+  getIt.registerLazySingleton<GroupService>(() => GroupService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<GroupMemberService>(() => GroupMemberService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<GroupJoinRequestService>(() => GroupJoinRequestService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<GroupSyncStatusService>(() => GroupSyncStatusService(getIt<AppDatabase>()));
+  
   // 其他
-  getIt.registerLazySingleton<DatasyncService>(() => DatasyncService(db));
-  getIt.registerLazySingleton<MediaService>(() => MediaService(db));
-  getIt.registerLazySingleton<EmojiService>(() => EmojiService(db));
-  getIt.registerLazySingleton<NotificationInboxService>(
-    () => NotificationInboxService(db),
-  );
-  getIt.registerLazySingleton<NotificationReadCursorService>(
-    () => NotificationReadCursorService(db),
-  );
-  getIt.registerLazySingleton<NotificationEventService>(
-    () => NotificationEventService(db),
-  );
+  getIt.registerLazySingleton<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<MediaService>(() => MediaService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiService>(() => EmojiService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<NotificationInboxService>(() => NotificationInboxService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<NotificationReadCursorService>(() => NotificationReadCursorService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<NotificationEventService>(() => NotificationEventService(getIt<AppDatabase>()));
 
-  // 5. 业务门面层 (Business Facades - UI calls these)
+  // 4. 业务门面层 (Business Facades - UI calls these)
   getIt.registerLazySingleton<UserBusiness>(() => UserBusiness());
   getIt.registerLazySingleton<FriendBusiness>(() => FriendBusiness());
   getIt.registerLazySingleton<GroupBusiness>(() => GroupBusiness());
-  getIt.registerLazySingleton<NotificationBusiness>(
-    () => NotificationBusiness(),
-  );
-  getIt.registerLazySingleton<ConversationBusiness>(
-    () => ConversationBusiness(),
-  );
+  getIt.registerLazySingleton<NotificationBusiness>(() => NotificationBusiness());
+  getIt.registerLazySingleton<ConversationBusiness>(() => ConversationBusiness());
   getIt.registerLazySingleton<MessageBusiness>(() => MessageBusiness());
   getIt.registerLazySingleton<MomentBusiness>(() => MomentBusiness());
 
-  // 6. 数据同步层
+  // 5. 数据同步层
   getIt.registerLazySingleton<DataSyncManager>(() => syncManager);
 
   print('[DI] 依赖注入配置完成');
