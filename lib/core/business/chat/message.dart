@@ -1,10 +1,84 @@
+import 'package:beaver/core/database/services/chat/message.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/types/business/message.dart';
+
 /// 聊天消息业务逻辑
 class MessageBusiness {
-  // TODO: 实现消息相关的业务逻辑
-  // - 发送消息
-  // - 接收消息
-  // - 消息状态管理
-  // - 消息历史记录
-}
+  final _messageService = getIt<ChatMessageService>();
 
-final messageBusiness = MessageBusiness();
+  /**
+   * @description 获取消息列表
+   */
+  Future<List<MessageModel>> getMessages(String conversationId, {int limit = 50, int offset = 0}) async {
+    // 模拟数据
+    await Future.delayed(const Duration(milliseconds: 100));
+    return [
+      MessageModel(
+        id: '1',
+        conversationId: conversationId,
+        userId: 'user1',
+        content: '你好！',
+        type: MessageType.text,
+        status: MessageStatus.sent,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+        isSent: false,
+      ),
+      MessageModel(
+        id: '2',
+        conversationId: conversationId,
+        userId: 'currentUser',
+        content: '你好，有什么可以帮你的？',
+        type: MessageType.text,
+        status: MessageStatus.sent,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 4)),
+        isSent: true,
+      ),
+    ];
+  }
+
+  /**
+   * @description 发送消息
+   */
+  Future<MessageModel> sendMessage(String conversationId, String content, MessageType type) async {
+    // 模拟发送
+    await Future.delayed(const Duration(milliseconds: 500));
+    return MessageModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      conversationId: conversationId,
+      userId: 'currentUser',
+      content: content,
+      type: type,
+      status: MessageStatus.sent,
+      createdAt: DateTime.now(),
+      isSent: true,
+    );
+  }
+
+  /**
+   * @description 更新消息状态
+   */
+  Future<void> updateMessageStatus(String messageId, MessageStatus status) async {
+    // 模拟更新
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+
+  /**
+   * @description 获取会话信息
+   */
+  Future<Map<String, dynamic>> getConversation(String conversationId) async {
+    // 模拟数据
+    return {
+      'conversationId': conversationId,
+      'title': '测试会话',
+      'avatar': '',
+    };
+  }
+
+  /**
+   * @description 监听消息变化
+   */
+  Stream<List<MessageModel>> watchMessages(String conversationId) {
+    // 模拟流
+    return Stream.periodic(const Duration(seconds: 5), (_) => []);
+  }
+}

@@ -1,6 +1,7 @@
 import 'package:beaver/core/database/services/friend/friend.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/types/business/user.dart';
 
 /// 好友业务逻辑
 class FriendBusiness {
@@ -62,5 +63,27 @@ class FriendBusiness {
    */
   Future<void> deleteFriend(String friendId) async {
     await _service.deleteFriend(friendId);
+  }
+
+  /**
+   * @description 搜索用户
+   */
+  Future<UserInfo?> searchUser(String email) async {
+    // 模拟搜索用户
+    await Future.delayed(const Duration(seconds: 1));
+    return const UserInfo(
+      userId: '123456',
+      nickname: '李四',
+      avatar: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
+    );
+  }
+
+  /**
+   * @description 添加好友
+   */
+  Future<bool> addFriend(String userId) async {
+    // 模拟发送好友请求
+    await Future.delayed(const Duration(seconds: 1));
+    return true;
   }
 }

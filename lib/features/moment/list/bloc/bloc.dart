@@ -1,3 +1,4 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
 import 'package:beaver/types/api/moment.dart';
@@ -24,7 +25,7 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
     }
 
     try {
-      final newMoments = await repository.getMomentList(nextPage, limit);
+      final newMoments = await _momentBusiness.getMomentList(page: nextPage, limit: limit);
       
       final updatedMoments = isRefresh ? newMoments : [...state.moments, ...newMoments];
       
@@ -86,7 +87,7 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
     emit(state.copyWith(moments: newMoments));
 
     // Actually make network request
-    final success = await repository.toggleLike(moment.id, targetStatus);
+    final success = await _momentBusiness.likeMoment(moment.id, targetStatus);
     if (!success) {
       // Revert if failed (simplified, assumes single failure handling isn't critical right now)
       emit(state.copyWith(moments: state.moments));

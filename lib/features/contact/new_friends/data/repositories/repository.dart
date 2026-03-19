@@ -19,7 +19,7 @@ class NewFriendsRepository {
         id: 2,
         nickname: '王五',
         fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%202&size=512x512',
-        message: '我们在同一个群�?,
+        message: '我们在同一个群',
         source: 'group',
         flag: 'receive',
         status: 1,
@@ -29,7 +29,7 @@ class NewFriendsRepository {
         id: 3,
         nickname: '赵六',
         fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%203&size=512x512',
-        message: '通过二维码添�?,
+        message: '通过二维码添加',
         source: 'qrcode',
         flag: 'send',
         status: 0,
@@ -39,7 +39,7 @@ class NewFriendsRepository {
   }
 
   Future<bool> updateRequestStatus(int id, int status) async {
-    // 模拟更新申请状�?
+    // 模拟更新申请状态
     await Future.delayed(const Duration(seconds: 1));
     return true;
   }

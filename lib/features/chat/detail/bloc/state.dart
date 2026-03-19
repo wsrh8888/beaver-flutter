@@ -1,12 +1,11 @@
-import 'package:beaver/features/chat/detail/data/models/message.dart';
-import 'package:beaver/core/database/database.dart';
+import 'package:beaver/types/business/message.dart';
 
 enum ChatStatus { initial, loading, success, error, sending }
 
 class ChatState {
   final ChatStatus status;
   final List<MessageModel> messages;
-  final ChatConversation? conversation;
+  final dynamic conversation;
   final String? conversationId;
   final String? errorMessage;
   final bool hasMore;
@@ -25,7 +24,7 @@ class ChatState {
   ChatState copyWith({
     ChatStatus? status,
     List<MessageModel>? messages,
-    ChatConversation? conversation,
+    dynamic? conversation,
     String? conversationId,
     String? errorMessage,
     bool? hasMore,

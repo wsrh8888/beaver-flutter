@@ -9,7 +9,6 @@ import 'package:beaver/features/user/profile/components/nickname_dialog.dart';
 import 'package:beaver/features/user/profile/components/email_dialog.dart';
 import 'package:beaver/features/user/profile/components/bio_dialog.dart';
 import 'package:beaver/features/user/profile/components/gender_dialog.dart';
-import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';

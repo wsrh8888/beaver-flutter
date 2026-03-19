@@ -3,16 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/features/chat/detail/data/repositories/repository.dart';
-import 'package:beaver/features/chat/detail/data/models/types.dart';
-import 'package:beaver/features/chat/detail/data/models/message.dart';
+import 'package:beaver/types/business/message.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final ChatRepository _repository;
+  final ChatRepository _repository = ChatRepository();
   StreamSubscription? _messageSubscription;
   final _uuid = const Uuid();
 
-  ChatBloc(this._repository) : super(const ChatState()) {
+  ChatBloc() : super(const ChatState()) {
     on<LoadMessagesEvent>(_onLoadMessages);
     on<SendMessageEvent>(_onSendMessage);
     on<MessageReceivedEvent>(_onMessageReceived);
@@ -49,7 +48,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       conversationId: state.conversationId!,
       userId: 'me',
       content: event.content,
-      type: event.type,
+      type: MessageType.text,
       status: MessageStatus.sending,
       createdAt: DateTime.now(),
       isSent: true,
@@ -59,7 +58,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(state.copyWith(messages: updatedMessages));
 
     try {
-      await _repository.sendMessage(state.conversationId!, event.content, event.type);
+      await _repository.sendMessage(state.conversationId!, event.content, MessageType.text);
     } catch (e) {
       // 实际上 repository 已经处理了发送逻辑
     }

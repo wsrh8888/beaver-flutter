@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/button/button.dart';
-import 'package:beaver/shared/ui/toast/index.dart';
+
 
 class ContactDetailPage extends StatefulWidget {
   final String? userId; // 改为可空

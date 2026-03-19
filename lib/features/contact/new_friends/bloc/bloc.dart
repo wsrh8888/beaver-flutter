@@ -5,9 +5,9 @@ import 'package:beaver/features/contact/new_friends/data/models/friend_request.d
 import 'package:beaver/features/contact/new_friends/data/repositories/repository.dart';
 
 class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
-  final NewFriendsRepository _repository;
+  final NewFriendsRepository _repository = NewFriendsRepository();
 
-  NewFriendsBloc(this._repository) : super(const NewFriendsState()) {
+  NewFriendsBloc() : super(const NewFriendsState()) {
     on<LoadFriendRequestsEvent>(_onLoadFriendRequests);
     on<SwitchTabEvent>(_onSwitchTab);
     on<AcceptRequestEvent>(_onAcceptRequest);

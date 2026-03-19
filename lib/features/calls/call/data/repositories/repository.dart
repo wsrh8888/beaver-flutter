@@ -1,5 +1,3 @@
-import 'package:beaver/features/calls/data/models/call.dart';
-
 class CallPageRepository {
   Future<void> startCall(String conversationId) async {
     // 模拟开始通话

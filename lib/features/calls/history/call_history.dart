@@ -4,11 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/calls/history/bloc/bloc.dart';
 import 'package:beaver/features/calls/history/bloc/event.dart';
 import 'package:beaver/features/calls/history/bloc/state.dart';
-import 'package:beaver/features/calls/history/data/repositories/repository.dart';
+
 import 'package:beaver/features/calls/data/models/call.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/toast/toast.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class CallHistoryPage extends StatefulWidget {
   const CallHistoryPage({super.key});
@@ -23,7 +23,7 @@ class _CallHistoryPageState extends State<CallHistoryPage> {
   @override
   void initState() {
     super.initState();
-    _callHistoryBloc = CallHistoryBloc(CallHistoryRepository())..add(const LoadCallHistoryEvent());
+    _callHistoryBloc = CallHistoryBloc()..add(const LoadCallHistoryEvent());
   }
 
   @override

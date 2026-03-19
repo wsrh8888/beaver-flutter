@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/chat/detail/data/models/message.dart';
+import 'package:beaver/types/business/message.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 
 class MessageList extends StatelessWidget {

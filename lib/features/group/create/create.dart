@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/group/create/bloc/bloc.dart';
 import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
-import 'package:beaver/features/group/create/data/repositories/repository.dart';
+
 import 'package:beaver/features/group/create/data/models/contact.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
@@ -24,7 +24,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   @override
   void initState() {
     super.initState();
-    _createGroupBloc = CreateGroupBloc(CreateGroupRepository())..add(LoadContactsEvent());
+    _createGroupBloc = CreateGroupBloc()..add(LoadContactsEvent());
     _searchController.addListener(() {
       _createGroupBloc.add(SearchContactsEvent(_searchController.text));
     });

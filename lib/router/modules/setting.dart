@@ -3,9 +3,9 @@ import 'package:beaver/features/setting/main/main.dart';
 import 'package:beaver/features/setting/theme/theme.dart';
 import 'package:beaver/features/setting/about/about.dart';
 import 'package:beaver/features/setting/feedback/feedback.dart';
-import 'package:beaver/features/setting/legal/privacy/privacy.dart';
-import 'package:beaver/features/setting/legal/agreement/agreement.dart';
-import 'package:beaver/features/setting/legal/disclaimer/disclaimer.dart';
+import 'package:beaver/features/setting/privacy/privacy.dart';
+import 'package:beaver/features/setting/agreement/agreement.dart';
+import 'package:beaver/features/setting/disclaimer/disclaimer.dart';
 import 'package:beaver/features/setting/update/update.dart';
 import 'package:beaver/router/routes.dart';
 

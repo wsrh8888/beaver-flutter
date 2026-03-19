@@ -7,7 +7,6 @@ import 'package:beaver/shared/ui/image/image.dart';
 import 'package:beaver/features/moment/list/bloc/bloc.dart';
 import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
-import 'package:beaver/features/moment/list/data/repositories/repository.dart';
 import 'package:beaver/types/api/moment.dart';
 import 'package:beaver/shared/widgets/skeleton.dart';
 
@@ -17,9 +16,7 @@ class MomentListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MomentListBloc(
-        repository: MomentListRepository(),
-      )..add(const LoadMomentListEvent(refresh: true)),
+      create: (context) => MomentListBloc()..add(const LoadMomentListEvent(refresh: true)),
       child: const MomentListView(),
     );
   }
@@ -201,8 +198,8 @@ class _MomentListViewState extends State<MomentListView> {
                   width: 32.w,
                   height: 32.w,
                   color: Colors.grey[200],
-                  child: item.avatar.isNotEmpty
-                      ? BeaverImage(url: item.avatar, fit: BoxFit.cover)
+                  child: item.avatar?.isNotEmpty == true
+                      ? BeaverImage(url: item.avatar!, fit: BoxFit.cover)
                       : Icon(Icons.person, color: Colors.grey[400]),
                 ),
               ),
@@ -327,7 +324,7 @@ class _MomentListViewState extends State<MomentListView> {
     );
   }
 
-  Widget _buildImagesGrid(List<IFileInfo> files) {
+  Widget _buildImagesGrid(List<IMomentFileModel> files) {
     if (files.isEmpty) return const SizedBox.shrink();
     
     final displayFiles = files.length > 9 ? files.sublist(0, 9) : files;
@@ -364,7 +361,7 @@ class _MomentListViewState extends State<MomentListView> {
                       // For now mock the actual file URL for testing. 
                       // If you have 'fileKey', you append it to a base URL.
                       BeaverImage(
-                        url: 'https://placeholder.co/400?text=IMG', // file.fileKey
+                        url: file.url ?? 'https://placeholder.co/400?text=IMG',
                         fit: BoxFit.cover,
                       ),
                       if (isLast)

@@ -23,14 +23,14 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
 
     try {
       final chats = await _conversationBusiness.getChatList();
-      final pinnedChats = chats.where((c) => c.isTop).toList();
-      final regularChats = chats.where((c) => !c.isTop).toList();
+    final pinnedChats = chats.where((c) => c.isTop).toList();
+    final regularChats = chats.where((c) => !c.isTop).toList();
 
-      emit(state.copyWith(
-        status: ChatListStatus.success,
-        chats: regularChats,
-        pinnedChats: pinnedChats,
-      ));
+    emit(state.copyWith(
+      status: ChatListStatus.success,
+      chats: regularChats as List<ChatModel>?,
+      pinnedChats: pinnedChats as List<ChatModel>?,
+    ));
     } catch (e) {
       emit(state.copyWith(
         status: ChatListStatus.error,
@@ -78,8 +78,8 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
 
     emit(state.copyWith(
       status: ChatListStatus.success,
-      chats: regularChats,
-      pinnedChats: pinnedChats,
+      chats: regularChats as List<ChatModel>?,
+      pinnedChats: pinnedChats as List<ChatModel>?,
     ));
   }
 }

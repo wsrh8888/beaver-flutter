@@ -1,12 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/calls/history/bloc/event.dart';
 import 'package:beaver/features/calls/history/bloc/state.dart';
-import 'package:beaver/features/calls/history/data/repositories/repository.dart';
+import 'package:beaver/core/business/call/call.dart';
+import 'package:beaver/di/injection.dart';
 
 class CallHistoryBloc extends Bloc<CallHistoryEvent, CallHistoryState> {
-  final CallHistoryRepository _repository;
+  final _callBusiness = getIt<CallBusiness>();
   
-  CallHistoryBloc(this._repository) : super(const CallHistoryState()) {
+  CallHistoryBloc() : super(const CallHistoryState()) {
     on<LoadCallHistoryEvent>(_onLoadCallHistory);
     on<DeleteCallHistoryEvent>(_onDeleteCallHistory);
     on<ClearCallHistoryEvent>(_onClearCallHistory);
@@ -19,7 +20,7 @@ class CallHistoryBloc extends Bloc<CallHistoryEvent, CallHistoryState> {
     emit(state.copyWith(isLoading: true));
     
     try {
-      final callHistoryList = await _repository.getCallHistory();
+      final callHistoryList = await _callBusiness.getCallHistory();
       emit(state.copyWith(
         isLoading: false,
         callHistoryList: callHistoryList,
@@ -37,7 +38,7 @@ class CallHistoryBloc extends Bloc<CallHistoryEvent, CallHistoryState> {
     Emitter<CallHistoryState> emit,
   ) async {
     try {
-      await _repository.deleteCallHistory(event.callId);
+      await _callBusiness.deleteCallHistory(event.callId);
       final updatedList = state.callHistoryList.where((call) => call.id != event.callId).toList();
       emit(state.copyWith(callHistoryList: updatedList));
     } catch (e) {
@@ -52,7 +53,7 @@ class CallHistoryBloc extends Bloc<CallHistoryEvent, CallHistoryState> {
     Emitter<CallHistoryState> emit,
   ) async {
     try {
-      await _repository.clearCallHistory();
+      await _callBusiness.clearCallHistory();
       emit(state.copyWith(callHistoryList: []));
     } catch (e) {
       emit(state.copyWith(

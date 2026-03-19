@@ -3,32 +3,6 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/group.dart';
 
-class GroupMemberService extends BaseService {
-  GroupMemberService(super.db);
-
-  /// 批量创建群成员
-  Future<void> batchCreate(List<IGroupMemberSyncItem> members) async {
-    await db.batch((batch) {
-      for (final member in members) {
-        batch.insert(
-          db.groupMembers,
-          GroupMembersCompanion(
-            groupId: Value(member.groupId),
-            userId: Value(member.userId),
-            nickName: Value(member.nickName),
-            avatar: Value(member.avatar),
-            role: Value(member.role),
-            status: Value(member.status),
-            joinTime: Value(member.joinTime),
-            version: Value(member.version),
-          ),
-          mode: InsertMode.insertOrReplace,
-        );
-      }
-    });
-  }
-}
-
 class GroupJoinRequestService extends BaseService {
   GroupJoinRequestService(super.db);
 

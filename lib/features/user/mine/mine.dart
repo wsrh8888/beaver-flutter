@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:beaver/features/user/mine/bloc/bloc.dart';
 import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
-import 'package:beaver/features/user/mine/bloc/state.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';

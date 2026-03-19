@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
-import 'package:beaver/features/group/create/data/repositories/repository.dart';
+import 'package:beaver/core/business/group/group.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/group/create/data/models/contact.dart';
 
 class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
-  final CreateGroupRepository _repository;
+  final _groupBusiness = getIt<GroupBusiness>();
 
-  CreateGroupBloc(this._repository) : super(const CreateGroupState()) {
+  CreateGroupBloc() : super(const CreateGroupState()) {
     on<LoadContactsEvent>(_onLoadContacts);
     on<SelectContactEvent>(_onSelectContact);
     on<SearchContactsEvent>(_onSearchContacts);
@@ -21,7 +22,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
     emit(state.copyWith(status: CreateGroupStatus.loading));
 
     try {
-      final contacts = await _repository.getContacts();
+      final contacts = await _groupBusiness.getContacts();
       emit(state.copyWith(
         status: CreateGroupStatus.success,
         contacts: contacts,
@@ -29,7 +30,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
     } catch (e) {
       emit(state.copyWith(
         status: CreateGroupStatus.error,
-        errorMessage: '加载联系人失? $e',
+        errorMessage: '加载联系人失败: $e',
       ));
     }
   }
@@ -73,7 +74,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
 
     try {
       final userIds = state.selectedContacts.map((c) => c.userId).toList();
-      final groupId = await _repository.createGroup(userIds);
+      final groupId = await _groupBusiness.createGroup(userIds);
       emit(state.copyWith(
         status: CreateGroupStatus.success,
         groupId: groupId,

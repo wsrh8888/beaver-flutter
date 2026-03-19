@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/chat/detail/data/models/types.dart';
+import 'package:beaver/types/business/message.dart';
 
 class InputBar extends StatefulWidget {
   final Function(String, MessageType) onSendMessage;

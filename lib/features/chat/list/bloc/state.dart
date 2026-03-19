@@ -4,14 +4,14 @@ enum ChatListStatus { initial, loading, success, error }
 
 class ChatListState {
   final ChatListStatus status;
-  final List<ChatModel> chats;
-  final List<ChatModel> pinnedChats;
+  final List<ChatModel>? chats;
+  final List<ChatModel>? pinnedChats;
   final String? errorMessage;
 
   const ChatListState({
     this.status = ChatListStatus.initial,
-    this.chats = const [],
-    this.pinnedChats = const [],
+    this.chats,
+    this.pinnedChats,
     this.errorMessage,
   });
 

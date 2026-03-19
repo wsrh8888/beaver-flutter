@@ -2,7 +2,7 @@ import 'package:beaver/features/user/qrcode/data/models/qrcode.dart';
 
 class QrcodeRepository {
   Future<QrCodeData> getQrCodeData() async {
-    // 模拟获取二维码数�?
+    // 模拟获取二维码数据
     await Future.delayed(const Duration(seconds: 1));
     return QrCodeData(
       userId: '123456',
@@ -12,9 +12,8 @@ class QrcodeRepository {
   }
 
   Future<bool> saveQrCode() async {
-    // 模拟保存二维�?
+    // 模拟保存二维码
     await Future.delayed(const Duration(seconds: 1));
     return true;
   }
 }
-

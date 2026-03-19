@@ -4,8 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/moment/post/bloc/bloc.dart';
 import 'package:beaver/features/moment/post/bloc/event.dart';
 import 'package:beaver/features/moment/post/bloc/state.dart';
-import 'package:beaver/features/moment/post/data/repositories/repository.dart';
+
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class PostMomentPage extends StatefulWidget {
   const PostMomentPage({super.key});
@@ -21,7 +22,7 @@ class _PostMomentPageState extends State<PostMomentPage> {
   @override
   void initState() {
     super.initState();
-    _postMomentBloc = PostMomentBloc(PostMomentRepository());
+    _postMomentBloc = PostMomentBloc();
   }
 
   @override
@@ -55,13 +56,9 @@ class _PostMomentPageState extends State<PostMomentPage> {
       child: BlocConsumer<PostMomentBloc, PostMomentState>(
         listener: (context, state) {
           if (state.status == PostMomentStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发生错误')),
-            );
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           } else if (state.status == PostMomentStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '发布成功')),
-            );
+            BeaverToast.show(context, '发布成功');
             Future.delayed(const Duration(seconds: 1), () {
               Navigator.of(context).pop();
             });

@@ -6,7 +6,6 @@ import 'package:beaver/features/user/qrcode/bloc/bloc.dart';
 import 'package:beaver/features/user/qrcode/bloc/event.dart';
 import 'package:beaver/features/user/qrcode/bloc/state.dart';
 import 'package:beaver/features/user/qrcode/data/repositories/repository.dart';
-import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -175,17 +174,17 @@ class _QrcodePageState extends State<QrcodePage> {
                                     borderRadius: BorderRadius.circular(32.w),
                                     color: const Color(0xFFFF7D45).withOpacity(0.1),
                                   ),
-                                  child: state.qrCodeData.fileName != null
+                                  child: state.qrCodeData?.fileName != null
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(32.w),
                                           child: Image.network(
-                                            state.qrCodeData.fileName!,
+                                            state.qrCodeData!.fileName!,
                                             fit: BoxFit.cover,
                                           ),
                                         )
                                       : Center(
                                           child: Text(
-                                            _getUserInitial(state.qrCodeData.nickname),
+                                            _getUserInitial(state.qrCodeData?.nickname),
                                             style: TextStyle(
                                               fontSize: 40.w,
                                               fontWeight: FontWeight.w600,
@@ -199,7 +198,7 @@ class _QrcodePageState extends State<QrcodePage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      state.qrCodeData.nickname ?? 'Beaver',
+                                      state.qrCodeData?.nickname ?? 'Beaver',
                                       style: TextStyle(
                                         fontSize: 36.w,
                                         fontWeight: FontWeight.w600,
@@ -208,7 +207,7 @@ class _QrcodePageState extends State<QrcodePage> {
                                     ),
                                     SizedBox(height: 8.w),
                                     Text(
-                                      'ID: ${state.qrCodeData.userId ?? '未设置'}',
+                                      'ID: ${state.qrCodeData?.userId ?? '未设置'}',
                                       style: TextStyle(
                                         fontSize: 20.w,
                                         color: const Color(0xFF636E72),
@@ -242,12 +241,12 @@ class _QrcodePageState extends State<QrcodePage> {
                                   ],
                                 ),
                                 child: QrImageView(
-                                  data: _generateQrValue(state.qrCodeData.userId),
+                                  data: _generateQrValue(state.qrCodeData?.userId),
                                   version: QrVersions.auto,
                                   size: 336.w,
                                   gapless: false,
-                                  embeddedImage: state.qrCodeData.fileName != null
-                                      ? NetworkImage(state.qrCodeData.fileName!)
+                                  embeddedImage: state.qrCodeData?.fileName != null
+                                      ? NetworkImage(state.qrCodeData!.fileName!)
                                       : null,
                                   embeddedImageStyle: QrEmbeddedImageStyle(
                                     size: Size(60.w, 60.w),

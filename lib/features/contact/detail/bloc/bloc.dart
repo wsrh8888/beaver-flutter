@@ -1,12 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/detail/bloc/event.dart';
 import 'package:beaver/features/contact/detail/bloc/state.dart';
-import 'package:beaver/features/contact/detail/data/repositories/repository.dart';
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/contact/detail/data/models/user_info.dart';
 
-class DetailBloc extends Bloc<DetailEvent, DetailState> {
-  final DetailRepository _repository;
+class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
+  final _friendBusiness = getIt<FriendBusiness>();
 
-  DetailBloc(this._repository) : super(const DetailState()) {
+  ContactDetailBloc() : super(const DetailState()) {
     on<LoadUserInfoEvent>(_onLoadUserInfo);
     on<ToggleMoreMenuEvent>(_onToggleMoreMenu);
     on<ShowEditNoteDialogEvent>(_onShowEditNoteDialog);
@@ -25,7 +27,13 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      final userInfo = await _repository.getUserInfo(event.userId);
+      // 模拟获取用户信息
+      await Future.delayed(const Duration(seconds: 1));
+      final userInfo = UserInfo(
+        userId: event.userId,
+        nickname: '张三',
+        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=professional%20avatar%20portrait&size=512x512',
+      );
       emit(state.copyWith(
         status: DetailStatus.success,
         userInfo: userInfo,
@@ -72,7 +80,8 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      await _repository.updateRemarkName(state.userInfo!.userId, event.remarkName);
+      // 模拟更新备注名称
+      await Future.delayed(const Duration(seconds: 1));
       final updatedUserInfo = state.userInfo!.copyWith(remarkName: event.remarkName);
       emit(state.copyWith(
         status: DetailStatus.success,
@@ -96,7 +105,7 @@ class DetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      await _repository.deleteFriend(state.userInfo!.userId);
+      await _friendBusiness.deleteFriend(state.userInfo!.userId);
       emit(state.copyWith(
         status: DetailStatus.success,
         isFriend: false,

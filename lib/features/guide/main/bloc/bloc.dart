@@ -27,7 +27,7 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
     } catch (e) {
       emit(state.copyWith(
         status: GuideStatus.error,
-        errorMessage: '加载引导页配置失�? $e',
+        errorMessage: '加载引导页配置失败 $e',
       ));
     }
   }
@@ -36,14 +36,13 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
     NavigateToRegisterEvent event,
     Emitter<GuideState> emit,
   ) async {
-    // 导航到注册页�?
+    // 导航到注册页面
   }
 
   Future<void> _onNavigateToLogin(
     NavigateToLoginEvent event,
     Emitter<GuideState> emit,
   ) async {
-    // 导航到登录页�?
+    // 导航到登录页面
   }
 }
-

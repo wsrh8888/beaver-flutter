@@ -6,9 +6,7 @@ import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/features/chat/detail/components/message_list.dart';
 import 'package:beaver/features/chat/detail/components/input_bar.dart';
-import 'package:beaver/features/chat/detail/data/repositories/repository.dart';
-import 'package:beaver/features/chat/detail/data/models/types.dart';
-import 'package:beaver/core/database/database.dart';
+import 'package:beaver/types/business/message.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -30,9 +28,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   void initState() {
     super.initState();
-    final database = DatabaseManager.instance;
-    final repository = ChatRepository(database);
-    _chatBloc = ChatBloc(repository);
+    _chatBloc = ChatBloc();
     
     if (widget.conversationId != null) {
       _chatBloc.add(LoadMessagesEvent(widget.conversationId!));
@@ -49,8 +45,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     _chatBloc.add(SendMessageEvent(content, type));
   }
 
-  String _getDisplayTitle(ChatConversation? conversation) {
-    return conversation?.title ?? '聊天';
+  String _getDisplayTitle(dynamic conversation) {
+    return conversation != null && conversation is Map<String, dynamic> 
+        ? conversation['title'] ?? '聊天' 
+        : '聊天';
   }
 
   @override

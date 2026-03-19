@@ -3,14 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/contact/list/bloc/bloc.dart';
 import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
-import 'package:beaver/features/contact/list/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/core/database/database.dart';
 
 class ContactListPage extends StatelessWidget {
   const ContactListPage({super.key});
@@ -18,9 +15,7 @@ class ContactListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ContactListBloc(
-        repository: ContactListRepository(getIt<AppDatabase>()),
-      )..add(const LoadContactListEvent()),
+      create: (context) => ContactListBloc()..add(const LoadContactListEvent()),
       child: const ContactListView(),
     );
   }

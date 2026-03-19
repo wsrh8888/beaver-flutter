@@ -4,11 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/calls/call/bloc/bloc.dart';
 import 'package:beaver/features/calls/call/bloc/event.dart';
 import 'package:beaver/features/calls/call/bloc/state.dart';
+import 'package:beaver/features/calls/data/models/call.dart';
 import 'package:beaver/features/calls/core/call_manager.dart';
 import 'package:beaver/features/calls/core/pip_service.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/toast/toast.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class CallPage extends StatefulWidget {
   final String conversationId;
@@ -103,7 +104,7 @@ class _CallPageState extends State<CallPage> {
       if (isSupported) {
         await _pipService.enterPiPMode();
       } else {
-        BeaverToast.show('当前设备不支持画中画功能');
+        BeaverToast.show(context, '当前设备不支持画中画功能');
       }
     }
   }
@@ -115,7 +116,7 @@ class _CallPageState extends State<CallPage> {
       child: BlocConsumer<CallPageBloc, CallPageState>(
         listener: (context, state) {
           if (state.status == CallStatus.error) {
-            BeaverToast.show(state.errorMessage ?? '发生错误');
+            BeaverToast.show(context, state.errorMessage ?? '发生错误');
           } else if (state.status == CallStatus.ended) {
             Navigator.of(context).pop();
           }

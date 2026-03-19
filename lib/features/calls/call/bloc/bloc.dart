@@ -4,22 +4,24 @@ import 'package:beaver/features/calls/call/bloc/state.dart';
 import 'package:beaver/features/calls/core/call_manager.dart';
 import 'package:beaver/features/calls/data/models/call.dart';
 
-class CallPageBloc extends Bloc<CallPageEvent, CallPageState> implements CallManagerListener {
+class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   final CallManager _callManager = CallManager();
   
   CallPageBloc() : super(const CallPageState()) {
-    _callManager.addListener(this);
+    _callManager.addListener(_CallManagerListener(this));
     
     on<StartCallEvent>(_onStartCall);
     on<EndCallEvent>(_onEndCall);
     on<ToggleMuteEvent>(_onToggleMute);
     on<ToggleCameraEvent>(_onToggleCamera);
     on<ToggleSpeakerEvent>(_onToggleSpeaker);
+    on<_UpdateCallStatusEvent>(_onUpdateCallStatus);
+    on<_UpdateParticipantsEvent>(_onUpdateParticipants);
   }
   
   @override
   Future<void> close() {
-    _callManager.removeListener(this);
+    _callManager.removeListener(_CallManagerListener(this));
     return super.close();
   }
   
@@ -106,44 +108,71 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> implements CallMan
     }
   }
   
+  void _onUpdateCallStatus(_UpdateCallStatusEvent event, Emitter<CallPageState> emit) {
+    emit(state.copyWith(
+      status: event.status,
+      errorMessage: event.errorMessage,
+    ));
+  }
+  
+  void _onUpdateParticipants(_UpdateParticipantsEvent event, Emitter<CallPageState> emit) {
+    emit(state.copyWith(participants: event.participants));
+  }
+  
+}
+
+class _CallManagerListener implements CallManagerListener {
+  final CallPageBloc _bloc;
+  
+  _CallManagerListener(this._bloc);
+  
   @override
   void onConnected() {
-    add(const StartCallEvent('', '', ''));
+    _bloc.add(const StartCallEvent('', '', ''));
   }
   
   @override
   void onDisconnected() {
-    add(const EndCallEvent());
+    _bloc.add(const EndCallEvent());
   }
   
   @override
   void onError(String error) {
-    emit(state.copyWith(
-      status: CallStatus.error,
-      errorMessage: error,
-    ));
+    _bloc.add(_UpdateCallStatusEvent(CallStatus.error, errorMessage: error));
   }
   
   @override
   void onParticipantJoined(CallParticipant participant) {
-    final updatedParticipants = [...state.participants, participant];
-    emit(state.copyWith(participants: updatedParticipants));
+    _bloc.add(_UpdateParticipantsEvent([..._bloc.state.participants, participant]));
   }
   
   @override
   void onParticipantLeft(CallParticipant participant) {
-    final updatedParticipants = state.participants.where((p) => p.userId != participant.userId).toList();
-    emit(state.copyWith(participants: updatedParticipants));
+    final updatedParticipants = _bloc.state.participants.where((p) => p.userId != participant.userId).toList();
+    _bloc.add(_UpdateParticipantsEvent(updatedParticipants));
   }
   
   @override
   void onParticipantUpdated(CallParticipant participant) {
-    final updatedParticipants = state.participants.map((p) {
+    final updatedParticipants = _bloc.state.participants.map((p) {
       if (p.userId == participant.userId) {
         return participant;
       }
       return p;
     }).toList();
-    emit(state.copyWith(participants: updatedParticipants));
+    _bloc.add(_UpdateParticipantsEvent(updatedParticipants));
   }
+}
+
+class _UpdateCallStatusEvent extends CallPageEvent {
+  final CallStatus status;
+  final String? errorMessage;
+  
+  const _UpdateCallStatusEvent(this.status, {this.errorMessage});
+}
+
+class _UpdateParticipantsEvent extends CallPageEvent {
+  final List<CallParticipant> participants;
+  
+  const _UpdateParticipantsEvent(this.participants);
 }

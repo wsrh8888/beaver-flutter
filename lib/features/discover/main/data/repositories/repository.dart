@@ -1,4 +1,3 @@
-import 'package:beaver/core/database/database.dart';
 import 'package:beaver/features/discover/main/data/models/discover.dart';
 
 class DiscoverMainRepository {

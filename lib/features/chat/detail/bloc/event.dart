@@ -1,5 +1,4 @@
-import 'package:beaver/core/database/database.dart';
-import 'package:beaver/features/chat/detail/data/models/types.dart';
+import 'package:beaver/types/business/message.dart';
 
 abstract class ChatEvent {
   const ChatEvent();

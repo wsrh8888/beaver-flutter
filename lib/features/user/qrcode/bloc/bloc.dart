@@ -26,7 +26,7 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     } catch (e) {
       emit(state.copyWith(
         status: QrcodeStatus.error,
-        errorMessage: '加载二维码失�? $e',
+        errorMessage: '加载二维码失败 $e',
       ));
     }
   }
@@ -47,4 +47,3 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     }
   }
 }
-

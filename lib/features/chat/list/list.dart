@@ -103,13 +103,13 @@ class _ChatListViewState extends State<ChatListView> {
               return CustomScrollView(
                 slivers: [
                   // 置顶会话
-                  if (state.pinnedChats.isNotEmpty) ...[
+                  if (state.pinnedChats?.isNotEmpty == true) ...[
                     _buildSectionHeader('置顶会话'),
-                    _buildPinnedList(state.pinnedChats),
+                    _buildPinnedList(state.pinnedChats!),
                   ],
                   // 普通消息
                   _buildSectionHeader('消息'),
-                  _buildRegularList(state.chats),
+                  _buildRegularList(state.chats ?? []),
                 ],
               );
             },

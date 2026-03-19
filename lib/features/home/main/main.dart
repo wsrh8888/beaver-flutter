@@ -4,9 +4,7 @@ import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
 import 'package:beaver/features/moment/list/list.dart';
 import 'package:beaver/features/user/profile/profile.dart';
-import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:beaver/di/injection.dart';
-import 'package:beaver/core/database/database.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -53,26 +51,7 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          try {
-            final db = getIt<AppDatabase>();
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => DriftDbViewer(db)),
-            );
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('数据库未初始化，请重新登录: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        backgroundColor: const Color(0xFFFF7D45),
-        mini: true,
-        child: const Icon(Icons.storage, color: Colors.white),
-      ),
+
     );
   }
 

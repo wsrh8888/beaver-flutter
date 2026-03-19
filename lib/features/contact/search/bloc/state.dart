@@ -1,12 +1,11 @@
-import 'package:beaver/core/database/database.dart';
-import 'package:beaver/features/contact/search/data/models/search.dart';
+import 'package:beaver/types/business/user.dart';
 
 enum SearchContactStatus { initial, loading, success, error }
 
 class SearchContactState {
   final SearchContactStatus status;
   final String searchQuery;
-  final User? user;
+  final UserInfo? user;
   final bool showResult;
   final String? errorMessage;
 
@@ -21,7 +20,7 @@ class SearchContactState {
   SearchContactState copyWith({
     SearchContactStatus? status,
     String? searchQuery,
-    User? user,
+    UserInfo? user,
     bool? showResult,
     String? errorMessage,
   }) {

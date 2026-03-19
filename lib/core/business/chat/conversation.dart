@@ -1,16 +1,18 @@
-import 'package:beaver/core/database/services/chat/chat.dart';
+import 'package:beaver/core/database/services/chat/conversation.dart';
+import 'package:beaver/core/database/services/chat/user_conversation.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
 
 /// 会话业务逻辑
 class ConversationBusiness {
-  final _service = getIt<ChatService>();
+  final _conversationService = getIt<ChatConversationService>();
+  final _userConversationService = getIt<ChatUserConversationService>();
 
   /**
    * @description 获取会话列表 (UI 格式)
    */
   Future<List<ChatModel>> getChatList() async {
-    final conversations = await _service.getConversations();
+    final conversations = await _conversationService.getConversations();
 
     return conversations.map((conv) {
       return ChatModel(
@@ -29,21 +31,22 @@ class ConversationBusiness {
    * @description 标记会话为已读
    */
   Future<void> markAsRead(String conversationId) async {
-    await _service.markAsRead(conversationId);
+    await _userConversationService.markAsRead(conversationId, 0);
   }
 
   /**
    * @description 置顶会话
    */
   Future<void> togglePinChat(String conversationId, bool isPinned) async {
-    await _service.togglePinConversation(conversationId, isPinned);
+    await _userConversationService.togglePinConversation(conversationId, isPinned);
   }
 
   /**
    * @description 删除会话
    */
   Future<void> deleteChat(String conversationId) async {
-    await _service.deleteConversation(conversationId);
+    await _conversationService.deleteConversation(conversationId);
+    await _userConversationService.delete(conversationId);
   }
 
   String _formatTime(DateTime? dateTime) {

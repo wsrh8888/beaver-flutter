@@ -5,7 +5,6 @@ import 'package:beaver/features/contact/search/bloc/bloc.dart';
 import 'package:beaver/features/contact/search/bloc/event.dart';
 import 'package:beaver/features/contact/search/bloc/state.dart';
 import 'package:beaver/features/contact/search/data/repositories/repository.dart';
-import 'package:beaver/core/database/database.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -24,8 +23,7 @@ class _SearchContactPageState extends State<SearchContactPage> {
   @override
   void initState() {
     super.initState();
-    final database = AppDatabase.instance;
-    final repository = SearchContactRepository(database);
+    final repository = SearchContactRepository();
     _searchBloc = SearchContactBloc(repository);
   }
 
@@ -133,8 +131,6 @@ class _SearchContactPageState extends State<SearchContactPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(user.nickname, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-                      if (user.bio != null)
-                        Text(user.bio!, style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
                     ],
                   ),
                 ),
