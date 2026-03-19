@@ -1,122 +1,74 @@
 name: beaver
 description: "A new Flutter project."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
 version: 1.0.0+1
 
 environment:
   sdk: ^3.11.1
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+# 应用运行必需（打包进 release）
 dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  # 状态与路由
   flutter_bloc: ^9.1.1
+  go_router: ^17.1.0
+
+  # 网络与实时通信
   dio: ^5.9.2
-  intl: ^0.20.2
-  uuid: ^4.5.3
-  path_provider: ^2.1.5
-  shared_preferences: ^2.5.4
-  device_info_plus: ^12.3.0
   web_socket_channel: ^3.0.3
-  get_it: ^9.2.1
-  equatable: ^2.0.8
+  livekit_client: ^2.6.5
+
+  # 本地数据与路径
   drift: ^2.32.0
   sqlite3: ^3.1.7
   path: ^1.9.1
-  go_router: ^17.1.0
-  shimmer: ^3.0.0
-  crypto: ^3.0.6
-  flutter_svg: ^2.0.10+1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.4
+
+  # 依赖注入与模型
+  get_it: ^9.2.1
+  equatable: ^2.0.8
+  uuid: ^4.5.3
+
+  # 国际化与格式化
+  intl: ^0.20.2
+
+  # 设备与权限
+  device_info_plus: ^12.3.0
+  permission_handler: ^12.0.1
+
+  # UI 组件与资源
   flutter_screenutil: ^5.9.3
-  json_annotation: ^4.8.1
-  
-  # 缓存相关（大厂标准库）
+  flutter_svg: ^2.0.10+1
+  shimmer: ^3.0.0
   cached_network_image: ^3.4.1
+
+  # 缓存（与 cached_network_image / 业务缓存配合）
   flutter_cache_manager: ^3.4.1
-  flutter_image_compress: ^2.3.0
-  drift_db_viewer: ^2.1.0
-  video_player: ^2.9.5
-  chewie: ^1.10.0
-  audioplayers: ^6.4.0
-  
-  # 音视频通话
-  livekit_client: ^1.0.0
+
+  # 系统能力
   url_launcher: ^6.3.1
   qr_flutter: ^4.1.0
   image_gallery_saver_plus: ^4.0.1
-  permission_handler: ^11.3.1
 
+# 仅开发/构建时使用，不进入 release 产物逻辑依赖
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.13
+
+  # Drift 代码生成
+  build_runner: ^2.13.0
   drift_dev: ^2.32.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - assets/icons/
     - assets/icons/common/
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/to/resolution-aware-images
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/to/asset-from-package
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
