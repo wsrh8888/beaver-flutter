@@ -7,7 +7,7 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/auth/login/bloc/bloc.dart';
 import 'package:beaver/features/auth/login/bloc/event.dart';
 import 'package:beaver/features/auth/login/bloc/state.dart';
-import 'package:beaver/core/theme/colors.dart';
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';

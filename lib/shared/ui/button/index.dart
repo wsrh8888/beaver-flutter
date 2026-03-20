@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:beaver/core/theme/colors.dart';
+import 'package:beaver/theme/colors.dart';
 
 enum BeaverButtonType { filled, outline }
 

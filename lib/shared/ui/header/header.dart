@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:beaver/core/theme/colors.dart';
+import 'package:beaver/theme/colors.dart';
 
 enum HeaderMode { fixed, static, transparent }
 

@@ -201,6 +201,52 @@ UI (Bloc) -> Business -> Local Database (Status: Sending) -> API Call -> Local D
 *   所有 `Business` 类必须在 `lib/di/injection.dart` 中注册为 `LazySingleton`。
 *   所有 `Service` 类必须在 `lib/di/injection.dart` 中注册并由 `Business` 层通过 `getIt` 获取。
 
+### 依赖注入规范 (Dependency Injection)
+
+#### 目录结构
+```
+lib/di/
+├── core/                    # 核心基础设施配置
+│   ├── network.dart         # 网络相关依赖
+│   ├── database.dart        # 数据库相关依赖
+│   └── services.dart        # 数据服务层依赖
+├── business/                # 业务层配置
+│   ├── user.dart            # 用户业务配置
+│   ├── friend.dart          # 好友业务配置
+│   ├── group.dart           # 群组业务配置
+│   ├── chat.dart            # 聊天业务配置
+│   ├── message.dart         # 消息业务配置
+│   ├── notification.dart    # 通知业务配置
+│   ├── moment.dart          # 动态业务配置
+│   └── call.dart            # 通话业务配置
+├── modules.dart             # 模块注册
+└── injection.dart           # 主入口文件
+```
+
+#### 注册规则
+- **核心层**：网络、数据库、服务等基础设施使用 `registerLazySingleton` 注册
+- **业务层**：Business类和接口使用 `registerLazySingleton` 注册
+- **懒加载机制**：所有注册都使用懒加载，只有在第一次被请求时才初始化
+
+#### 需要注册的组件
+1. **网络层**：`HttpClient`、`WsConnectionManager`
+2. **数据库层**：`AppDatabase`
+3. **服务层**：所有 `Service` 类（如 `UserService`、`FriendService` 等）
+4. **业务层**：所有 `Business` 类（如 `UserBusiness`、`FriendBusiness` 等）
+5. **接口实现**：业务接口与实现的绑定（如 `UserRepositoryInterface` → `UserBusiness`）
+
+#### 不需要注册的组件
+1. **页面Widget**：纯展示性组件
+2. **BLoC**：由页面创建或通过 `BlocProvider` 提供
+3. **Repository**：由BLoC创建或通过构造函数注入
+4. **数据模型**：纯数据类
+5. **工具类**：无状态工具函数
+
+#### 性能优化
+- 使用懒加载避免启动时的性能问题
+- 服务只在需要时初始化，不会占用额外内存
+- 避免循环依赖，确保依赖关系清晰
+
 ### 切记
 - 严格遵循文件命名和路径规范。
 - 保持代码结构清晰，职责分离。

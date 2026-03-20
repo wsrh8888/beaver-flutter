@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/list/bloc/event.dart';
 import 'package:beaver/features/group/list/bloc/state.dart';
-import 'package:beaver/core/business/group/group.dart';
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/group/list/data/repositories/repository.dart';
 
 class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
-  final _groupBusiness = getIt<GroupBusiness>();
+  final GroupListRepository _groupListRepository;
 
-  GroupListBloc() : super(const GroupListState()) {
+  GroupListBloc({GroupListRepository? groupListRepository}) 
+    : _groupListRepository = groupListRepository ?? GroupListRepository(),
+      super(const GroupListState()) {
     on<LoadGroupListEvent>(_onLoadGroupList);
     on<SelectGroupEvent>(_onSelectGroup);
     on<CreateGroupEvent>(_onCreateGroup);
@@ -20,10 +21,10 @@ class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
     emit(state.copyWith(status: GroupListStatus.loading));
 
     try {
-      final groupList = await _groupBusiness.getGroupList();
+      final groupList = await _groupListRepository.getGroupList();
       emit(state.copyWith(
         status: GroupListStatus.success,
-        groupList: groupList,
+        groupList: groupList ?? [],
       ));
     } catch (e) {
       emit(state.copyWith(

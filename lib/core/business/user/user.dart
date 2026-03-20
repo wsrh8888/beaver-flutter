@@ -8,7 +8,7 @@ import 'package:beaver/types/api/user.dart';
 import 'package:beaver/types/business/user.dart';
 
 /// 用户业务逻辑
-class UserBusiness {
+class UserBusiness implements UserRepositoryInterface {
   final _userService = getIt<UserService>();
 
   /**

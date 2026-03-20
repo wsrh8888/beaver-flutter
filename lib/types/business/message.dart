@@ -17,6 +17,15 @@ enum MessageStatus {
   failed,
 }
 
+/// 消息仓库接口
+abstract class MessageRepositoryInterface {
+  Future<List<MessageModel>> getMessages(String conversationId, {int limit = 50, int offset = 0});
+  Future<MessageModel> sendMessage(String conversationId, String content, MessageType type);
+  Future<void> updateMessageStatus(String messageId, MessageStatus status);
+  Future<dynamic> getConversation(String conversationId);
+  Stream<List<MessageModel>> watchMessages(String conversationId);
+}
+
 /// 消息模型 (UI格式)
 class MessageModel {
   final String id;

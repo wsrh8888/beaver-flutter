@@ -4,7 +4,7 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
 
 /// 会话业务逻辑
-class ConversationBusiness {
+class ConversationBusiness implements ConversationRepositoryInterface {
   final _conversationService = getIt<ChatConversationService>();
   final _userConversationService = getIt<ChatUserConversationService>();
 

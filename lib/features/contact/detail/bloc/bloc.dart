@@ -1,14 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/detail/bloc/event.dart';
 import 'package:beaver/features/contact/detail/bloc/state.dart';
-import 'package:beaver/core/business/friend/friend.dart';
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/contact/detail/data/repositories/repository.dart';
 import 'package:beaver/features/contact/detail/data/models/user_info.dart';
 
 class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
-  final _friendBusiness = getIt<FriendBusiness>();
+  final DetailRepository _detailRepository;
 
-  ContactDetailBloc() : super(const DetailState()) {
+  ContactDetailBloc({DetailRepository? detailRepository}) 
+    : _detailRepository = detailRepository ?? DetailRepository(),
+      super(const DetailState()) {
     on<LoadUserInfoEvent>(_onLoadUserInfo);
     on<ToggleMoreMenuEvent>(_onToggleMoreMenu);
     on<ShowEditNoteDialogEvent>(_onShowEditNoteDialog);
@@ -27,13 +28,7 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      // 模拟获取用户信息
-      await Future.delayed(const Duration(seconds: 1));
-      final userInfo = UserInfo(
-        userId: event.userId,
-        nickname: '张三',
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=professional%20avatar%20portrait&size=512x512',
-      );
+      final userInfo = await _detailRepository.getUserInfo(event.userId);
       emit(state.copyWith(
         status: DetailStatus.success,
         userInfo: userInfo,
@@ -80,8 +75,7 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      // 模拟更新备注名称
-      await Future.delayed(const Duration(seconds: 1));
+      await _detailRepository.updateRemarkName(state.userInfo!.userId, event.remarkName);
       final updatedUserInfo = state.userInfo!.copyWith(remarkName: event.remarkName);
       emit(state.copyWith(
         status: DetailStatus.success,
@@ -105,7 +99,7 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      await _friendBusiness.deleteFriend(state.userInfo!.userId);
+      await _detailRepository.deleteFriend(state.userInfo!.userId);
       emit(state.copyWith(
         status: DetailStatus.success,
         isFriend: false,

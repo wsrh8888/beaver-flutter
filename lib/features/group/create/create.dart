@@ -5,7 +5,7 @@ import 'package:beaver/features/group/create/bloc/bloc.dart';
 import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
 
-import 'package:beaver/features/group/create/data/models/contact.dart';
+import 'package:beaver/types/business/group.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';

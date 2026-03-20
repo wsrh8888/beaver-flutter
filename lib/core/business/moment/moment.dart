@@ -1,9 +1,10 @@
 import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/types/business/moment.dart';
 import 'package:beaver/features/moment/post/data/models/post.dart';
 
 /// 朋友圈业务逻辑
-class MomentBusiness {
+class MomentBusiness implements MomentRepositoryInterface {
   /**
    * @description 获取朋友圈列表
    */

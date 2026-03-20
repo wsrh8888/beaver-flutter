@@ -1,4 +1,4 @@
-import 'package:beaver/features/group/create/data/models/contact.dart';
+import 'package:beaver/types/business/group.dart';
 
 enum CreateGroupStatus { initial, loading, success, error }
 

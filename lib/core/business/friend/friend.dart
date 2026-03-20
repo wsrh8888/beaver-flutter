@@ -4,7 +4,7 @@ import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/types/business/user.dart';
 
 /// 好友业务逻辑
-class FriendBusiness {
+class FriendBusiness implements FriendRepositoryInterface {
   final _service = getIt<FriendService>();
 
   /**

@@ -1,14 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/moment/post/bloc/event.dart';
 import 'package:beaver/features/moment/post/bloc/state.dart';
-import 'package:beaver/core/business/moment/moment.dart';
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/moment/post/data/repositories/repository.dart';
 import 'package:beaver/features/moment/post/data/models/post.dart';
 
 class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
-  final _momentBusiness = getIt<MomentBusiness>();
+  final PostMomentRepository _postMomentRepository;
 
-  PostMomentBloc() : super(const PostMomentState()) {
+  PostMomentBloc({PostMomentRepository? postMomentRepository}) 
+    : _postMomentRepository = postMomentRepository ?? PostMomentRepository(),
+      super(const PostMomentState()) {
     on<UpdateContentEvent>(_onUpdateContent);
     on<AddImageEvent>(_onAddImage);
     on<RemoveImageEvent>(_onRemoveImage);
@@ -35,7 +36,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     }
 
     try {
-      final uploadedUrl = await _momentBusiness.uploadImage(event.imagePath);
+      final uploadedUrl = await _postMomentRepository.uploadImage(event.imagePath);
       final updatedMediaList = List<String>.from(state.mediaList);
       updatedMediaList.add(uploadedUrl);
       emit(state.copyWith(mediaList: updatedMediaList));
@@ -80,7 +81,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
         content: state.content,
         files: state.mediaList.map((url) => PostMomentFile(url)).toList(),
       );
-      await _momentBusiness.createMoment(request);
+      await _postMomentRepository.createMoment(request);
       emit(state.copyWith(
         status: PostMomentStatus.success,
         errorMessage: '发布成功',

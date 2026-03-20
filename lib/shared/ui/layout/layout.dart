@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/core/theme/colors.dart';
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/shared/ui/header/header.dart';
 
 class BeaverLayout extends StatelessWidget {

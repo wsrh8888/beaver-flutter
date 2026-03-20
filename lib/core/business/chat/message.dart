@@ -3,7 +3,7 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/message.dart';
 
 /// 聊天消息业务逻辑
-class MessageBusiness {
+class MessageBusiness implements MessageRepositoryInterface {
   final _messageService = getIt<ChatMessageService>();
 
   /**

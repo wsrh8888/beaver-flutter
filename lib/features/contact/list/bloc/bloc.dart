@@ -1,13 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
-import 'package:beaver/core/business/friend/friend.dart';
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/contact/list/data/repositories/repository.dart';
 
 class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
-  final _friendBusiness = getIt<FriendBusiness>();
+  final ContactListRepository _contactListRepository;
 
-  ContactListBloc() : super(const ContactListState()) {
+  ContactListBloc({ContactListRepository? contactListRepository}) 
+    : _contactListRepository = contactListRepository ?? ContactListRepository(),
+      super(const ContactListState()) {
     on<LoadContactListEvent>(_onLoadContactList);
     on<UpdateCurrentIndexEvent>(_onUpdateCurrentIndex);
   }
@@ -19,9 +20,9 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
     emit(state.copyWith(status: ContactListStatus.loading));
 
     try {
-      final contacts = await _friendBusiness.getContactList();
-      final groupedContacts = _friendBusiness.groupContactsByLetter(contacts);
-      final indexList = _friendBusiness.getIndexList(groupedContacts);
+      final contacts = await _contactListRepository.getContactList();
+      final groupedContacts = _contactListRepository.groupContactsByLetter(contacts);
+      final indexList = _contactListRepository.getIndexList(groupedContacts);
 
       emit(state.copyWith(
         status: ContactListStatus.success,

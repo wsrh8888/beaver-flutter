@@ -1,35 +1,40 @@
-import 'package:beaver/features/user/profile/data/models/profile.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/user/profile/data/models/profile.dart' as profile_model;
+import 'package:beaver/types/business/user.dart';
 
 class ProfileRepository {
-  Future<UserInfo> getUserInfo() async {
-    // 模拟获取用户信息
-    await Future.delayed(const Duration(seconds: 1));
-    return UserInfo(
-      userId: '123456',
-      nickName: '张三',
-      fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
-      email: 'zhangsan@example.com',
-      gender: 1,
-      abstract: '这个人很懒，什么都没写~',
+  final UserRepositoryInterface _userRepository;
+
+  ProfileRepository({UserRepositoryInterface? userRepository}) 
+    : _userRepository = userRepository ?? getIt<UserRepositoryInterface>();
+
+  Future<profile_model.UserInfo> getUserInfo() async {
+    final user = await _userRepository.getMyUserInfo();
+    return profile_model.UserInfo(
+      userId: user.userId,
+      nickName: user.nickname,
+      fileName: user.avatar ?? '',
+      email: user.email ?? '',
+      gender: user.gender,
+      abstract: user.abstract,
     );
   }
 
   Future<bool> updateUserInfo(Map<String, dynamic> updates) async {
-    // 模拟更新用户信息
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    return _userRepository.updateProfile(
+      nickname: updates['nickName'],
+      avatar: updates['fileName'],
+      abstract: updates['abstract'],
+      gender: updates['gender'],
+    );
   }
 
   Future<bool> sendEmailCode(String email) async {
-    // 模拟发送验证码
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    return _userRepository.getEmailCode(email, 'update_email');
   }
 
   Future<bool> updateEmail(String email, String code) async {
-    // 模拟更新邮箱
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    return _userRepository.updateEmail(email, code);
   }
 }
 

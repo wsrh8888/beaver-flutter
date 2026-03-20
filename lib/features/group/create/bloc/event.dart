@@ -1,4 +1,4 @@
-import 'package:beaver/features/group/create/data/models/contact.dart';
+import 'package:beaver/types/business/group.dart';
 abstract class CreateGroupEvent {
   const CreateGroupEvent();
 }

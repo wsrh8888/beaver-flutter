@@ -1,7 +1,8 @@
+import 'package:beaver/types/business/call.dart';
 import 'package:beaver/features/calls/data/models/call.dart';
 
 /// 通话业务逻辑
-class CallBusiness {
+class CallBusiness implements CallRepositoryInterface {
   /**
    * @description 获取通话历史记录
    */

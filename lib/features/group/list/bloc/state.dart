@@ -1,4 +1,4 @@
-import 'package:beaver/features/group/list/data/models/group.dart';
+import 'package:beaver/types/business/group.dart';
 
 enum GroupListStatus { initial, loading, success, error }
 

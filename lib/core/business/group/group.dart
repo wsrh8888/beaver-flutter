@@ -1,12 +1,11 @@
-import 'package:beaver/features/group/create/data/models/contact.dart';
-import 'package:beaver/features/group/list/data/models/group.dart';
+import 'package:beaver/types/business/group.dart';
 
 /// 群组业务逻辑
-class GroupBusiness {
+class GroupBusiness implements GroupRepositoryInterface {
   /**
    * @description 获取联系人列表
    */
-  Future<List<Contact>> getContacts() async {
+  Future<List<Contact>?> getContacts() async {
     // 模拟获取联系人列表
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -55,7 +54,7 @@ class GroupBusiness {
   /**
    * @description 获取群组列表
    */
-  Future<List<GroupInfo>> getGroupList() async {
+  Future<List<GroupInfo>?> getGroupList() async {
     return [
       const GroupInfo(
         conversationId: '1',

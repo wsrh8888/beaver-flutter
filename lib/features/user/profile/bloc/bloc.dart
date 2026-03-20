@@ -1,13 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/user/profile/bloc/event.dart';
 import 'package:beaver/features/user/profile/bloc/state.dart';
-import 'package:beaver/core/business/user/user.dart';
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/user/profile/data/repositories/repository.dart';
+import 'package:beaver/types/business/user.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
-  final UserBusiness _userBusiness = getIt<UserBusiness>();
+  final ProfileRepository _profileRepository;
 
-  ProfileBloc() : super(const ProfileState()) {
+  ProfileBloc({ProfileRepository? profileRepository}) 
+    : _profileRepository = profileRepository ?? ProfileRepository(),
+      super(const ProfileState()) {
     on<LoadUserInfoEvent>(_onLoadUserInfo);
     on<OpenModalEvent>(_onOpenModal);
     on<CloseModalEvent>(_onCloseModal);
@@ -27,15 +29,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final userInfo = await _userBusiness.getMyUserInfo();
+      final profileUserInfo = await _profileRepository.getUserInfo();
+      final userInfo = UserInfo(
+        userId: profileUserInfo.userId,
+        nickname: profileUserInfo.nickName,
+        avatar: profileUserInfo.fileName,
+        email: profileUserInfo.email,
+        gender: profileUserInfo.gender,
+        abstract: profileUserInfo.abstract,
+      );
       emit(state.copyWith(
         status: ProfileStatus.success,
         userInfo: userInfo,
         formData: {
-          'nickname': userInfo.nickname,
-          'email': userInfo.email ?? '',
-          'bio': userInfo.abstract ?? '',
-          'gender': userInfo.gender,
+          'nickname': profileUserInfo.nickName,
+          'email': profileUserInfo.email,
+          'bio': profileUserInfo.abstract,
+          'gender': profileUserInfo.gender,
           'emailCode': '',
         },
       ));
@@ -83,7 +93,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final success = await _userBusiness.updateProfile(nickname: state.formData['nickname']);
+      final success = await _profileRepository.updateUserInfo({'nickName': state.formData['nickname']});
       if (success) {
         final updatedUserInfo = state.userInfo!.copyWith(nickname: state.formData['nickname']);
         final updatedModals = Map<String, bool>.from(state.modals);
@@ -114,7 +124,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final success = await _userBusiness.updateEmail(
+      final success = await _profileRepository.updateEmail(
         state.formData['email'],
         state.formData['emailCode'],
       );
@@ -148,7 +158,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final success = await _userBusiness.updateProfile(abstract: state.formData['bio']);
+      final success = await _profileRepository.updateUserInfo({'abstract': state.formData['bio']});
       if (success) {
         final updatedUserInfo = state.userInfo!.copyWith(abstract: state.formData['bio']);
         final updatedModals = Map<String, bool>.from(state.modals);
@@ -179,7 +189,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     emit(state.copyWith(status: ProfileStatus.loading));
 
     try {
-      final success = await _userBusiness.updateProfile(gender: state.formData['gender']);
+      final success = await _profileRepository.updateUserInfo({'gender': state.formData['gender']});
       if (success) {
         final updatedUserInfo = state.userInfo!.copyWith(gender: state.formData['gender']);
         final updatedModals = Map<String, bool>.from(state.modals);
@@ -211,7 +221,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ));
 
     try {
-      final success = await _userBusiness.getEmailCode(state.formData['email'], 'update_email');
+      final success = await _profileRepository.sendEmailCode(state.formData['email']);
       if (success) {
         emit(state.copyWith(
           isCodeSending: false,
@@ -247,7 +257,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       // 假设上传后拿到 fileKey
       const mockFileKey = 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20new&size=512x512';
-      final success = await _userBusiness.updateProfile(avatar: mockFileKey);
+      final success = await _profileRepository.updateUserInfo({'fileName': mockFileKey});
       if (success) {
         final updatedUserInfo = state.userInfo!.copyWith(avatar: mockFileKey);
         emit(state.copyWith(

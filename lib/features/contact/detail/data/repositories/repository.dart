@@ -1,41 +1,65 @@
-import 'package:beaver/features/contact/detail/data/models/user_info.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/features/contact/detail/data/models/user_info.dart' as detail_model;
+import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/types/business/user.dart';
 
 class DetailRepository {
-  Future<UserInfo> getUserInfo(String userId) async {
-    // 模拟获取用户信息
-    await Future.delayed(const Duration(seconds: 1));
-    return UserInfo(
+  final FriendRepositoryInterface _friendRepository;
+  final UserRepositoryInterface _userRepository;
+
+  DetailRepository({
+    FriendRepositoryInterface? friendRepository,
+    UserRepositoryInterface? userRepository,
+  })  : _friendRepository = friendRepository ?? getIt<FriendRepositoryInterface>(),
+        _userRepository = userRepository ?? getIt<UserRepositoryInterface>();
+
+  Future<detail_model.UserInfo> getUserInfo(String userId) async {
+    final user = await _userRepository.getUserProfile(userId);
+    if (user != null) {
+      return detail_model.UserInfo(
+          userId: user.userId,
+          nickname: user.nickName,
+          fileName: user.avatar ?? '',
+          remarkName: '',
+          signature: user.abstract,
+          gender: user.gender == 1 ? 'male' : 'female',
+          location: '',
+          age: '',
+          constellation: '',
+          occupation: '',
+          education: '',
+          hobbies: '',
+          photos: [],
+          conversationId: 'conv_$userId',
+          source: 'search',
+        );
+    }
+    return detail_model.UserInfo(
       userId: userId,
-      nickname: '张三',
-      fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=professional%20avatar%20portrait&size=512x512',
-      remarkName: '张�?,
-      signature: '这个人很懒，什么都没写~',
+      nickname: '未知用户',
+      fileName: '',
+      remarkName: '',
+      signature: '',
       gender: 'male',
-      location: '北京�?,
-      age: '25',
-      constellation: '白羊�?,
-      occupation: '软件工程�?,
-      education: '本科',
-      hobbies: '编程、篮球、音�?,
-      photos: [
-        'https://neeko-copilot.bytedance.net/api/text2image?prompt=landscape%20photo&size=512x512',
-        'https://neeko-copilot.bytedance.net/api/text2image?prompt=portrait%20photo&size=512x512',
-        'https://neeko-copilot.bytedance.net/api/text2image?prompt=food%20photo&size=512x512',
-      ],
+      location: '',
+      age: '',
+      constellation: '',
+      occupation: '',
+      education: '',
+      hobbies: '',
+      photos: [],
       conversationId: 'conv_$userId',
       source: 'search',
     );
   }
 
   Future<bool> updateRemarkName(String userId, String remarkName) async {
-    // 模拟更新备注名称
-    await Future.delayed(const Duration(seconds: 1));
+    // TODO: 实现更新备注名称逻辑
     return true;
   }
 
   Future<bool> deleteFriend(String userId) async {
-    // 模拟删除好友
-    await Future.delayed(const Duration(seconds: 1));
+    await _friendRepository.deleteFriend(userId);
     return true;
   }
 }
