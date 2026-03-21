@@ -5,7 +5,8 @@ import 'package:beaver/features/contact/search/bloc/bloc.dart';
 import 'package:beaver/features/contact/search/bloc/event.dart';
 import 'package:beaver/features/contact/search/bloc/state.dart';
 import 'package:beaver/features/contact/search/data/repositories/repository.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -124,7 +125,13 @@ class _SearchContactPageState extends State<SearchContactPage> {
             ),
             child: Row(
               children: [
-                BeaverAvatar(url: user.avatar, size: 48.w, name: user.nickname),
+                BeaverCachedImage(
+                  fileKey: user.avatar,
+                  type: CacheType.avatar,
+                  width: 48.w,
+                  height: 48.w,
+                  borderRadius: 24.w,
+                ),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Column(

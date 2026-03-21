@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/button/button.dart';
 
 
@@ -43,10 +44,12 @@ class _ContactDetailPageState extends State<ContactDetailPage> {
       ),
       child: Row(
         children: [
-          BeaverAvatar(
-            url: '', // 头像地址
-            size: 64.w,
-            nickname: '用户',
+          BeaverCachedImage(
+            fileKey: '', // 头像地址
+            type: CacheType.avatar,
+            width: 64.w,
+            height: 64.w,
+            borderRadius: 32.w,
           ),
           SizedBox(width: 16.w),
           Expanded(

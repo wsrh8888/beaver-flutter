@@ -7,7 +7,8 @@ import 'package:beaver/features/calls/call/bloc/state.dart';
 import 'package:beaver/features/calls/data/models/call.dart';
 import 'package:beaver/features/calls/core/call_manager.dart';
 import 'package:beaver/features/calls/core/pip_service.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -380,9 +381,12 @@ class _CallPageState extends State<CallPage> {
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        BeaverAvatar(
-                          url: participant.avatarUrl,
-                          size: 60.w,
+                        BeaverCachedImage(
+                          fileKey: participant.avatarUrl,
+                          type: CacheType.avatar,
+                          width: 60.w,
+                          height: 60.w,
+                          borderRadius: 30.w,
                         ),
                         SizedBox(height: 8.w),
                         Text(
@@ -443,9 +447,12 @@ class _CallPageState extends State<CallPage> {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  BeaverAvatar(
-                    url: localParticipant.avatarUrl,
-                    size: 80.w,
+                  BeaverCachedImage(
+                    fileKey: localParticipant.avatarUrl,
+                    type: CacheType.avatar,
+                    width: 80.w,
+                    height: 80.w,
+                    borderRadius: 40.w,
                   ),
                   SizedBox(height: 12.w),
                   Text(

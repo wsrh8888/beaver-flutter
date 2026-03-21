@@ -1,9 +1,5 @@
 /// 环境配置 (对标 desktop common/config：dev/test/prod 的 baseUrl、wsUrl)
-enum Env {
-  dev,
-  test,
-  prod,
-}
+enum Env { dev, test, prod }
 
 class EnvConfig {
   final String baseUrl;
@@ -14,12 +10,12 @@ class EnvConfig {
 
 const _configs = <Env, EnvConfig>{
   Env.dev: EnvConfig(
-    baseUrl: 'http://127.0.0.1:20800',
-    wsUrl: 'ws://127.0.0.1:20800/api/ws/ws',
+    baseUrl: 'https://server.wsrh8888.com/beaver',
+    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/ws',
   ),
   Env.test: EnvConfig(
-    baseUrl: 'https://server-test.wsrh8888.com/beaver',
-    wsUrl: 'wss://server-test.wsrh8888.com/beaver/api/ws/ws',
+    baseUrl: 'https://server.wsrh8888.com/beaver',
+    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/ws',
   ),
   Env.prod: EnvConfig(
     baseUrl: 'https://server.wsrh8888.com/beaver',

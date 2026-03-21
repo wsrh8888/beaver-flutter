@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/types/business/message.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 
 class MessageList extends StatelessWidget {
   final List<MessageModel> messages;
@@ -35,7 +36,14 @@ class MessageList extends StatelessWidget {
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isMe) BeaverAvatar(url: '', size: 36.w, nickname: message.userId),
+          if (!isMe)
+            BeaverCachedImage(
+              fileKey: '',
+              type: CacheType.avatar,
+              width: 36.w,
+              height: 36.w,
+              borderRadius: 18.w,
+            ),
           SizedBox(width: 8.w),
           Flexible(
             child: Container(
@@ -51,7 +59,14 @@ class MessageList extends StatelessWidget {
             ),
           ),
           SizedBox(width: 8.w),
-          if (isMe) BeaverAvatar(url: '', size: 36.w, nickname: 'Me'),
+          if (isMe)
+            BeaverCachedImage(
+              fileKey: '',
+              type: CacheType.avatar,
+              width: 36.w,
+              height: 36.w,
+              borderRadius: 18.w,
+            ),
         ],
       ),
     );

@@ -6,11 +6,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/features/user/mine/bloc/bloc.dart';
 import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:beaver/core/database/db.dart';
+import 'package:beaver/types/cache.dart'; // 添加 CacheType 引用
 import 'package:beaver/router/routes.dart';
 
 class MinePage extends StatefulWidget {
@@ -184,10 +185,11 @@ class _MinePageState extends State<MinePage> {
                         ],
                       ),
                       child: ClipOval(
-                        child: BeaverAvatar(
-                          size: 80.w,
-                          name: state.userInfo.nickname,
-                          url: state.userInfo.avatar,
+                        child: BeaverCachedImage(
+                          fileKey: state.userInfo.avatar,
+                          type: CacheType.avatar,
+                          width: 80.w,
+                          height: 80.w,
                         ),
                       ),
                     ),

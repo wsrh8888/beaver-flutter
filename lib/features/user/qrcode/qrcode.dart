@@ -6,7 +6,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:beaver/features/user/qrcode/bloc/bloc.dart';
 import 'package:beaver/features/user/qrcode/bloc/event.dart';
 import 'package:beaver/features/user/qrcode/bloc/state.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'dart:convert';
@@ -201,17 +202,12 @@ class _QrcodePageState extends State<QrcodePage> {
                                   ),
                                   child: Row(
                                     children: [
-                                      BeaverAvatar(
-                                        url: state.qrCodeData?.fileName,
-                                        nickname: state.qrCodeData?.nickname,
-                                        size: 48.w,
+                                      BeaverCachedImage(
+                                        fileKey: state.qrCodeData?.fileName,
+                                        type: CacheType.avatar,
+                                        width: 48.w,
+                                        height: 48.w,
                                         borderRadius: 16.w,
-                                        backgroundColor: const Color(0xFFFF7D45).withOpacity(0.1),
-                                        textStyle: TextStyle(
-                                          fontSize: 20.w,
-                                          fontWeight: FontWeight.w600,
-                                          color: const Color(0xFFFF7D45),
-                                        ),
                                       ),
                                       SizedBox(width: 16.w),
                                       Column(
@@ -280,11 +276,11 @@ class _QrcodePageState extends State<QrcodePage> {
                                               ),
                                               child: ClipRRect(
                                                 borderRadius: BorderRadius.circular(6.w),
-                                                child: Image.network(
-                                                  state.qrCodeData!.fileName,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (context, error, stackTrace) => const SizedBox(),
-                                                ),
+                                              child: BeaverCachedImage(
+                                                fileKey: state.qrCodeData!.fileName,
+                                                type: CacheType.avatar,
+                                                fit: BoxFit.cover,
+                                              ),
                                               ),
                                             ),
                                         ],

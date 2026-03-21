@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 
 class GroupMember {
   final String userId;
@@ -49,10 +50,12 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
 
   Widget _buildMemberItem(GroupMember member) {
     return ListTile(
-      leading: BeaverAvatar(
-        url: member.avatar ?? '',
-        nickname: member.nickname,
-        size: 40.w,
+      leading: BeaverCachedImage(
+        fileKey: member.avatar,
+        type: CacheType.avatar,
+        width: 40.w,
+        height: 40.w,
+        borderRadius: 20.w,
       ),
       title: Text(member.nickname),
       trailing: Text(

@@ -6,7 +6,8 @@ import 'package:beaver/features/group/list/bloc/event.dart';
 import 'package:beaver/features/group/list/bloc/state.dart';
 
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 
 import 'package:go_router/go_router.dart';
 
@@ -47,7 +48,13 @@ class _GroupListPageState extends State<GroupListPage> {
               itemBuilder: (context, index) {
                 final group = state.groupList[index];
                 return ListTile(
-                  leading: BeaverAvatar(url: group.fileName, size: 48.w, nickname: group.title),
+                  leading: BeaverCachedImage(
+                    fileKey: group.fileName,
+                    type: CacheType.avatar,
+                    width: 48.w,
+                    height: 48.w,
+                    borderRadius: 24.w,
+                  ),
                   title: Text(group.title, style: TextStyle(fontSize: 16.w, fontWeight: FontWeight.bold)),
                   subtitle: Text(group.lastMessage ?? '暂无消息', maxLines: 1, overflow: TextOverflow.ellipsis),
                   trailing: Text('${group.memberCount}人', style: TextStyle(fontSize: 12.w, color: Colors.grey)),

@@ -3,7 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'core/network.dart';
 import 'core/database.dart';
 import 'core/services.dart';
-
+import 'core/cache.dart';
 import 'business/user.dart';
 import 'business/friend.dart';
 import 'business/group.dart';
@@ -12,6 +12,7 @@ import 'business/message.dart';
 import 'business/notification.dart';
 import 'business/moment.dart';
 import 'business/call.dart';
+import 'business/media.dart';
 
 /// 模块注册
 void registerModules(GetIt getIt) {
@@ -19,6 +20,7 @@ void registerModules(GetIt getIt) {
   configureNetworkDependencies(getIt);
   configureDatabaseDependencies(getIt);
   configureServiceDependencies(getIt);
+  configureCacheDependencies(getIt);
   
   // 业务层配置
   configureUserBusinessDependencies(getIt);
@@ -29,4 +31,5 @@ void registerModules(GetIt getIt) {
   configureNotificationBusinessDependencies(getIt);
   configureMomentBusinessDependencies(getIt);
   configureCallBusinessDependencies(getIt);
+  configureMediaBusinessDependencies(getIt);
 }

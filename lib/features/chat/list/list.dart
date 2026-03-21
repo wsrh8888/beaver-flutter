@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:beaver/features/chat/list/bloc/bloc.dart';
 import 'package:beaver/features/chat/list/bloc/event.dart';
 import 'package:beaver/features/chat/list/bloc/state.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
@@ -240,10 +241,12 @@ class _ChatListViewState extends State<ChatListView> {
                 ),
                 child: Row(
                   children: [
-                    BeaverAvatar(
-                      url: chat.avatar,
-                      name: chat.nickname,
-                      size: 32.w,
+                    BeaverCachedImage(
+                      fileKey: chat.avatar,
+                      type: CacheType.avatar,
+                      width: 32.w,
+                      height: 32.w,
+                      borderRadius: 16.w,
                     ),
                     SizedBox(width: 8.w),
                     Expanded(
@@ -343,10 +346,12 @@ class _ChatListViewState extends State<ChatListView> {
               ),
               child: Row(
                 children: [
-                  BeaverAvatar(
-                    url: chat.avatar,
-                    name: chat.nickname,
-                    size: 48.w,
+                  BeaverCachedImage(
+                    fileKey: chat.avatar,
+                    type: CacheType.avatar,
+                    width: 48.w,
+                    height: 48.w,
+                    borderRadius: 24.w,
                   ),
                   SizedBox(width: 16.w),
                   Expanded(

@@ -6,7 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:beaver/features/contact/list/bloc/bloc.dart';
 import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
 class ContactListPage extends StatelessWidget {
@@ -249,10 +250,12 @@ class _ContactListViewState extends State<ContactListView> {
                 ),
                 child: Row(
                   children: [
-                    BeaverAvatar(
-                      url: contact.avatar,
-                      name: contact.nickname,
-                      size: 48.w,
+                    BeaverCachedImage(
+                      fileKey: contact.avatar,
+                      type: CacheType.avatar,
+                      width: 48.w,
+                      height: 48.w,
+                      borderRadius: 24.w,
                     ),
                     SizedBox(width: 16.w),
                     Expanded(

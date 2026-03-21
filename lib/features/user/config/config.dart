@@ -6,7 +6,8 @@ import 'package:beaver/features/user/config/bloc/event.dart';
 import 'package:beaver/features/user/config/bloc/state.dart';
 import 'package:beaver/features/user/config/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
 class UserConfigPage extends StatefulWidget {
@@ -106,9 +107,12 @@ class _UserConfigPageState extends State<UserConfigPage> {
                             children: [
                               Stack(
                                 children: [
-                                  BeaverAvatar(
-                                    url: friendInfo.fileName,
-                                    size: 64.w,
+                                  BeaverCachedImage(
+                                    fileKey: friendInfo.fileName,
+                                    type: CacheType.avatar,
+                                    width: 64.w,
+                                    height: 64.w,
+                                    borderRadius: 32.w,
                                   ),
                                   if (friendInfo.isOnline)
                                     Positioned(

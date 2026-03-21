@@ -6,7 +6,8 @@ import 'package:beaver/features/group/config/bloc/event.dart';
 import 'package:beaver/features/group/config/bloc/state.dart';
 import 'package:beaver/features/group/config/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
 class GroupConfigPage extends StatefulWidget {
@@ -73,10 +74,12 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                           margin: EdgeInsets.only(bottom: 24.w),
                           child: Row(
                             children: [
-                              BeaverAvatar(
-                                url: groupInfo.fileName,
-                                size: 64.w,
-                                nickname: groupInfo.title,
+                              BeaverCachedImage(
+                                fileKey: groupInfo.fileName,
+                                type: CacheType.avatar,
+                                width: 64.w,
+                                height: 64.w,
+                                borderRadius: 32.w,
                               ),
                               SizedBox(width: 16.w),
                               Expanded(
@@ -214,7 +217,13 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
   Widget _buildMemberItem(member) {
     return Column(
       children: [
-        BeaverAvatar(url: member.fileName, size: 48.w, nickname: member.nickname),
+        BeaverCachedImage(
+          fileKey: member.fileName,
+          type: CacheType.avatar,
+          width: 48.w,
+          height: 48.w,
+          borderRadius: 24.w,
+        ),
         SizedBox(height: 4.w),
         Text(member.nickname, style: TextStyle(fontSize: 10.w, color: const Color(0xFF2D3436)), maxLines: 1, overflow: TextOverflow.ellipsis),
       ],

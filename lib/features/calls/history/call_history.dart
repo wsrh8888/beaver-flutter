@@ -6,7 +6,8 @@ import 'package:beaver/features/calls/history/bloc/event.dart';
 import 'package:beaver/features/calls/history/bloc/state.dart';
 
 import 'package:beaver/features/calls/data/models/call.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -88,9 +89,12 @@ class _CallHistoryPageState extends State<CallHistoryPage> {
       child: Row(
         children: [
           // 头像
-          BeaverAvatar(
-            url: call.isIncoming ? call.callerAvatar : call.receiverAvatar,
-            size: 56.w,
+          BeaverCachedImage(
+            fileKey: call.isIncoming ? call.callerAvatar : call.receiverAvatar,
+            type: CacheType.avatar,
+            width: 56.w,
+            height: 56.w,
+            borderRadius: 28.w,
           ),
           SizedBox(width: 16.w),
           

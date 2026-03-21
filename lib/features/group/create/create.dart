@@ -6,7 +6,8 @@ import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
 
 import 'package:beaver/types/business/group.dart';
-import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -92,7 +93,13 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         final contact = contacts[index];
         final isSelected = state.selectedContacts.any((c) => c.userId == contact.userId);
         return ListTile(
-          leading: BeaverAvatar(url: contact.fileName, size: 40.w, nickname: contact.nickname),
+          leading: BeaverCachedImage(
+            fileKey: contact.fileName,
+            type: CacheType.avatar,
+            width: 40.w,
+            height: 40.w,
+            borderRadius: 20.w,
+          ),
           title: Text(contact.nickname),
           trailing: Icon(
             isSelected ? Icons.check_circle : Icons.radio_button_unchecked,

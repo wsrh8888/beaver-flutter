@@ -8,7 +8,8 @@ import 'package:beaver/features/user/profile/components/nickname_dialog.dart';
 import 'package:beaver/features/user/profile/components/email_dialog.dart';
 import 'package:beaver/features/user/profile/components/bio_dialog.dart';
 import 'package:beaver/features/user/profile/components/gender_dialog.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -123,10 +124,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             clipBehavior: Clip.antiAlias,
                             child: Stack(
                               children: [
-                                BeaverAvatar(
-                                  size: 80.w,
-                                  name: userInfo?.nickname,
-                                  url: userInfo?.avatar,
+                                BeaverCachedImage(
+                                  width: 80.w,
+                                  height: 80.w,
+                                  fileKey: userInfo?.avatar,
+                                  type: CacheType.avatar,
                                   borderRadius: 20.w,
                                 ),
                                 Positioned(

@@ -6,7 +6,8 @@ import 'package:beaver/features/calls/incoming/bloc/event.dart';
 import 'package:beaver/features/calls/incoming/bloc/state.dart';
 import 'package:beaver/features/calls/incoming/data/repositories/repository.dart';
 import 'package:beaver/features/calls/data/models/call.dart';
-import 'package:beaver/shared/ui/avatar/avatar.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
 class CallIncomingPage extends StatefulWidget {
@@ -26,7 +27,8 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
   @override
   void initState() {
     super.initState();
-    _callIncomingBloc = CallIncomingBloc(CallIncomingRepository())..add(LoadCallInfoEvent(widget.conversationId));
+    _callIncomingBloc = CallIncomingBloc(CallIncomingRepository())
+      ..add(LoadCallInfoEvent(widget.conversationId));
     _startCountdown();
   }
 
@@ -94,26 +96,21 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                 children: [
                   // 通话类型
                   if (state.callInfo?.callType == CallType.video)
-                    const Icon(
-                      Icons.video_call,
-                      size: 48,
-                      color: Colors.white,
-                    )
+                    const Icon(Icons.video_call, size: 48, color: Colors.white)
                   else
-                    const Icon(
-                      Icons.call,
-                      size: 48,
-                      color: Colors.white,
-                    ),
+                    const Icon(Icons.call, size: 48, color: Colors.white),
                   SizedBox(height: 32.w),
-                  
+
                   // 来电者头像
-                  BeaverAvatar(
-                    url: state.callInfo?.callerAvatar,
-                    size: 120.w,
+                  BeaverCachedImage(
+                    fileKey: state.callInfo?.callerAvatar,
+                    type: CacheType.avatar,
+                    width: 120.w,
+                    height: 120.w,
+                    borderRadius: 60.w,
                   ),
                   SizedBox(height: 24.w),
-                  
+
                   // 来电者姓名
                   Text(
                     state.callInfo?.callerName ?? '未知来电',
@@ -124,32 +121,26 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                     ),
                   ),
                   SizedBox(height: 12.w),
-                  
+
                   // 通话状态
                   Text(
                     state.status == CallStatus.ringing
                         ? '正在呼叫...'
                         : state.status == CallStatus.loading
-                            ? '处理中...'
-                            : '',
-                    style: TextStyle(
-                      fontSize: 16.w,
-                      color: Colors.white70,
-                    ),
+                        ? '处理中...'
+                        : '',
+                    style: TextStyle(fontSize: 16.w, color: Colors.white70),
                   ),
                   SizedBox(height: 8.w),
-                  
+
                   // 倒计时
                   if (state.status == CallStatus.ringing)
                     Text(
                       '${_countdown}s',
-                      style: TextStyle(
-                        fontSize: 14.w,
-                        color: Colors.white54,
-                      ),
+                      style: TextStyle(fontSize: 14.w, color: Colors.white54),
                     ),
                   SizedBox(height: 120.w),
-                  
+
                   // 控制按钮
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +163,7 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                           ),
                         ),
                       ),
-                      
+
                       // 接听按钮
                       GestureDetector(
                         onTap: _handleAccept,
@@ -210,14 +201,15 @@ class CallPage extends StatelessWidget {
   final String roomToken;
   final String liveKitUrl;
 
-  const CallPage({super.key, required this.conversationId, required this.roomToken, required this.liveKitUrl});
+  const CallPage({
+    super.key,
+    required this.conversationId,
+    required this.roomToken,
+    required this.liveKitUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text('通话中页面'),
-      ),
-    );
+    return Scaffold(body: Center(child: Text('通话中页面')));
   }
 }

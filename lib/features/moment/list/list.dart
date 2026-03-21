@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/image/image.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/features/moment/list/bloc/bloc.dart';
 import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
@@ -16,7 +17,8 @@ class MomentListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MomentListBloc()..add(const LoadMomentListEvent(refresh: true)),
+      create: (context) =>
+          MomentListBloc()..add(const LoadMomentListEvent(refresh: true)),
       child: const MomentListView(),
     );
   }
@@ -45,7 +47,8 @@ class _MomentListViewState extends State<MomentListView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       final bloc = context.read<MomentListBloc>();
       if (bloc.state.status == MomentListStatus.success && bloc.state.hasMore) {
         bloc.add(const LoadMomentListEvent());
@@ -59,7 +62,7 @@ class _MomentListViewState extends State<MomentListView> {
       final dt = DateTime.parse(isoString);
       final now = DateTime.now();
       final diff = now.difference(dt);
-      
+
       if (diff.inMinutes < 60) {
         return '${diff.inMinutes == 0 ? 1 : diff.inMinutes}分钟前';
       } else if (diff.inHours < 24) {
@@ -89,20 +92,36 @@ class _MomentListViewState extends State<MomentListView> {
             color: const Color(0xFFF9FAFB),
             child: BlocBuilder<MomentListBloc, MomentListState>(
               builder: (context, state) {
-                if (state.status == MomentListStatus.initial && state.moments.isEmpty) {
+                if (state.status == MomentListStatus.initial &&
+                    state.moments.isEmpty) {
                   return const ListSkeleton();
                 }
 
-                if (state.status == MomentListStatus.error && state.moments.isEmpty) {
+                if (state.status == MomentListStatus.error &&
+                    state.moments.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('加载失败', style: TextStyle(fontSize: 14.sp, color: const Color(0xFF636E72))),
+                        Text(
+                          '加载失败',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF636E72),
+                          ),
+                        ),
                         SizedBox(height: 10.w),
                         GestureDetector(
-                          onTap: () => context.read<MomentListBloc>().add(const LoadMomentListEvent(refresh: true)),
-                          child: Text('点击重试', style: TextStyle(fontSize: 14.sp, color: const Color(0xFFFF7D45))),
+                          onTap: () => context.read<MomentListBloc>().add(
+                            const LoadMomentListEvent(refresh: true),
+                          ),
+                          child: Text(
+                            '点击重试',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: const Color(0xFFFF7D45),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -112,7 +131,9 @@ class _MomentListViewState extends State<MomentListView> {
                 return RefreshIndicator(
                   color: const Color(0xFFFF7D45),
                   onRefresh: () async {
-                    context.read<MomentListBloc>().add(const LoadMomentListEvent(refresh: true));
+                    context.read<MomentListBloc>().add(
+                      const LoadMomentListEvent(refresh: true),
+                    );
                   },
                   child: ListView.builder(
                     controller: _scrollController,
@@ -122,7 +143,9 @@ class _MomentListViewState extends State<MomentListView> {
                       if (index >= state.moments.length) {
                         return Padding(
                           padding: EdgeInsets.symmetric(vertical: 20.w),
-                          child: const Center(child: CircularProgressIndicator()),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
                         );
                       }
 
@@ -156,7 +179,7 @@ class _MomentListViewState extends State<MomentListView> {
                       color: const Color(0xFFFF7D45).withOpacity(0.3),
                       offset: Offset(0, 3.w),
                       blurRadius: 10.w,
-                    )
+                    ),
                   ],
                 ),
                 child: Center(
@@ -199,7 +222,13 @@ class _MomentListViewState extends State<MomentListView> {
                   height: 32.w,
                   color: Colors.grey[200],
                   child: item.avatar?.isNotEmpty == true
-                      ? BeaverImage(url: item.avatar!, fit: BoxFit.cover)
+                      ? BeaverCachedImage(
+                          fileKey: item.avatar!,
+                          type: CacheType.avatar,
+                          width: 32.w,
+                          height: 32.w,
+                          fit: BoxFit.cover,
+                        )
                       : Icon(Icons.person, color: Colors.grey[400]),
                 ),
               ),
@@ -210,27 +239,38 @@ class _MomentListViewState extends State<MomentListView> {
                   children: [
                     Text(
                       item.userName,
-                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2D3436)),
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2D3436),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 2.w),
                     Text(
                       _formatTime(item.createdAt),
-                      style: TextStyle(fontSize: 11.sp, color: const Color(0xFFB2BEC3)),
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: const Color(0xFFB2BEC3),
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          
+
           // Content
           if (item.content.isNotEmpty) ...[
             SizedBox(height: 10.w),
             Text(
               item.content,
-              style: TextStyle(fontSize: 14.sp, height: 1.5, color: const Color(0xFF2D3436)),
+              style: TextStyle(
+                fontSize: 14.sp,
+                height: 1.5,
+                color: const Color(0xFF2D3436),
+              ),
             ),
           ],
 
@@ -249,7 +289,8 @@ class _MomentListViewState extends State<MomentListView> {
                   context.read<MomentListBloc>().add(
                     ToggleLikeMomentEvent(
                       moment: item,
-                      currentUserId: 'TODO_CURRENT_USER_ID', // Replace with auth bloc if added
+                      currentUserId:
+                          'TODO_CURRENT_USER_ID', // Replace with auth bloc if added
                       currentUserName: '我',
                     ),
                   );
@@ -257,7 +298,9 @@ class _MomentListViewState extends State<MomentListView> {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
                   decoration: BoxDecoration(
-                    color: item.isLiked ? const Color(0xFFFFE6D9) : const Color(0xFFF8F9FA),
+                    color: item.isLiked
+                        ? const Color(0xFFFFE6D9)
+                        : const Color(0xFFF8F9FA),
                     borderRadius: BorderRadius.circular(10.w),
                   ),
                   child: Row(
@@ -266,7 +309,9 @@ class _MomentListViewState extends State<MomentListView> {
                       Icon(
                         item.isLiked ? Icons.favorite : Icons.favorite_border,
                         size: 14.w,
-                        color: item.isLiked ? const Color(0xFFFF4757) : const Color(0xFF636E72),
+                        color: item.isLiked
+                            ? const Color(0xFFFF4757)
+                            : const Color(0xFF636E72),
                       ),
                       SizedBox(width: 4.w),
                       Text(
@@ -274,7 +319,9 @@ class _MomentListViewState extends State<MomentListView> {
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
-                          color: item.isLiked ? const Color(0xFFFF4757) : const Color(0xFF636E72),
+                          color: item.isLiked
+                              ? const Color(0xFFFF4757)
+                              : const Color(0xFF636E72),
                         ),
                       ),
                     ],
@@ -304,7 +351,9 @@ class _MomentListViewState extends State<MomentListView> {
                           final idx = entry.key;
                           final like = entry.value;
                           return TextSpan(
-                            text: like.userName + (idx < item.likes.length - 1 ? '、' : ''),
+                            text:
+                                like.userName +
+                                (idx < item.likes.length - 1 ? '、' : ''),
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w500,
@@ -326,15 +375,19 @@ class _MomentListViewState extends State<MomentListView> {
 
   Widget _buildImagesGrid(List<IMomentFileModel> files) {
     if (files.isEmpty) return const SizedBox.shrink();
-    
+
     final displayFiles = files.length > 9 ? files.sublist(0, 9) : files;
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = files.length == 1 ? 1 : (files.length == 2 || files.length == 4 ? 2 : 3);
+        final crossAxisCount = files.length == 1
+            ? 1
+            : (files.length == 2 || files.length == 4 ? 2 : 3);
         final runSpacing = 2.w;
         final spacing = 2.w;
-        final itemWidth = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+        final itemWidth =
+            (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
+            crossAxisCount;
 
         return Wrap(
           spacing: spacing,
@@ -351,17 +404,22 @@ class _MomentListViewState extends State<MomentListView> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4.w),
                 child: Container(
-                  width: files.length == 1 ? constraints.maxWidth * 0.7 : itemWidth,
-                  height: files.length == 1 ? constraints.maxWidth * 0.7 : itemWidth,
+                  width: files.length == 1
+                      ? constraints.maxWidth * 0.7
+                      : itemWidth,
+                  height: files.length == 1
+                      ? constraints.maxWidth * 0.7
+                      : itemWidth,
                   color: const Color(0xFFF8F9FA),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
                       // Using BeaverImage to load image. If url comes from API construct it here.
-                      // For now mock the actual file URL for testing. 
+                      // For now mock the actual file URL for testing.
                       // If you have 'fileKey', you append it to a base URL.
-                      BeaverImage(
-                        url: file.url ?? 'https://placeholder.co/400?text=IMG',
+                      BeaverCachedImage(
+                        fileKey: file.url,
+                        type: CacheType.image,
                         fit: BoxFit.cover,
                       ),
                       if (isLast)

@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
+import 'package:beaver/core/cache/index.dart'; // 添加缓存管理导入
 import 'tables/user/user.dart';
 import 'tables/user/sync_status.dart';
 import 'tables/chat/message.dart';
@@ -78,7 +79,9 @@ class AppDatabase extends _$AppDatabase {
         if (details.wasCreated) {
           print('[Database] Database created successfully');
         } else if (details.hadUpgrade) {
-          print('[Database] Database upgraded from ${details.versionBefore} to ${details.versionNow}');
+          print(
+            '[Database] Database upgraded from ${details.versionBefore} to ${details.versionNow}',
+          );
         }
       },
     );
@@ -97,13 +100,20 @@ class DatabaseManager {
     return _instance!;
   }
 
+  static String? get currentUserId => _currentUserId;
+
   static Future<void> init(String userId) async {
     if (_instance != null && _currentUserId == userId) return;
 
     await close();
 
     final dbFolder = await getApplicationDocumentsDirectory();
-    final userFolder = Directory(p.join(dbFolder.path, 'users', userId));
+    // 使用大厂规范：对标 config.dart 的隔离路径
+    final userDbPath = p.join(
+      dbFolder.path,
+      CachePathConfig.userDbRoot(userId),
+    );
+    final userFolder = Directory(userDbPath);
     if (!await userFolder.exists()) {
       await userFolder.create(recursive: true);
     }
@@ -111,6 +121,11 @@ class DatabaseManager {
     final file = File(p.join(userFolder.path, 'database.db'));
     _instance = AppDatabase(_openConnection(file));
     _currentUserId = userId;
+
+    print('[Database] Manager init for user: $userId, path: ${file.path}');
+
+    // 同步初始化缓存管理 (UserId 同步)
+    await mediaManager.init(userId);
   }
 
   static Future<void> close() async {
