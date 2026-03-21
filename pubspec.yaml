@@ -27,6 +27,8 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   shared_preferences: ^2.5.4
+  drift_db_viewer: ^2.1.0
+
 
   # 依赖注入与模型
   get_it: ^9.2.1
@@ -70,5 +72,16 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/common/
+    - assets/images/chat/
+    - assets/images/detail/
+    - assets/images/friend/
+    - assets/images/group/
+    - assets/images/home/
+    - assets/images/login/
+    - assets/images/mine/
+    - assets/images/moment/
+    - assets/images/setting/
+    - assets/images/update/
     - assets/icons/
     - assets/icons/common/

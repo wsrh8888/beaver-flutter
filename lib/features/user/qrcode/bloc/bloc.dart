@@ -1,12 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/user/qrcode/bloc/event.dart';
 import 'package:beaver/features/user/qrcode/bloc/state.dart';
-import 'package:beaver/features/user/qrcode/data/repositories/repository.dart';
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/features/user/qrcode/data/models/qrcode.dart';
+import 'package:beaver/di/injection.dart';
 
 class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
-  final QrcodeRepository _repository;
+  final UserBusiness _userBusiness = getIt<UserBusiness>();
 
-  QrcodeBloc(this._repository) : super(const QrcodeState()) {
+  QrcodeBloc() : super(const QrcodeState()) {
     on<LoadQrCodeEvent>(_onLoadQrCode);
     on<SaveQrCodeEvent>(_onSaveQrCode);
   }
@@ -18,16 +20,21 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     emit(state.copyWith(status: QrcodeStatus.loading));
 
     try {
-      final qrCodeData = await _repository.getQrCodeData();
-      emit(state.copyWith(
-        status: QrcodeStatus.success,
-        qrCodeData: qrCodeData,
-      ));
+      final userInfo = await _userBusiness.getMyUserInfo();
+      emit(
+        state.copyWith(
+          status: QrcodeStatus.success,
+          qrCodeData: QrCodeData(
+            userId: userInfo.userId,
+            nickname: userInfo.nickname,
+            fileName: userInfo.avatar ?? '',
+          ),
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: QrcodeStatus.error,
-        errorMessage: '加载二维码失败 $e',
-      ));
+      emit(
+        state.copyWith(status: QrcodeStatus.error, errorMessage: '加载二维码失败 $e'),
+      );
     }
   }
 
@@ -35,15 +42,7 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     SaveQrCodeEvent event,
     Emitter<QrcodeState> emit,
   ) async {
-    try {
-      await _repository.saveQrCode();
-      emit(state.copyWith(
-        errorMessage: '已保存到相册',
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: '保存失败: $e',
-      ));
-    }
+    // 保存逻辑在页面处理，Bloc 仅用于状态
+    emit(state.copyWith(errorMessage: '正在保存到相册...'));
   }
 }

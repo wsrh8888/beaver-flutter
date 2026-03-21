@@ -3,6 +3,7 @@ import 'package:beaver/features/setting/feedback/bloc/event.dart';
 import 'package:beaver/features/setting/feedback/bloc/state.dart';
 import 'package:beaver/features/setting/feedback/data/repositories/repository.dart';
 import 'package:beaver/features/setting/feedback/data/models/feedback.dart';
+import 'package:beaver/features/setting/feedback/data/constants.dart';
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   final FeedbackRepository _repository;
@@ -16,23 +17,14 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     on<SubmitFeedbackEvent>(_onSubmitFeedback);
   }
 
-  Future<void> _onLoadFeedbackTypes(
+  void _onLoadFeedbackTypes(
     LoadFeedbackTypesEvent event,
     Emitter<FeedbackState> emit,
-  ) async {
-    emit(state.copyWith(status: FeedbackStatus.loading));
-    try {
-      final types = await _repository.getFeedbackTypes();
-      emit(state.copyWith(
-        status: FeedbackStatus.success,
-        feedbackTypes: types,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: FeedbackStatus.error,
-        errorMessage: e.toString(),
-      ));
-    }
+  ) {
+    emit(state.copyWith(
+      status: FeedbackStatus.initial, // Don't use success here!
+      feedbackTypes: feedbackTypes,
+    ));
   }
 
   void _onSelectFeedbackType(

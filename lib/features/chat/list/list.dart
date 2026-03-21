@@ -32,7 +32,6 @@ class ChatListView extends StatefulWidget {
 class _ChatListViewState extends State<ChatListView> {
   bool _showDropdown = false;
 
-
   @override
   Widget build(BuildContext context) {
     return BeaverLayout(
@@ -85,7 +84,9 @@ class _ChatListViewState extends State<ChatListView> {
                       SizedBox(height: 10.w),
                       GestureDetector(
                         onTap: () {
-                          context.read<ChatListBloc>().add(const LoadChatListEvent());
+                          context.read<ChatListBloc>().add(
+                            const LoadChatListEvent(),
+                          );
                         },
                         child: Text(
                           '点击重试',
@@ -115,15 +116,11 @@ class _ChatListViewState extends State<ChatListView> {
             },
           ),
           // 下拉菜单
-          if (_showDropdown) ...[
-            _buildDropdown(),
-            _buildMask(),
-          ],
+          if (_showDropdown) ...[_buildDropdown(), _buildMask()],
         ],
       ),
     );
   }
-
 
   Widget _buildDropdown() {
     return Positioned(
@@ -193,9 +190,7 @@ class _ChatListViewState extends State<ChatListView> {
     return Positioned.fill(
       child: GestureDetector(
         onTap: () => setState(() => _showDropdown = false),
-        child: Container(
-          color: Colors.black.withOpacity(0.2),
-        ),
+        child: Container(color: Colors.black.withOpacity(0.2)),
       ),
     );
   }
@@ -291,119 +286,116 @@ class _ChatListViewState extends State<ChatListView> {
 
   Widget _buildRegularList(List<dynamic> chats) {
     return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final chat = chats[index];
-          return Dismissible(
-            key: Key(chat.conversationId),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 16.w),
-              color: const Color(0xFFFF5252),
-              child: Text(
-                '删除',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.w,
-                  fontWeight: FontWeight.w500,
-                ),
+      delegate: SliverChildBuilderDelegate((context, index) {
+        final chat = chats[index];
+        return Dismissible(
+          key: Key(chat.conversationId),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.only(right: 16.w),
+            color: const Color(0xFFFF5252),
+            child: Text(
+              '删除',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.w,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            confirmDismiss: (direction) async {
-              return await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('提示'),
-                  content: const Text('确定删除该会话吗？'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('取消'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('确定'),
-                    ),
-                  ],
-                ),
-              );
-            },
-            onDismissed: (direction) {
-              context.read<ChatListBloc>().add(
-                DeleteChatEvent(conversationId: chat.conversationId),
-              );
-              BeaverToast.show(context, '已删除');
-            },
-            child: GestureDetector(
-              onTap: () => _handleChatClick(chat),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: const Color(0xFFEBEEF5),
-                      width: 0.5.w,
-                    ),
+          ),
+          confirmDismiss: (direction) async {
+            return await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('提示'),
+                content: const Text('确定删除该会话吗？'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('取消'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+            );
+          },
+          onDismissed: (direction) {
+            context.read<ChatListBloc>().add(
+              DeleteChatEvent(conversationId: chat.conversationId),
+            );
+            BeaverToast.show(context, '已删除');
+          },
+          child: GestureDetector(
+            onTap: () => _handleChatClick(chat),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: const Color(0xFFEBEEF5),
+                    width: 0.5.w,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    BeaverAvatar(
-                      url: chat.avatar,
-                      name: chat.nickname,
-                      size: 48.w,
-                    ),
-                    SizedBox(width: 16.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  chat.nickname,
-                                  style: TextStyle(
-                                    fontSize: 16.w,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2D3436),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                chat.updateAt,
+              ),
+              child: Row(
+                children: [
+                  BeaverAvatar(
+                    url: chat.avatar,
+                    name: chat.nickname,
+                    size: 48.w,
+                  ),
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                chat.nickname,
                                 style: TextStyle(
-                                  fontSize: 12.w,
-                                  color: const Color(0xFFB2BEC3),
+                                  fontSize: 16.w,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF2D3436),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ],
-                          ),
-                          SizedBox(height: 4.w),
-                          Text(
-                            chat.msgPreview,
-                            style: TextStyle(
-                              fontSize: 14.w,
-                              color: const Color(0xFF636E72),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            Text(
+                              chat.updateAt,
+                              style: TextStyle(
+                                fontSize: 12.w,
+                                color: const Color(0xFFB2BEC3),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4.w),
+                        Text(
+                          chat.msgPreview,
+                          style: TextStyle(
+                            fontSize: 14.w,
+                            color: const Color(0xFF636E72),
                           ),
-                        ],
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          );
-        },
-        childCount: chats.length,
-      ),
+          ),
+        );
+      }, childCount: chats.length),
     );
   }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/theme/colors.dart';
 import 'package:beaver/shared/ui/header/header.dart';
 
 class BeaverLayout extends StatelessWidget {
@@ -12,6 +11,7 @@ class BeaverLayout extends StatelessWidget {
   final Color? backButtonColor;
   final Color headerBackground;
   final bool showBackground;
+  final String backgroundType; // Match uniapp gradient | solid | none
   final double backgroundHeight;
   final Widget child;
   final Widget? before;
@@ -19,8 +19,12 @@ class BeaverLayout extends StatelessWidget {
   final double beforeHeight;
   final double afterHeight;
   final bool isScrollable;
+  final String? leftIcon;
+  final String? rightIcon;
+  final Widget? leftSlot;
   final Widget? rightSlot;
   final VoidCallback? onBack;
+  final VoidCallback? onRightClick;
 
   const BeaverLayout({
     super.key,
@@ -32,6 +36,7 @@ class BeaverLayout extends StatelessWidget {
     this.backButtonColor,
     this.headerBackground = Colors.transparent,
     this.showBackground = false,
+    this.backgroundType = 'gradient',
     this.backgroundHeight = 120, // 240rpx -> 120px
     required this.child,
     this.isScrollable = true,
@@ -39,8 +44,12 @@ class BeaverLayout extends StatelessWidget {
     this.after,
     this.beforeHeight = 0,
     this.afterHeight = 0,
+    this.leftIcon,
+    this.rightIcon,
+    this.leftSlot,
     this.rightSlot,
     this.onBack,
+    this.onRightClick,
   });
 
   @override
@@ -59,8 +68,18 @@ class BeaverLayout extends StatelessWidget {
               right: 0,
               child: Container(
                 height: backgroundHeight.w,
-                decoration: const BoxDecoration(
-                  gradient: AppColors.topGradient,
+                decoration: BoxDecoration(
+                  gradient: backgroundType == 'gradient'
+                      ? LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFFFF7D45).withOpacity(0.1),
+                            const Color(0xFFFFFFFF).withOpacity(0),
+                          ],
+                        )
+                      : null,
+                  color: backgroundType == 'solid' ? const Color(0xFFF8F9FA) : null,
                 ),
               ),
             ),
@@ -76,8 +95,12 @@ class BeaverLayout extends StatelessWidget {
                   showBack: showBack,
                   backButtonColor: backButtonColor,
                   background: headerBackground,
+                  leftIcon: leftIcon ?? 'assets/images/common/arrow-back.svg',
+                  rightIcon: rightIcon,
+                  leftSlot: leftSlot,
                   rightSlot: rightSlot,
                   onBack: onBack,
+                  onRightClick: onRightClick,
                 ),
               
               // 3. Before Content

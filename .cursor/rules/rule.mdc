@@ -170,7 +170,8 @@ class BaseResponse<T> {
 1.  **UI 层 (features/)**:
     *   职责：页面渲染与交互。
     *   状态管理：使用 BLoC/Cubit。
-    *   **限制**：禁止直接调用 `AppDatabase`、`api` 或 `datasync`。**必须且仅能通过 `business` 层获取数据或发起操作。**
+    *   限制：对于核心业务逻辑（如消息、联系人、群组、个人资料等），禁止直接调用 `AppDatabase`、`api` 或 `datasync`。**必须通过 `business` 层获取数据或发起操作。**
+    *   例外：对于非核心、无状态的简单业务（如意见反馈、版本检查、日志上传、静态配置等），可以直接调用对应的 `api` 或 `repository`，无需强制经过 `business` 层。
 
 2.  **业务门面层 (core/business/)**:
     *   职责：作为 UI 层的唯一入口。聚合多个 `services` 和 `datasync` 逻辑。

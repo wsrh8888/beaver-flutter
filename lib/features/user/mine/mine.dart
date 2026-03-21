@@ -9,6 +9,9 @@ import 'package:beaver/features/user/mine/bloc/state.dart';
 import 'package:beaver/shared/ui/avatar/avatar.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:drift_db_viewer/drift_db_viewer.dart';
+import 'package:beaver/core/database/db.dart';
+import 'package:beaver/router/routes.dart';
 
 class MinePage extends StatefulWidget {
   const MinePage({super.key});
@@ -33,31 +36,39 @@ class _MinePageState extends State<MinePage> {
   }
 
   void _navigateToProfile() {
-    context.go('/user/profile');
+    context.push(AppRoutes.profile);
   }
 
   void _navigateToQRCode() {
-    context.go('/user/qrcode');
+    context.push(AppRoutes.qrcode);
   }
 
   void _navigateToSettings() {
-    context.go('/setting');
+    context.push(AppRoutes.settingMain);
   }
 
   void _navigateToFeedback() {
-    context.go('/setting/feedback');
+    context.push(AppRoutes.settingFeedback);
   }
 
   void _navigateToDisclaimer() {
-    context.go('/setting/disclaimer');
+    context.push(AppRoutes.settingDisclaimer);
   }
 
   void _navigateToAbout() {
-    context.go('/setting/about');
+    context.push(AppRoutes.settingAbout);
   }
 
   void _navigateToUpdate() {
-    context.go('/setting/update');
+    context.push(AppRoutes.settingUpdate);
+  }
+
+  void _navigateToDatabase() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => DriftDbViewer(DatabaseManager.instance),
+      ),
+    );
   }
 
   @override
@@ -341,6 +352,13 @@ class _MinePageState extends State<MinePage> {
                   title: '检查更新',
                   onTap: _navigateToUpdate,
                   iconBgColor: const Color(0xFFFF9650).withOpacity(0.1),
+                ),
+                SizedBox(height: 8.w),
+                _buildListItem(
+                  icon: 'assets/images/common/settings.svg',
+                  title: '数据库可视化',
+                  onTap: _navigateToDatabase,
+                  iconBgColor: const Color(0xFFFF7D45).withOpacity(0.1),
                 ),
               ],
             ),

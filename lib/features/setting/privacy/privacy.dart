@@ -51,9 +51,10 @@ class _PrivacyPageState extends State<PrivacyPage> {
             onBack: _handleGoBack,
             showBackground: false,
             isScrollable: true,
-            child: Container(
-              padding: EdgeInsets.all(16.w),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(vertical: 8.w),
               child: Container(
+                margin: EdgeInsets.all(16.w),
                 padding: EdgeInsets.all(32.w),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -74,7 +75,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                       child: Text(
                         'Beaver隐私政策',
                         style: TextStyle(
-                          fontSize: 24.w,
+                          fontSize: 24.sp,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF2D3436),
                         ),
@@ -84,9 +85,9 @@ class _PrivacyPageState extends State<PrivacyPage> {
                     // 更新日期
                     Center(
                       child: Text(
-                        '更新日期：2025年1月1日',
+                        '更新日期：2025年4月3日',
                         style: TextStyle(
-                          fontSize: 12.w,
+                          fontSize: 12.sp,
                           color: const Color(0xFFB2BEC3),
                         ),
                       ),
@@ -96,14 +97,14 @@ class _PrivacyPageState extends State<PrivacyPage> {
                     Text(
                       'Beaver重视您的隐私。本隐私政策说明了我们如何收集、使用、披露、处理和保护您在使用我们的服务时所提供的信息。请您仔细阅读本政策，了解我们的隐私惯例。',
                       style: TextStyle(
-                        fontSize: 14.w,
+                        fontSize: 14.sp,
                         height: 1.6,
                         color: const Color(0xFF636E72),
                       ),
                       textAlign: TextAlign.justify,
                     ),
                     SizedBox(height: 24.w),
-                    // 我们收集的信息
+                    // 1. 我们收集的信息
                     _buildSection(
                       title: '1. 我们收集的信息',
                       content: '我们可能会收集以下类型的信息：',
@@ -115,7 +116,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                         '使用数据：应用使用频率、崩溃数据、性能数据等信息。',
                       ],
                     ),
-                    // 我们如何使用信息
+                    // 2. 我们如何使用信息
                     _buildSection(
                       title: '2. 我们如何使用信息',
                       content: '我们使用收集的信息用于：',
@@ -129,7 +130,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                         '遵守法律义务和执行我们的服务条款。',
                       ],
                     ),
-                    // 信息共享与披露
+                    // 3. 信息共享与披露
                     _buildSection(
                       title: '3. 信息共享与披露',
                       content: '我们可能在以下情况下共享您的信息：',
@@ -142,17 +143,17 @@ class _PrivacyPageState extends State<PrivacyPage> {
                       ],
                       additionalContent: '注意：我们不会向第三方出售您的个人信息。',
                     ),
-                    // 数据安全
+                    // 4. 数据安全
                     _buildSection(
                       title: '4. 数据安全',
                       content: '我们采取合理的技术、管理和物理措施来保护您的信息不被未经授权的访问、使用或披露。但请了解，互联网传输方式无法保证100%的安全性。',
                     ),
-                    // 信息存储与国际传输
+                    // 5. 信息存储与国际传输
                     _buildSection(
                       title: '5. 信息存储与国际传输',
-                      content: '我们可能在您所在国家或地区以外的服务器上处理和存储您的信息。使用我们的服务，即表示您同意这种国际传输和处理。',
+                      content: '我们可能在您所在国家/地区以外的服务器上处理和存储您的信息。使用我们的服务，即表示您同意这种国际传输和处理。',
                     ),
-                    // 您的权利与选择
+                    // 6. 您的权利与选择
                     _buildSection(
                       title: '6. 您的权利与选择',
                       content: '关于您的个人信息，您有权：',
@@ -163,12 +164,12 @@ class _PrivacyPageState extends State<PrivacyPage> {
                         '控制通知、位置服务和其他权限设置。',
                       ],
                     ),
-                    // 儿童隐私
+                    // 7. 儿童隐私
                     _buildSection(
                       title: '7. 儿童隐私',
                       content: '我们的服务不面向16岁以下的儿童。如果我们发现未经父母同意收集了16岁以下儿童的个人信息，我们将采取措施删除这些信息。',
                     ),
-                    // 隐私政策的变更
+                    // 8. 隐私政策的变更
                     _buildSection(
                       title: '8. 隐私政策的变更',
                       content: '我们可能会不时更新本隐私政策。当我们进行重大变更时，会在应用内通知您并获取您的同意（如适用）。建议您定期查看本政策以了解最新信息。',
@@ -186,22 +187,24 @@ class _PrivacyPageState extends State<PrivacyPage> {
                         ),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            '如果您对我们的隐私政策有任何疑问或建议，请通过以下方式与我们联系：',
+                            '如果您对我们的隐私政策有任何疑问 or 建议，请通过以下方式与我们联系：',
                             style: TextStyle(
-                              fontSize: 14.w,
+                              fontSize: 14.sp,
                               height: 1.6,
                               color: const Color(0xFF636E72),
                             ),
+                            textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 8.w),
                           Text(
                             'support@beaver.com',
                             style: TextStyle(
-                              fontSize: 14.w,
+                              fontSize: 14.sp,
                               height: 1.6,
+                              fontWeight: FontWeight.w500,
                               color: const Color(0xFFFF7D45),
                             ),
                           ),
@@ -232,7 +235,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
           Text(
             title,
             style: TextStyle(
-              fontSize: 16.w,
+              fontSize: 16.sp,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF2D3436),
             ),
