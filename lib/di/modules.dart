@@ -4,6 +4,7 @@ import 'core/network.dart';
 import 'core/database.dart';
 import 'core/services.dart';
 import 'core/cache.dart';
+import 'store.dart';
 import 'business/user.dart';
 import 'business/friend.dart';
 import 'business/group.dart';
@@ -21,6 +22,7 @@ void registerModules(GetIt getIt) {
   configureDatabaseDependencies(getIt);
   configureServiceDependencies(getIt);
   configureCacheDependencies(getIt);
+  configureStoreDependencies(getIt);
   
   // 业务层配置
   configureUserBusinessDependencies(getIt);

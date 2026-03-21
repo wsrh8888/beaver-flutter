@@ -4,15 +4,17 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/features/user/mine/bloc/bloc.dart';
-import 'package:beaver/features/user/mine/bloc/event.dart';
 import 'package:beaver/features/user/mine/bloc/state.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:beaver/core/database/db.dart';
-import 'package:beaver/types/cache.dart'; // 添加 CacheType 引用
+import 'package:beaver/types/cache.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/store/user/user.dart';
+import 'package:beaver/store/contact/contact.dart';
+import 'package:beaver/types/business/user.dart';
 
 class MinePage extends StatefulWidget {
   const MinePage({super.key});
@@ -27,7 +29,7 @@ class _MinePageState extends State<MinePage> {
   @override
   void initState() {
     super.initState();
-    _mineBloc = MineBloc()..add(LoadUserInfoEvent());
+    _mineBloc = MineBloc();
   }
 
   @override
@@ -52,12 +54,12 @@ class _MinePageState extends State<MinePage> {
     context.push(AppRoutes.settingFeedback);
   }
 
-  void _navigateToDisclaimer() {
-    context.push(AppRoutes.settingDisclaimer);
-  }
-
   void _navigateToAbout() {
     context.push(AppRoutes.settingAbout);
+  }
+
+  void _navigateToDisclaimer() {
+    context.push(AppRoutes.settingDisclaimer);
   }
 
   void _navigateToUpdate() {
@@ -74,38 +76,50 @@ class _MinePageState extends State<MinePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _mineBloc,
-      child: BlocConsumer<MineBloc, MineState>(
-        listener: (context, state) {
-          if (state.status == MineStatus.error) {
-            BeaverToast.show(context, state.errorMessage ?? '发生错误');
-          }
-        },
-        builder: (context, state) {
-          return BeaverLayout(
-            showHeader: false,
-            isScrollable: true,
-            child: Stack(
-              children: [
-                // 背景颜色
-                Positioned.fill(
-                  child: Container(color: const Color(0xFFF9FAFB)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _mineBloc),
+      ],
+      child: BlocBuilder<UserStore, UserStoreState>(
+        builder: (context, userStoreState) {
+          // 通过 Identity Resolution 获取当前用户的详细资料
+          final userInfo = context.watch<ContactStore>().getContact(userStoreState.currentUserId);
+
+          return BlocConsumer<MineBloc, MineState>(
+            listener: (context, state) {
+              if (state.status == MineStatus.error) {
+                BeaverToast.show(context, state.errorMessage ?? '发生错误');
+              }
+            },
+            builder: (context, state) {
+              return BeaverLayout(
+                showHeader: false,
+                isScrollable: true,
+                child: Stack(
+                  children: [
+                    // 背景颜色
+                    Positioned.fill(
+                      child: Container(color: const Color(0xFFF9FAFB)),
+                    ),
+                    // 1. 个人信息部
+                    _buildHeader(context, userStoreState, userInfo),
+                    // 2. 内容区域
+                    _buildContent(context, userStoreState, userInfo),
+                  ],
                 ),
-                // 1. 个人信息部
-                _buildHeader(context, state),
-                // 2. 内容区域
-                _buildContent(context, state),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, MineState state) {
+  Widget _buildHeader(BuildContext context, UserStoreState state, UserInfo? userInfo) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final String nickname = (userInfo?.nickname.isNotEmpty ?? false) ? userInfo!.nickname : 'Beaver';
+    final String userId = (userInfo?.userId.isNotEmpty ?? false) ? userInfo!.userId : '未设置';
+
     return Stack(
       children: [
         // 渐变背景
@@ -186,7 +200,7 @@ class _MinePageState extends State<MinePage> {
                       ),
                       child: ClipOval(
                         child: BeaverCachedImage(
-                          fileKey: state.userInfo.avatar,
+                          fileKey: userInfo?.avatar,
                           type: CacheType.avatar,
                           width: 80.w,
                           height: 80.w,
@@ -195,9 +209,7 @@ class _MinePageState extends State<MinePage> {
                     ),
                     SizedBox(height: 14.w), // 28rpx
                     Text(
-                      state.userInfo.nickname.isEmpty
-                          ? 'Beaver'
-                          : state.userInfo.nickname,
+                      nickname,
                       style: TextStyle(
                         fontSize: 13.sp, // 严格对应 uniapp 生效的 26rpx (316行覆盖了308行)
                         fontWeight: FontWeight.w600,
@@ -207,7 +219,7 @@ class _MinePageState extends State<MinePage> {
                     ),
                     SizedBox(height: 2.w), // 4rpx
                     Text(
-                      'ID: ${state.userInfo.userId.isEmpty ? '未设置' : state.userInfo.userId}',
+                      'ID: $userId',
                       style: TextStyle(
                         fontSize: 13.sp, // 26rpx
                         color: Colors.white.withOpacity(0.85),
@@ -273,7 +285,7 @@ class _MinePageState extends State<MinePage> {
     );
   }
 
-  Widget _buildContent(BuildContext context, MineState state) {
+  Widget _buildContent(BuildContext context, UserStoreState state, UserInfo? userInfo) {
     return Container(
       margin: EdgeInsets.only(
         top: ScreenUtil().statusBarHeight + 229.w,
