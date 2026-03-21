@@ -13,7 +13,7 @@ class AppRoutes {
   
   // 联系人模块
   static const String contactList = '/contact/list';
-  static const String contactDetail = '/contact/detail';
+  static const String contactDetail = '/contact/detail/:userId';
   static const String addContact = '/contact/add';
   static const String searchContact = '/contact/search';
   static const String newFriends = '/contact/new-friends';

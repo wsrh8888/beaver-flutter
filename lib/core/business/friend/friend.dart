@@ -1,3 +1,5 @@
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/friend/friend.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/contact.dart';
@@ -12,26 +14,78 @@ class FriendBusiness implements FriendRepositoryInterface {
    */
   Future<List<ContactModel>> getContactList() async {
     final friends = await _service.getFriends();
+    print('FriendBusiness: 1. 从数据库读取到原始好友记录: ${friends.length} 条');
+    if (friends.isEmpty) return [];
 
-    return friends.map((friend) {
+    final myUserId = DatabaseManager.currentUserId ?? '';
+    if (myUserId.isEmpty) {
+      print('FriendBusiness: [警告] currentUserId 为空，无法正确解析好友关系');
+      return [];
+    }
+
+    // 确定好友的用户ID列表 (用于批量查询资料)
+    final friendUserIds = friends.map((f) {
+      return f.sendUserId == myUserId ? f.revUserId : f.sendUserId;
+    }).toList();
+
+    final userBusiness = getIt<UserBusiness>();
+
+    // 批量获取这些好友的基础资料 (从 users 表)
+    final userInfos = await userBusiness.getUsersBasicInfo(friendUserIds);
+    print('FriendBusiness: 2. 获取到用户基础资料元数据: ${userInfos.length} 条');
+
+    final userMap = {for (var u in userInfos) u.userId: u};
+
+    final results = friends.map((friend) {
+      // 确定好友的用户ID
+      final friendUserId = friend.sendUserId == myUserId
+          ? friend.revUserId
+          : friend.sendUserId;
+
+      final userInfo = userMap[friendUserId];
+      if (userInfo == null) {
+        print('FriendBusiness: [警告] 找不到好友 $friendUserId 的基础资料');
+      }
+
+      // 确定备注信息 (根据我是发送者还是接收者)
+      final notice = friend.sendUserId == myUserId
+          ? friend.sendUserNotice
+          : friend.revUserNotice;
+
       return ContactModel(
-        userId: friend.friendId,
-        nickname: friend.sendUserNotice ?? friend.friendId,
-        notice: friend.revUserNotice,
-        avatar: '', // TODO: Handle avatar
+        userId: friendUserId,
+        nickname: userInfo?.nickname ?? '',
+        notice: notice,
+        avatar: userInfo?.avatar ?? '',
       );
     }).toList();
+
+    // 2、打印 getContactList 的值
+    print('FriendBusiness: 3. getContactList 组装结果共有 ${results.length} 条:');
+    for (var item in results) {
+      print(
+        '  - userId: ${item.userId}, nickname: ${item.nickname}, notice: ${item.notice}',
+      );
+    }
+
+    return results;
   }
 
   /**
    * @description 根据字母分组联系人
    */
-  Map<String, List<ContactModel>> groupContactsByLetter(List<ContactModel> contacts) {
+  Map<String, List<ContactModel>> groupContactsByLetter(
+    List<ContactModel> contacts,
+  ) {
     final groups = <String, List<ContactModel>>{};
 
     for (final contact in contacts) {
-      final firstChar = contact.nickname.isNotEmpty
-          ? contact.nickname[0].toUpperCase()
+      // 优先使用备注 (notice) 进行分组
+      final displayName = contact.notice?.isNotEmpty == true
+          ? contact.notice!
+          : contact.nickname;
+      final firstChar = displayName.isNotEmpty
+          ? displayName[0].toUpperCase()
           : '#';
       final letter = RegExp(r'[A-Z]').hasMatch(firstChar) ? firstChar : '#';
 
@@ -41,9 +95,13 @@ class FriendBusiness implements FriendRepositoryInterface {
       groups[letter]!.add(contact);
     }
 
-    // 对每个分组内的联系人按名字排序
+    // 处理排序：优先使用备注排序
     groups.forEach((key, value) {
-      value.sort((a, b) => a.nickname.compareTo(b.nickname));
+      value.sort((a, b) {
+        final aName = a.notice?.isNotEmpty == true ? a.notice! : a.nickname;
+        final bName = b.notice?.isNotEmpty == true ? b.notice! : b.nickname;
+        return aName.compareTo(bName);
+      });
     });
 
     return groups;
@@ -74,7 +132,8 @@ class FriendBusiness implements FriendRepositoryInterface {
     return const UserInfo(
       userId: '123456',
       nickname: '李四',
-      avatar: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
+      avatar:
+          'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
     );
   }
 

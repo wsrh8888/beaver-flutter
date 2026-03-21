@@ -9,6 +9,7 @@ import 'package:beaver/features/contact/list/bloc/state.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/router/routes.dart';
 
 class ContactListPage extends StatelessWidget {
   const ContactListPage({super.key});
@@ -33,9 +34,17 @@ class _ContactListViewState extends State<ContactListView> {
   final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> _quickActions = [
-    {'title': '新朋友', 'icon': 'assets/icons/add-friend-icon.svg', 'route': '/new-friends'},
-    {'title': '群聊', 'icon': 'assets/icons/dropdown-group-icon.svg', 'route': '/group-list'},
-    {'title': 'AI', 'icon': 'assets/icons/ai-icon.svg', 'route': '/ai'},
+    {
+      'title': '新朋友',
+      'icon': 'assets/icons/friend/add-friend-icon.svg',
+      'route': AppRoutes.newFriends,
+    },
+    {
+      'title': '群聊',
+      'icon': 'assets/icons/friend/dropdown-group-icon.svg',
+      'route': AppRoutes.groupList,
+    },
+    {'title': 'AI', 'icon': 'assets/icons/friend/ai-icon.svg', 'route': '/ai'},
   ];
 
   @override
@@ -53,7 +62,7 @@ class _ContactListViewState extends State<ContactListView> {
   }
 
   void _handleContactTap(String userId) {
-    context.push('/detail/$userId');
+    context.push('/contact/detail/userId'.replaceAll('userId', userId));
   }
 
   @override
@@ -69,35 +78,6 @@ class _ContactListViewState extends State<ContactListView> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state.status == ContactListStatus.error) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    state.errorMessage ?? '加载失败',
-                    style: TextStyle(
-                      fontSize: 14.w,
-                      color: const Color(0xFF636E72),
-                    ),
-                  ),
-                  SizedBox(height: 10.w),
-                  GestureDetector(
-                    onTap: () {
-                      context.read<ContactListBloc>().add(const LoadContactListEvent());
-                    },
-                    child: Text(
-                      '点击重试',
-                      style: TextStyle(
-                        fontSize: 14.w,
-                        color: const Color(0xFFFF7D45),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
 
           return Stack(
             children: [
@@ -110,7 +90,9 @@ class _ContactListViewState extends State<ContactListView> {
                   Expanded(
                     child: ListView.builder(
                       controller: _scrollController,
-                      itemCount: state.groupedContacts.length + 1, // +1 for the empty state
+                      itemCount:
+                          state.groupedContacts.length +
+                          1, // +1 for the empty state
                       itemBuilder: (context, index) {
                         if (state.groupedContacts.isEmpty) {
                           return _buildEmptyState();
@@ -120,7 +102,9 @@ class _ContactListViewState extends State<ContactListView> {
                           return const SizedBox(height: 50); // 底部占位
                         }
 
-                        final letter = state.indexList[index + 1]; // +1 because indexList starts with '↑'
+                        final letter =
+                            state.indexList[index +
+                                1]; // +1 because indexList starts with '↑'
                         final contacts = state.groupedContacts[letter] ?? [];
 
                         return _buildContactSection(letter, contacts);
@@ -138,7 +122,6 @@ class _ContactListViewState extends State<ContactListView> {
       ),
     );
   }
-
 
   Widget _buildQuickActions() {
     return Container(
@@ -164,7 +147,7 @@ class _ContactListViewState extends State<ContactListView> {
                     borderRadius: BorderRadius.circular(7.w),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         offset: Offset(0, 1.w),
                         blurRadius: 3.w,
                       ),
@@ -207,7 +190,7 @@ class _ContactListViewState extends State<ContactListView> {
             color: Colors.white,
             border: Border(
               top: BorderSide(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 width: 0.5.w,
               ),
             ),
@@ -260,7 +243,9 @@ class _ContactListViewState extends State<ContactListView> {
                     SizedBox(width: 16.w),
                     Expanded(
                       child: Text(
-                        contact.notice ?? contact.nickname,
+                        contact.notice?.isNotEmpty == true
+                            ? contact.notice!
+                            : contact.nickname,
                         style: TextStyle(
                           fontSize: 16.w,
                           fontWeight: FontWeight.w500,
@@ -288,14 +273,16 @@ class _ContactListViewState extends State<ContactListView> {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 4.w),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.1),
+          color: Colors.black.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8.w),
         ),
         child: Column(
           children: indexList.map((letter) {
             return GestureDetector(
               onTap: () {
-                context.read<ContactListBloc>().add(UpdateCurrentIndexEvent(letter));
+                context.read<ContactListBloc>().add(
+                  UpdateCurrentIndexEvent(letter),
+                );
                 if (letter == '↑') {
                   _scrollToTop();
                 }
@@ -308,8 +295,12 @@ class _ContactListViewState extends State<ContactListView> {
                   letter,
                   style: TextStyle(
                     fontSize: 10.w,
-                    fontWeight: currentIndex == letter ? FontWeight.w600 : FontWeight.w500,
-                    color: currentIndex == letter ? const Color(0xFFFF7D45) : const Color(0xFF636E72),
+                    fontWeight: currentIndex == letter
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                    color: currentIndex == letter
+                        ? const Color(0xFFFF7D45)
+                        : const Color(0xFF636E72),
                   ),
                 ),
               ),
@@ -337,18 +328,12 @@ class _ContactListViewState extends State<ContactListView> {
           SizedBox(height: 12.w),
           Text(
             '暂无好友',
-            style: TextStyle(
-              fontSize: 16.w,
-              color: const Color(0xFF636E72),
-            ),
+            style: TextStyle(fontSize: 16.w, color: const Color(0xFF636E72)),
           ),
           SizedBox(height: 8.w),
           Text(
             '点击右上角添加好友',
-            style: TextStyle(
-              fontSize: 12.w,
-              color: const Color(0xFFB2BEC3),
-            ),
+            style: TextStyle(fontSize: 12.w, color: const Color(0xFFB2BEC3)),
           ),
         ],
       ),

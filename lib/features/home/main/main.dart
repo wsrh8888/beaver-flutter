@@ -4,7 +4,6 @@ import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
 import 'package:beaver/features/moment/list/list.dart';
 import 'package:beaver/features/user/mine/mine.dart';
-import 'package:beaver/di/injection.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -32,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.2), width: 0.5)),
+          border: Border(top: BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 0.5)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,

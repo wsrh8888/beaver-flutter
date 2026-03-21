@@ -36,15 +36,13 @@ class UserBusiness implements UserRepositoryInterface {
       return const UserInfo(userId: '', nickname: '未登录');
     }
 
-    // 2. 从数据库查询该用户 (重命名为 dbUser 避免与类名冲突并显式检查)
-    final dbUser = await _userService.getUserByUserId(userId);
+    // 2. 从数据库查询该用户
+    final User? dbUser = await _userService.getUserByUserId(userId);
 
     if (dbUser == null) {
-      print('UserBusiness: 数据库中未找到该用户，尝试从服务器同步...');
       return UserInfo(userId: userId, nickname: 'Beaver');
     }
 
-    print('UserBusiness: 数据库命中 ${dbUser.userId}');
     return UserInfo(
       userId: dbUser.userId,
       nickname: dbUser.nickName ?? 'Beaver',

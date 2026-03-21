@@ -14,7 +14,9 @@ List<GoRoute> contactRoutes() {
     ),
     GoRoute(
       path: AppRoutes.contactDetail,
-      builder: (context, state) => const ContactDetailPage(),
+      builder: (context, state) => ContactDetailPage(
+        userId: state.pathParameters['userId'],
+      ),
     ),
     GoRoute(
       path: AppRoutes.addContact,
