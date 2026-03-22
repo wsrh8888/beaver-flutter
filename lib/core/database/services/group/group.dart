@@ -86,6 +86,17 @@ class GroupService extends BaseService {
     return (db.select(db.groups)..where((t) => t.groupId.isIn(groupIds))).get();
   }
 
+  /// 获取当前用户的有效群组列表
+  Future<List<Group>> getActiveGroups() async {
+    return (db.select(db.groups)
+          ..where((t) => t.status.equals(1))
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.updatedAt),
+            (t) => OrderingTerm.desc(t.createdAt),
+          ]))
+        .get();
+  }
+
   /// 更新群组信息
   Future<void> updateGroup(String groupId, Map<String, dynamic> updateData) async {
     updateData['updatedAt'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;

@@ -1,0 +1,111 @@
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/types/cache.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class PrivateSettingPanel extends StatelessWidget {
+  final String nickname;
+  final String userId;
+  final String avatar;
+  final bool isTop;
+  final VoidCallback onToggleTop;
+  final VoidCallback onDeleteConversation;
+
+  const PrivateSettingPanel({
+    super.key,
+    required this.nickname,
+    required this.userId,
+    required this.avatar,
+    required this.isTop,
+    required this.onToggleTop,
+    required this.onDeleteConversation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: Row(
+            children: [
+              BeaverCachedImage(
+                fileKey: avatar,
+                type: CacheType.avatar,
+                width: 52.w,
+                height: 52.w,
+                borderRadius: 12.w,
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nickname,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF2D3436),
+                      ),
+                    ),
+                    SizedBox(height: 4.w),
+                    Text(
+                      'ID: $userId',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: const Color(0xFF636E72),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '置顶聊天',
+              style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+            ),
+            trailing: Switch(
+              value: isTop,
+              onChanged: (_) => onToggleTop(),
+              activeColor: const Color(0xFFFF7D45),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '删除会话',
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: const Color(0xFFF44336),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: onDeleteConversation,
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -5,6 +5,12 @@ enum MessageType {
   video,
   audio,
   file,
+  emoji,
+  notification,
+  recalled,
+  reply,
+  mergedForward,
+  call,
   system,
 }
 
@@ -31,6 +37,8 @@ class MessageModel {
   final String id;
   final String conversationId;
   final String userId;
+  final String? nickname;
+  final String? avatar;
   final String content;
   final MessageType type;
   final MessageStatus status;
@@ -41,6 +49,8 @@ class MessageModel {
     required this.id,
     required this.conversationId,
     required this.userId,
+    this.nickname,
+    this.avatar,
     required this.content,
     required this.type,
     required this.status,
@@ -52,6 +62,8 @@ class MessageModel {
     String? id,
     String? conversationId,
     String? userId,
+    String? nickname,
+    String? avatar,
     String? content,
     MessageType? type,
     MessageStatus? status,
@@ -62,6 +74,8 @@ class MessageModel {
       id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
       userId: userId ?? this.userId,
+      nickname: nickname ?? this.nickname,
+      avatar: avatar ?? this.avatar,
       content: content ?? this.content,
       type: type ?? this.type,
       status: status ?? this.status,
@@ -69,4 +83,4 @@ class MessageModel {
       isSent: isSent ?? this.isSent,
     );
   }
-}
+}

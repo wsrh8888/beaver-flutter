@@ -1,9 +1,8 @@
-import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatStoreState extends Equatable {
   final List<ChatModel> conversations;
@@ -30,31 +29,59 @@ class ChatStoreState extends Equatable {
 
 class ChatStore extends Cubit<ChatStoreState> {
   final ConversationBusiness _conversationBusiness;
-  
-  ChatStore({ConversationBusiness? conversationBusiness}) 
-    : _conversationBusiness = conversationBusiness ?? getIt<ConversationBusiness>(),
+
+  ChatStore({ConversationBusiness? conversationBusiness})
+    : _conversationBusiness =
+          conversationBusiness ?? getIt<ConversationBusiness>(),
       super(const ChatStoreState());
 
-  /**
-   * @description: 初始化会话列表与未读数
-   */
   Future<void> init() async {
     try {
       final conversations = await _conversationBusiness.getChatList();
-      
-      // 计算总未读数
-      int totalUnread = 0;
-      for (var conv in conversations) {
+      print('[ChatStore] init: businessConversations=${conversations.length}');
+      for (final conv in conversations) {
+        print(
+          '[ChatStore][BUSINESS] id=${conv.conversationId}, '
+          'nickname=${conv.nickname}, avatar=${conv.avatar}, '
+          'msgPreview=${conv.msgPreview}, isTop=${conv.isTop}, unread=${conv.unreadCount}',
+        );
+      }
+
+      var totalUnread = 0;
+      for (final conv in conversations) {
         totalUnread += conv.unreadCount;
       }
 
-      emit(state.copyWith(
+      final nextState = state.copyWith(
         conversations: conversations,
         totalUnreadCount: totalUnread,
-      ));
+      );
+      emit(nextState);
+
+      print(
+        '[ChatStore] init: emitted conversations=${nextState.conversations.length}, '
+        'totalUnread=${nextState.totalUnreadCount}',
+      );
+      for (final conv in nextState.conversations) {
+        print(
+          '[ChatStore][STATE] id=${conv.conversationId}, '
+          'nickname=${conv.nickname}, avatar=${conv.avatar}, '
+          'msgPreview=${conv.msgPreview}, isTop=${conv.isTop}, unread=${conv.unreadCount}',
+        );
+      }
     } catch (e) {
-      print('ChatStore: 初始化失败: $e');
+      print('ChatStore: init failed: $e');
     }
+  }
+
+  Future<void> togglePinChat(String conversationId, bool isPinned) async {
+    await _conversationBusiness.togglePinChat(conversationId, isPinned);
+    await init();
+  }
+
+  Future<void> deleteChat(String conversationId) async {
+    await _conversationBusiness.deleteChat(conversationId);
+    await init();
   }
 
   void updateTotalUnreadCount(int count) {

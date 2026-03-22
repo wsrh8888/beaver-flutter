@@ -1,52 +1,258 @@
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/chat/conversation.dart';
+import 'package:beaver/core/database/services/chat/message.dart';
 import 'package:beaver/core/database/services/chat/user_conversation.dart';
+import 'package:beaver/core/database/services/friend/friend.dart';
+import 'package:beaver/core/database/services/group/group.dart';
+import 'package:beaver/core/database/services/user/user.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
 
-/// 会话业务逻辑
 class ConversationBusiness implements ConversationRepositoryInterface {
   final _conversationService = getIt<ChatConversationService>();
+  final _messageService = getIt<ChatMessageService>();
   final _userConversationService = getIt<ChatUserConversationService>();
+  final _friendService = getIt<FriendService>();
+  final _groupService = getIt<GroupService>();
+  final _userService = getIt<UserService>();
 
-  /**
-   * @description 获取会话列表 (UI 格式)
-   */
+  @override
   Future<List<ChatModel>> getChatList() async {
-    final conversations = await _conversationService.getConversations();
+    final currentUserId = DatabaseManager.currentUserId ?? '';
+    if (currentUserId.isEmpty) {
+      print('[ConversationBusiness] currentUserId is empty');
+      return [];
+    }
 
-    return conversations.map((conv) {
-      return ChatModel(
-        conversationId: conv.conversationId,
-        nickname: conv.title ?? '未知用户',
-        avatar: conv.avatar,
-        msgPreview: conv.lastMessage ?? '',
-        updateAt: _formatTime(conv.updatedAt != null ? DateTime.fromMillisecondsSinceEpoch(conv.updatedAt!) : null),
-        isTop: false, // TODO: Wait for services/DB to fully support isPinned
-        unreadCount: 0,
+    // 1) user_conversation: filter hidden
+    final userConversations = await _userConversationService.getByUserId(
+      currentUserId,
+    );
+    final visibleUserConversations = userConversations
+        .where((uc) => uc.isHidden == 0)
+        .toList();
+
+    if (visibleUserConversations.isEmpty) {
+      print('[ConversationBusiness] no visible user conversations');
+      return [];
+    }
+
+    // 2) conversation metas
+    final conversationIds =
+        visibleUserConversations.map((uc) => uc.conversationId).toList();
+    final conversationMetas = await _conversationService.getConversationsByIds(
+      conversationIds,
+    );
+    final metaMap = {
+      for (final meta in conversationMetas) meta.conversationId: meta,
+    };
+
+    // 3) merge + sort (isPinned first, then updatedAt desc)
+    final merged = <_MergedConversation>[];
+    for (final uc in visibleUserConversations) {
+      final meta = metaMap[uc.conversationId];
+      if (meta == null) {
+        continue;
+      }
+      merged.add(_MergedConversation(meta: meta, setting: uc));
+    }
+
+    merged.sort((a, b) {
+      if (a.setting.isPinned != b.setting.isPinned) {
+        return b.setting.isPinned.compareTo(a.setting.isPinned);
+      }
+      return (b.meta.updatedAt ?? 0).compareTo(a.meta.updatedAt ?? 0);
+    });
+
+    // 4) collect private peer ids + group ids by conversationId
+    final privatePeerIds = <String>{};
+    final groupIds = <String>{};
+    for (final item in merged) {
+      if (_isPrivateConversation(item.meta.conversationId)) {
+        final peerId = _parsePrivatePeerId(
+          item.meta.conversationId,
+          currentUserId,
+        );
+        if (peerId != null && peerId.isNotEmpty) {
+          privatePeerIds.add(peerId);
+        }
+      } else if (_isGroupConversation(item.meta.conversationId)) {
+        final groupId = _parseGroupId(item.meta.conversationId);
+        if (groupId != null && groupId.isNotEmpty) {
+          groupIds.add(groupId);
+        }
+      }
+    }
+
+    // private: friend relation + user basic info
+    final friendDetailsMap = <String, _FriendDetail>{};
+    if (privatePeerIds.isNotEmpty) {
+      final allFriends = await _friendService.getFriends();
+      final relatedFriends = allFriends.where((f) {
+        final isMine = f.sendUserId == currentUserId || f.revUserId == currentUserId;
+        if (!isMine) return false;
+        final peerId = f.sendUserId == currentUserId ? f.revUserId : f.sendUserId;
+        return privatePeerIds.contains(peerId);
+      }).toList();
+
+      final userInfos = await _userService.getUsersBasicInfo(
+        privatePeerIds.toList(),
       );
-    }).toList();
+      final userMap = {
+        for (final u in userInfos) (u['userId']?.toString() ?? ''): u,
+      };
+
+      for (final friend in relatedFriends) {
+        final peerId =
+            friend.sendUserId == currentUserId ? friend.revUserId : friend.sendUserId;
+        final notice = friend.sendUserId == currentUserId
+            ? (friend.revUserNotice ?? '')
+            : (friend.sendUserNotice ?? '');
+        final user = userMap[peerId];
+        friendDetailsMap[peerId] = _FriendDetail(
+          userId: peerId,
+          nickname: user?['nickName']?.toString() ?? '',
+          avatar: user?['avatar']?.toString() ?? '',
+          notice: notice,
+        );
+      }
+    }
+
+    // group details
+    final groupMap = <String, Group>{};
+    if (groupIds.isNotEmpty) {
+      final groups = await _groupService.getGroupsByIds(groupIds.toList());
+      for (final group in groups) {
+        groupMap[group.groupId] = group;
+      }
+    }
+
+    print(
+      '[ConversationBusiness] aggregate: merged=${merged.length}, '
+      'privatePeers=${privatePeerIds.length}, friendDetails=${friendDetailsMap.length}, '
+      'groups=${groupMap.length}',
+    );
+
+    // 5) render mapping
+    final list = <ChatModel>[];
+    for (final item in merged) {
+      final conversationId = item.meta.conversationId;
+      var avatar = item.meta.avatar ?? '';
+      var nickname = item.meta.title ?? '';
+      final notice = '';
+
+      if (_isPrivateConversation(conversationId)) {
+        final peerId = _parsePrivatePeerId(conversationId, currentUserId);
+        if (peerId != null) {
+          final fd = friendDetailsMap[peerId];
+          if (fd != null) {
+            avatar = fd.avatar;
+            nickname = fd.notice.isNotEmpty ? fd.notice : fd.nickname;
+          } else if (nickname.isEmpty) {
+            nickname = peerId;
+          }
+        }
+      } else if (_isGroupConversation(conversationId)) {
+        final groupId = _parseGroupId(conversationId);
+        final group = groupId == null ? null : groupMap[groupId];
+        if (group != null) {
+          avatar = group.avatar;
+          nickname = group.title;
+        } else if (nickname.isEmpty && groupId != null) {
+          nickname = '群聊($groupId)';
+        }
+      }
+
+      final updatedAt = item.meta.updatedAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(item.meta.updatedAt! * 1000);
+      final msgPreview = await _resolveLatestPreview(
+        conversationId,
+        item.meta.lastMessage,
+      );
+      final unreadCount = _computeUnread(item.meta.maxSeq, item.setting.userReadSeq);
+
+      list.add(
+        ChatModel(
+          conversationId: conversationId,
+          nickname: nickname,
+          avatar: avatar,
+          msgPreview: msgPreview,
+          updateAt: _formatTime(updatedAt),
+          isTop: item.setting.isPinned == 1,
+          unreadCount: unreadCount,
+        ),
+      );
+
+      print(
+        '[ConversationBusiness][RESULT] id=$conversationId, '
+        'nickname=$nickname, avatar=$avatar, msgPreview=$msgPreview, '
+        'isTop=${item.setting.isPinned == 1}, unread=$unreadCount, notice=$notice',
+      );
+    }
+
+    return list;
   }
 
-  /**
-   * @description 标记会话为已读
-   */
+  @override
   Future<void> markAsRead(String conversationId) async {
     await _userConversationService.markAsRead(conversationId, 0);
   }
 
-  /**
-   * @description 置顶会话
-   */
+  @override
   Future<void> togglePinChat(String conversationId, bool isPinned) async {
     await _userConversationService.togglePinConversation(conversationId, isPinned);
   }
 
-  /**
-   * @description 删除会话
-   */
+  @override
   Future<void> deleteChat(String conversationId) async {
     await _conversationService.deleteConversation(conversationId);
     await _userConversationService.delete(conversationId);
+  }
+
+  Future<String> _resolveLatestPreview(
+    String conversationId,
+    String? conversationLastMessage,
+  ) async {
+    if (conversationLastMessage != null && conversationLastMessage.isNotEmpty) {
+      return conversationLastMessage;
+    }
+
+    final latest = await _messageService.getChatHistory(conversationId, limit: 1);
+    if (latest.isEmpty) {
+      return '';
+    }
+    return latest.first.msgPreview ?? '';
+  }
+
+  int _computeUnread(int maxSeq, int userReadSeq) {
+    final unread = maxSeq - userReadSeq;
+    return unread > 0 ? unread : 0;
+  }
+
+  bool _isPrivateConversation(String conversationId) {
+    return conversationId.startsWith('private_');
+  }
+
+  bool _isGroupConversation(String conversationId) {
+    return conversationId.startsWith('group_');
+  }
+
+  String? _parsePrivatePeerId(String conversationId, String currentUserId) {
+    final parts = conversationId.split('_');
+    if (parts.length < 3) return null;
+    final userId1 = parts[1];
+    final userId2 = parts[2];
+
+    if (userId1 == currentUserId) return userId2;
+    if (userId2 == currentUserId) return userId1;
+    return userId1;
+  }
+
+  String? _parseGroupId(String conversationId) {
+    final parts = conversationId.split('_');
+    if (parts.length < 2 || parts.first != 'group') return null;
+    return parts.sublist(1).join('_');
   }
 
   String _formatTime(DateTime? dateTime) {
@@ -61,10 +267,34 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     } else if (date == today.subtract(const Duration(days: 1))) {
       return '昨天';
     } else if (now.difference(dateTime).inDays < 7) {
-      final weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+      const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
       return weekdays[dateTime.weekday - 1];
     } else {
       return '${dateTime.month}/${dateTime.day}';
     }
   }
+}
+
+class _MergedConversation {
+  final ChatConversation meta;
+  final ChatUserConversation setting;
+
+  const _MergedConversation({
+    required this.meta,
+    required this.setting,
+  });
+}
+
+class _FriendDetail {
+  final String userId;
+  final String nickname;
+  final String avatar;
+  final String notice;
+
+  const _FriendDetail({
+    required this.userId,
+    required this.nickname,
+    required this.avatar,
+    required this.notice,
+  });
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -80,21 +80,6 @@ class _ChatListViewState extends State<ChatListView> {
                         style: TextStyle(
                           fontSize: 14.w,
                           color: const Color(0xFF636E72),
-                        ),
-                      ),
-                      SizedBox(height: 10.w),
-                      GestureDetector(
-                        onTap: () {
-                          context.read<ChatListBloc>().add(
-                            const LoadChatListEvent(),
-                          );
-                        },
-                        child: Text(
-                          '点击重试',
-                          style: TextStyle(
-                            fontSize: 14.w,
-                            color: const Color(0xFFFF7D45),
-                          ),
                         ),
                       ),
                     ],
@@ -405,7 +390,7 @@ class _ChatListViewState extends State<ChatListView> {
   }
 
   void _handleChatClick(dynamic chat) {
-    context.push('/chat/${chat.conversationId}');
+    context.push('/chat/detail?id=${chat.conversationId}');
   }
 
   void _handleMenuClick(int id) {
@@ -433,3 +418,5 @@ class _ChatListViewState extends State<ChatListView> {
     {'id': 4, 'title': '收付款', 'icon': 'assets/icons/dropdown-pay-icon.svg'},
   ];
 }
+
+

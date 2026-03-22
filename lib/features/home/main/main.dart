@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
@@ -77,3 +77,4 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+

@@ -1,75 +1,103 @@
+import 'package:beaver/core/database/services/index.dart';
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/core/database/db.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:drift/drift.dart';
 
-/// 群组业务逻辑
+/// Group business logic.
 class GroupBusiness implements GroupRepositoryInterface {
-  /**
-   * @description 获取联系人列表
-   */
+  final _groupService = getIt<GroupService>();
+  final _groupMemberService = getIt<GroupMemberService>();
+  final _friendBusiness = getIt<FriendBusiness>();
+
+  @override
   Future<List<Contact>?> getContacts() async {
-    // 模拟获取联系人列表
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Contact(
-        userId: '1',
-        nickname: '张三',
-        fileName: 'avatar1.jpg',
-        status: '在线',
-      ),
-      Contact(
-        userId: '2',
-        nickname: '李四',
-        fileName: 'avatar2.jpg',
-        status: '离线',
-      ),
-      Contact(
-        userId: '3',
-        nickname: '王五',
-        fileName: 'avatar3.jpg',
-        status: '在线',
-      ),
-      Contact(
-        userId: '4',
-        nickname: '赵六',
-        fileName: 'avatar4.jpg',
-        status: '在线',
-      ),
-      Contact(
-        userId: '5',
-        nickname: '钱七',
-        fileName: 'avatar5.jpg',
-        status: '离线',
-      ),
-    ];
+    final friends = await _friendBusiness.getContactList();
+    return friends
+        .map(
+          (item) => Contact(
+            userId: item.userId,
+            nickname:
+                item.notice?.isNotEmpty == true ? item.notice! : item.nickname,
+            fileName:
+                item.avatar?.isNotEmpty == true
+                    ? item.avatar!
+                    : (item.fileName ?? ''),
+            status: '',
+          ),
+        )
+        .toList();
   }
 
-  /**
-   * @description 创建群组
-   */
+  @override
   Future<String> createGroup(List<String> userIds) async {
-    // 模拟创建群组
-    await Future.delayed(const Duration(seconds: 1));
-    return 'group_${DateTime.now().millisecondsSinceEpoch}';
+    final currentUserId = DatabaseManager.currentUserId ?? '';
+    if (currentUserId.isEmpty) {
+      throw StateError('currentUserId is empty');
+    }
+
+    final memberIds = userIds.where((id) => id.trim().isNotEmpty).toSet();
+    memberIds.add(currentUserId);
+
+    final nowMs = DateTime.now().millisecondsSinceEpoch;
+    final now = nowMs ~/ 1000;
+    final groupId = 'group_$nowMs';
+
+    await _groupService.upsert(
+      GroupsCompanion(
+        groupId: Value(groupId),
+        title: const Value('新群聊'),
+        avatar: const Value(''),
+        creatorId: Value(currentUserId),
+        joinType: const Value(0),
+        status: const Value(1),
+        version: const Value(0),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    );
+
+    final members =
+        memberIds
+            .map(
+              (userId) => GroupMembersCompanion(
+                groupId: Value(groupId),
+                userId: Value(userId),
+                role: Value(userId == currentUserId ? 1 : 3),
+                status: const Value(1),
+                joinTime: Value(now),
+                version: const Value(0),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            )
+            .toList();
+
+    await _groupMemberService.batchCreate(members);
+    return groupId;
   }
 
-  /**
-   * @description 获取群组列表
-   */
+  @override
   Future<List<GroupInfo>?> getGroupList() async {
-    return [
-      const GroupInfo(
-        conversationId: '1',
-        title: '技术交流群',
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=tech%20group%20avatar&size=512x512',
-        lastMessage: '大家好，欢迎加入技术交流群！',
-        memberCount: 45,
-      ),
-      const GroupInfo(
-        conversationId: '2',
-        title: '产品讨论组',
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=product%20group%20avatar&size=512x512',
-        lastMessage: '下周一我们讨论新功能。',
-        memberCount: 12,
-      ),
-    ];
+    final groups = await _groupService.getActiveGroups();
+    if (groups.isEmpty) {
+      return [];
+    }
+
+    final result = <GroupInfo>[];
+    for (final group in groups) {
+      final members = await _groupMemberService.getGroupMembers(group.groupId);
+      result.add(
+        GroupInfo(
+          conversationId: group.groupId,
+          title: group.title,
+          fileName: group.avatar,
+          lastMessage: group.notice ?? '',
+          memberCount: members.length,
+        ),
+      );
+    }
+    return result;
   }
 }

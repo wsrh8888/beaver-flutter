@@ -1,10 +1,9 @@
+import 'package:beaver/features/chat/detail/components/message/message_item.dart';
+import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/types/business/message.dart';
-import 'package:beaver/shared/ui/cache/image.dart';
-import 'package:beaver/types/cache.dart';
 
-class MessageList extends StatelessWidget {
+class MessageList extends StatefulWidget {
   final List<MessageModel> messages;
   final bool isLoadingMore;
   final VoidCallback onLoadMore;
@@ -17,58 +16,51 @@ class MessageList extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return _buildMessageItem(message);
-      },
-    );
+  State<MessageList> createState() => _MessageListState();
+}
+
+class _MessageListState extends State<MessageList> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
   }
 
-  Widget _buildMessageItem(MessageModel message) {
-    final isMe = message.isSent;
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.w),
-      child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isMe)
-            BeaverCachedImage(
-              fileKey: '',
-              type: CacheType.avatar,
-              width: 36.w,
-              height: 36.w,
-              borderRadius: 18.w,
-            ),
-          SizedBox(width: 8.w),
-          Flexible(
-            child: Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.orange : Colors.white,
-                borderRadius: BorderRadius.circular(12.w),
-              ),
-              child: Text(
-                message.content,
-                style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 16.sp, height: 1.4),
-              ),
-            ),
-          ),
-          SizedBox(width: 8.w),
-          if (isMe)
-            BeaverCachedImage(
-              fileKey: '',
-              type: CacheType.avatar,
-              width: 36.w,
-              height: 36.w,
-              borderRadius: 18.w,
-            ),
-        ],
-      ),
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!widget.isLoadingMore) {
+        widget.onLoadMore();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: EdgeInsets.symmetric(vertical: 8.w),
+      itemCount: widget.messages.length,
+      itemBuilder: (context, index) {
+        final message = widget.messages[index];
+        // Determine if we should show nickname (e.g. for group chats, but here we'll simplify)
+        final isGroup = message.conversationId.startsWith('group_');
+        
+        return MessageItem(
+          key: ValueKey(message.id),
+          message: message,
+          showNickname: isGroup,
+        );
+      },
+      reverse: false, // Desktop/Mobile usually shows messages from top to bottom or bottom up depending on app. 
+      // Most IMs use reverse: true for performance and auto-scrolling to bottom, but we need to align with current logic.
     );
   }
 }

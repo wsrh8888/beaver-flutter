@@ -1,77 +1,67 @@
+import 'package:beaver/router/routes.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/store/app/app.dart';
+import 'package:beaver/store/group/group.dart';
+import 'package:beaver/types/business/group.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:beaver/features/group/list/bloc/bloc.dart';
-import 'package:beaver/features/group/list/bloc/event.dart';
-import 'package:beaver/features/group/list/bloc/state.dart';
-import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/cache/image.dart';
-import 'package:beaver/types/cache.dart';
-import 'package:beaver/router/routes.dart';
 import 'package:go_router/go_router.dart';
 
-class GroupListPage extends StatefulWidget {
+class GroupListPage extends StatelessWidget {
   const GroupListPage({super.key});
 
   @override
-  State<GroupListPage> createState() => _GroupListPageState();
-}
-
-class _GroupListPageState extends State<GroupListPage> {
-  late GroupListBloc _groupListBloc;
-
-  @override
-  void initState() {
-    super.initState();
-    _groupListBloc = GroupListBloc()..add(LoadGroupListEvent());
-  }
-
-  @override
-  void dispose() {
-    _groupListBloc.close();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _groupListBloc,
-      child: BlocBuilder<GroupListBloc, GroupListState>(
-        builder: (context, state) {
-          return BeaverLayout(
-            title: '我的群聊',
-            showBack: true,
-            showHeader: true,
-            child: Stack(
-              children: [_buildGroupList(state), _buildFab(context)],
-            ),
-          );
-        },
+    return BeaverLayout(
+      title: '我的群聊',
+      showBack: true,
+      showHeader: true,
+      isScrollable: false,
+      child: Stack(
+        children: [
+          _buildGroupList(),
+          _buildFab(context),
+        ],
       ),
     );
   }
 
-  Widget _buildGroupList(GroupListState state) {
-    if (state.status == GroupListStatus.loading && state.groupList.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
+  Widget _buildGroupList() {
+    return BlocBuilder<GroupStore, GroupStoreState>(
+      builder: (context, groupState) {
+        return BlocBuilder<AppStore, AppStoreState>(
+          builder: (context, appState) {
+            final groups = groupState.groups;
+            final isInitLoading =
+                !appState.isInitComplete &&
+                appState.status != AppLifecycleStatus.error;
 
-    if (state.groupList.isEmpty) {
-      return _buildEmptyState();
-    }
+            if (groups.isEmpty && isInitLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16.w),
-      itemCount: state.groupList.length,
-      itemBuilder: (context, index) {
-        final group = state.groupList[index];
-        return _buildGroupItem(context, group);
+            if (groups.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            return ListView.builder(
+              padding: EdgeInsets.all(16.w),
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                return _buildGroupItem(context, groups[index]);
+              },
+            );
+          },
+        );
       },
     );
   }
 
-  Widget _buildGroupItem(BuildContext context, dynamic group) {
+  Widget _buildGroupItem(BuildContext context, GroupInfo group) {
     return GestureDetector(
       onTap: () => context.push(
         '${AppRoutes.chatDetail}?id=${group.conversationId}&type=group',
@@ -185,7 +175,7 @@ class _GroupListPageState extends State<GroupListPage> {
 
   Widget _buildFab(BuildContext context) {
     return Positioned(
-      bottom: 24.w,
+      bottom: 20.w,
       right: 20.w,
       child: GestureDetector(
         onTap: () => context.push(AppRoutes.groupCreate),
@@ -243,3 +233,5 @@ class _GroupListPageState extends State<GroupListPage> {
     );
   }
 }
+
+

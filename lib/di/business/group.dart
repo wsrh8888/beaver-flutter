@@ -8,5 +8,7 @@ void configureGroupBusinessDependencies(GetIt getIt) {
   getIt.registerLazySingleton<GroupBusiness>(() => GroupBusiness());
   
   // 业务接口注册
-  getIt.registerLazySingleton<GroupRepositoryInterface>(() => GroupBusiness());
+  getIt.registerLazySingleton<GroupRepositoryInterface>(
+    () => getIt<GroupBusiness>(),
+  );
 }
