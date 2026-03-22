@@ -22,18 +22,27 @@ class GroupMemberSync {
       final lastSyncTime = cursor?.version ?? 0;
 
       // 获取服务器上变更的群成员版本信息
-      final response = await datasyncGetSyncGroupMembersApi(IGetSyncGroupMembersReq(since: lastSyncTime));
+      final response = await datasyncGetSyncGroupMembersApi(
+        IGetSyncGroupMembersReq(since: lastSyncTime),
+      );
       if (response.code != 0 || response.result == null) {
         print('[GroupMemberSync] 获取群成员版本失败: ${response.msg}');
         return;
       }
 
       // 对比本地数据，过滤出需要更新的群组
-      final needUpdateGroups = await _compareAndFilterMemberVersions(syncStatusService, response.result!.groupVersions);
+      final needUpdateGroups = await _compareAndFilterMemberVersions(
+        syncStatusService,
+        response.result!.groupVersions,
+      );
 
       if (needUpdateGroups.isNotEmpty) {
         // 有需要更新的群成员
-        await _syncMemberData(groupMemberService, syncStatusService, needUpdateGroups);
+        await _syncMemberData(
+          groupMemberService,
+          syncStatusService,
+          needUpdateGroups,
+        );
       }
 
       // 更新游标（无论是否有变更都要更新）
@@ -58,18 +67,26 @@ class GroupMemberSync {
     final groupIds = groupVersions.map((item) => item.groupId).toList();
 
     // 查询本地已存在的群成员版本状态
-    final localVersions = await syncStatusService.getModuleVersions('members', groupIds);
-    final localVersionMap = {for (var v in localVersions) (v['groupId'] as String): (v['version'] as int)};
+    final localVersions = await syncStatusService.getModuleVersions(
+      'members',
+      groupIds,
+    );
+    final localVersionMap = {
+      for (var v in localVersions)
+        (v['groupId'] as String): (v['version'] as int),
+    };
 
     // 过滤出需要更新的群组，并使用本地版本号
     final List<IGroupVersionSyncItem> needUpdateGroups = [];
     for (var groupVersion in groupVersions) {
       final localVersion = localVersionMap[groupVersion.groupId] ?? 0;
       if (localVersion < groupVersion.version) {
-        needUpdateGroups.add(IGroupVersionSyncItem(
-          groupId: groupVersion.groupId,
-          version: localVersion,
-        ));
+        needUpdateGroups.add(
+          IGroupVersionSyncItem(
+            groupId: groupVersion.groupId,
+            version: localVersion,
+          ),
+        );
       }
     }
 
@@ -85,26 +102,34 @@ class GroupMemberSync {
     if (groupsWithVersions.isEmpty) return;
 
     // 直接使用传入的群组版本信息构造请求
-    final response = await groupMemberSyncApi(IGroupMemberSyncReq(groups: groupsWithVersions));
-    if (response.code == 0 && response.result != null && response.result!.groupMembers.isNotEmpty) {
-      final members = response.result!.groupMembers.map((m) => GroupMembersCompanion(
-        groupId: Value(m.groupId),
-        userId: Value(m.userId),
-        nickName: Value(m.nickName),
-        avatar: Value(m.avatar),
-        role: Value(m.role),
-        status: Value(m.status),
-        joinTime: Value(m.joinTime),
-        version: Value(m.version),
-        createdAt: Value(m.createdAt),
-        updatedAt: Value(m.updatedAt),
-      )).toList();
+    final response = await groupMemberSyncApi(
+      IGroupMemberSyncReq(groups: groupsWithVersions),
+    );
+    if (response.code == 0 &&
+        response.result != null &&
+        response.result!.groupMembers.isNotEmpty) {
+      final members = response.result!.groupMembers
+          .map(
+            (m) => GroupMembersCompanion(
+              groupId: Value(m.groupId),
+              userId: Value(m.userId),
+              nickName: Value(m.nickName),
+              avatar: Value(m.avatar),
+              role: Value(m.role),
+              status: Value(m.status),
+              joinTime: Value(m.joinTime),
+              version: Value(m.version),
+              createdAt: Value(m.createdAt),
+              updatedAt: Value(m.updatedAt),
+            ),
+          )
+          .toList();
 
       await groupMemberService.batchCreate(members);
 
       // 更新本地群成员版本状态 (这里注意同步响应包里没有聚合版本，我们根据返回的 member 来更新)
       for (final member in response.result!.groupMembers) {
-         await syncStatusService.upsertSyncStatus(
+        await syncStatusService.upsertSyncStatus(
           module: 'members',
           groupId: member.groupId,
           version: member.version,

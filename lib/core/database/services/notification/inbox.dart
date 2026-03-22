@@ -140,4 +140,23 @@ class NotificationInboxService extends BaseService {
       db.notificationInboxTable,
     )..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId))).go();
   }
+  /**
+   * @description 获取特定时间后的未读通知数
+   */
+  Future<int> getUnreadCountAfterTime({
+    required String userId,
+    required String category,
+    required int afterTime,
+  }) async {
+    final query =
+        db.select(db.notificationInboxTable)..where(
+          (t) =>
+              t.userId.equals(userId) &
+              t.category.equals(category) &
+              t.createdAt.isBiggerThanValue(afterTime) &
+              t.isRead.equals(0),
+        );
+    final results = await query.get();
+    return results.length;
+  }
 }

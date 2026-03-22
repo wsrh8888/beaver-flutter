@@ -1,5 +1,5 @@
 import 'package:beaver/common/websocket/index.dart';
-import 'package:beaver/core/message/message_manager.dart';
+import 'package:beaver/core/message/index.dart';
 import 'package:beaver/di/injection.dart';
 
 /// WebSocket 连接管理器

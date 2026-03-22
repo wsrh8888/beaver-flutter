@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:beaver/types/cache.dart';
-import 'package:beaver/core/business/media/media.dart';
+import 'package:beaver/core/business/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 
@@ -36,8 +36,10 @@ class _BeaverCachedVideoState extends State<BeaverCachedVideo> {
   // 基础渲染：目前主要展示缩略图，点击播放逻辑通常在 handler 中
   @override
   Widget build(BuildContext context) {
-    print('[BeaverCachedVideo] Build: videoKey=${widget.videoKey}, thumbnailKey=${widget.thumbnailKey}, width=${widget.width}, height=${widget.height}, duration=${widget.duration}');
-    
+    print(
+      '[BeaverCachedVideo] Build: videoKey=${widget.videoKey}, thumbnailKey=${widget.thumbnailKey}, width=${widget.width}, height=${widget.height}, duration=${widget.duration}',
+    );
+
     final content = Stack(
       alignment: Alignment.center,
       children: [

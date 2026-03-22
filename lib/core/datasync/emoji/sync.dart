@@ -1,11 +1,7 @@
 import 'package:beaver/api/datasync.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
-import 'package:beaver/core/datasync/emoji/collect.dart';
-import 'package:beaver/core/datasync/emoji/detail.dart';
-import 'package:beaver/core/datasync/emoji/package.dart';
-import 'package:beaver/core/datasync/emoji/package_collect.dart';
-import 'package:beaver/core/datasync/emoji/package_emoji.dart';
+import 'package:beaver/core/datasync/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 

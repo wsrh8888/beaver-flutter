@@ -9,7 +9,7 @@ import 'package:beaver/types/api/friend.dart';
 class FriendVerifySync {
   Future<void> checkAndSync() async {
     print('[FriendVerifySync] 开始同步好友验证数据');
-    
+
     final datasyncService = getIt<DatasyncService>();
     final friendService = getIt<FriendService>();
 
@@ -18,8 +18,10 @@ class FriendVerifySync {
     final lastSyncTime = cursor?.version ?? 0;
 
     // 2. 获取服务器上变更的好友验证列表 (摘要)
-    final response = await datasyncGetSyncFriendVerifiesApi(IGetSyncFriendVerifiesReq(since: lastSyncTime));
-    
+    final response = await datasyncGetSyncFriendVerifiesApi(
+      IGetSyncFriendVerifiesReq(since: lastSyncTime),
+    );
+
     if (response.code != 0 || response.result == null) {
       print('[FriendVerifySync] 获取好友验证版本失败: ${response.msg}');
       return;
@@ -29,15 +31,24 @@ class FriendVerifySync {
     final serverTimestamp = response.result!.serverTimestamp;
 
     // 3. 对比过滤
-    final needUpdateVerifyIds = await _compareAndFilterVersions(friendService, verifyVersions);
+    final needUpdateVerifyIds = await _compareAndFilterVersions(
+      friendService,
+      verifyVersions,
+    );
 
     if (needUpdateVerifyIds.isNotEmpty) {
       // 4. 同步具体验证数据
       await _syncVerifyData(friendService, needUpdateVerifyIds);
-      
+
       // 5. 更新游标
-      final maxVersion = verifyVersions.map((e) => e.version).reduce((a, b) => a > b ? a : b);
-      await datasyncService.upsert('friend_verifies', maxVersion, serverTimestamp);
+      final maxVersion = verifyVersions
+          .map((e) => e.version)
+          .reduce((a, b) => a > b ? a : b);
+      await datasyncService.upsert(
+        'friend_verifies',
+        maxVersion,
+        serverTimestamp,
+      );
     } else {
       await datasyncService.upsert('friend_verifies', null, serverTimestamp);
     }
@@ -65,14 +76,24 @@ class FriendVerifySync {
     return needUpdate;
   }
 
-  Future<void> _syncVerifyData(FriendService friendService, List<String> verifyIds) async {
+  Future<void> _syncVerifyData(
+    FriendService friendService,
+    List<String> verifyIds,
+  ) async {
     const int batchSize = 50;
     for (int i = 0; i < verifyIds.length; i += batchSize) {
-      final batchIds = verifyIds.sublist(i, i + batchSize > verifyIds.length ? verifyIds.length : i + batchSize);
-      
-      final response = await getFriendVerifiesListByIdsApi(IGetFriendVerifiesListByIdsReq(verifyIds: batchIds));
+      final batchIds = verifyIds.sublist(
+        i,
+        i + batchSize > verifyIds.length ? verifyIds.length : i + batchSize,
+      );
+
+      final response = await getFriendVerifiesListByIdsApi(
+        IGetFriendVerifiesListByIdsReq(verifyIds: batchIds),
+      );
       if (response.code == 0 && response.result != null) {
-        await friendService.batchCreateVerifies(response.result!.friendVerifies);
+        await friendService.batchCreateVerifies(
+          response.result!.friendVerifies,
+        );
       }
     }
   }

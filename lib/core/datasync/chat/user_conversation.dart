@@ -25,17 +25,20 @@ class UserConversationSync {
       final lastSyncTime = localCursor?.updatedAt ?? 0;
 
       // 获取服务器上变更的用户会话设置版本信息
-      final response = await datasyncGetSyncChatUserConversationsApi(IGetSyncChatUserConversationsReq(since: lastSyncTime));
+      final response = await datasyncGetSyncChatUserConversationsApi(
+        IGetSyncChatUserConversationsReq(since: lastSyncTime),
+      );
       if (response.code != 0 || response.result == null) {
         print('[UserConversationSync] 获取会话设置版本失败: ${response.msg}');
         return;
       }
 
       // 对比本地数据，过滤出需要更新的会话
-      final needUpdateConversations = await _compareAndFilterUserConversationVersions(
-        syncStatusService,
-        response.result!.userConversationVersions,
-      );
+      final needUpdateConversations =
+          await _compareAndFilterUserConversationVersions(
+            syncStatusService,
+            response.result!.userConversationVersions,
+          );
 
       if (needUpdateConversations.isNotEmpty) {
         // 有变更的用户会话设置，需要同步数据
@@ -54,18 +57,26 @@ class UserConversationSync {
   }
 
   /// 对比本地数据，过滤出需要更新的会话信息
-  Future<List<IUserConversationVersionItem>> _compareAndFilterUserConversationVersions(
+  Future<List<IUserConversationVersionItem>>
+  _compareAndFilterUserConversationVersions(
     ChatSyncStatusService syncStatusService,
     List<IUserConversationVersionItem> userConversationVersions,
   ) async {
     if (userConversationVersions.isEmpty) return [];
 
     // 提取所有变更的会话ID
-    final conversationIds = userConversationVersions.map((item) => item.conversationId).toList();
+    final conversationIds = userConversationVersions
+        .map((item) => item.conversationId)
+        .toList();
 
     // 查询本地已存在的用户会话版本状态
-    final localVersions = await syncStatusService.getModuleVersions('user_conversation', conversationIds);
-    final localVersionMap = {for (var v in localVersions) v.conversationId: v.version};
+    final localVersions = await syncStatusService.getModuleVersions(
+      'user_conversation',
+      conversationIds,
+    );
+    final localVersionMap = {
+      for (var v in localVersions) v.conversationId: v.version,
+    };
 
     // 过滤出需要更新的会话信息（本地不存在或版本号更旧的数据）
     return userConversationVersions.where((conversation) {
@@ -75,31 +86,48 @@ class UserConversationSync {
   }
 
   /// 同步用户会话设置数据
-  Future<void> _syncUserConversationSettings(List<IUserConversationVersionItem> conversationsWithVersions) async {
+  Future<void> _syncUserConversationSettings(
+    List<IUserConversationVersionItem> conversationsWithVersions,
+  ) async {
     final chatService = getIt<ChatUserConversationService>();
     final syncStatusService = getIt<ChatSyncStatusService>();
 
     // 提取会话ID列表
-    final conversationIds = conversationsWithVersions.map((item) => item.conversationId).toList();
+    final conversationIds = conversationsWithVersions
+        .map((item) => item.conversationId)
+        .toList();
 
     // 分批获取用户会话设置数据
     const batchSize = 50;
     for (int i = 0; i < conversationIds.length; i += batchSize) {
-      final batchIds = conversationIds.sublist(i, (i + batchSize > conversationIds.length) ? conversationIds.length : i + batchSize);
+      final batchIds = conversationIds.sublist(
+        i,
+        (i + batchSize > conversationIds.length)
+            ? conversationIds.length
+            : i + batchSize,
+      );
 
-      final response = await getUserConversationSettingsListByIdsApi(IGetUserConversationSettingsListByIdsReq(conversationIds: batchIds));
-      if (response.code == 0 && response.result != null && response.result!.userConversationSettings.isNotEmpty) {
-        final settings = response.result!.userConversationSettings.map((uc) => ChatUserConversationsCompanion(
-          userId: Value(uc.userId),
-          conversationId: Value(uc.conversationId),
-          isHidden: Value(uc.isHidden ? 1 : 0),
-          isPinned: Value(uc.isPinned ? 1 : 0),
-          isMuted: Value(uc.isMuted ? 1 : 0),
-          userReadSeq: Value(uc.userReadSeq),
-          version: Value(uc.version),
-          createdAt: Value(uc.createdAt),
-          updatedAt: Value(uc.updatedAt),
-        )).toList();
+      final response = await getUserConversationSettingsListByIdsApi(
+        IGetUserConversationSettingsListByIdsReq(conversationIds: batchIds),
+      );
+      if (response.code == 0 &&
+          response.result != null &&
+          response.result!.userConversationSettings.isNotEmpty) {
+        final settings = response.result!.userConversationSettings
+            .map(
+              (uc) => ChatUserConversationsCompanion(
+                userId: Value(uc.userId),
+                conversationId: Value(uc.conversationId),
+                isHidden: Value(uc.isHidden ? 1 : 0),
+                isPinned: Value(uc.isPinned ? 1 : 0),
+                isMuted: Value(uc.isMuted ? 1 : 0),
+                userReadSeq: Value(uc.userReadSeq),
+                version: Value(uc.version),
+                createdAt: Value(uc.createdAt),
+                updatedAt: Value(uc.updatedAt),
+              ),
+            )
+            .toList();
 
         // 批量插入用户会话关系数据
         await chatService.batchCreate(settings);

@@ -1,11 +1,6 @@
 import 'dart:async';
 import 'package:beaver/core/database/db.dart';
-import 'package:beaver/core/database/services/chat/conversation.dart';
-import 'package:beaver/core/database/services/chat/message.dart';
-import 'package:beaver/core/database/services/chat/user_conversation.dart';
-import 'package:beaver/core/database/services/friend/friend.dart';
-import 'package:beaver/core/database/services/group/group.dart';
-import 'package:beaver/core/database/services/user/user.dart';
+import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/api/chat.dart';
 import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/di/injection.dart';

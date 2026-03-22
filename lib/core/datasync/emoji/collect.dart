@@ -9,10 +9,13 @@ class EmojiCollectSync {
   Future<void> sync(List<IEmojiCollectVersionItem> versions) async {
     final emojiCollectService = getIt<EmojiCollectService>();
     final ids = versions.map((v) => v.emojiCollectId).toList();
-    
+
     const batchSize = 50;
     for (var i = 0; i < ids.length; i += batchSize) {
-      final batchIds = ids.sublist(i, i + batchSize > ids.length ? ids.length : i + batchSize);
+      final batchIds = ids.sublist(
+        i,
+        i + batchSize > ids.length ? ids.length : i + batchSize,
+      );
       final detailRes = await getEmojiCollectsByIdsApi({'ids': batchIds});
       if (detailRes.code == 0 && detailRes.result != null) {
         final companions = detailRes.result!.collects.map((item) {

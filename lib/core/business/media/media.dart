@@ -1,19 +1,16 @@
-import 'package:beaver/core/cache/index.dart';
+import 'package:beaver/core/cache/media_manager.dart';
 import 'package:beaver/types/cache.dart';
-import 'package:beaver/di/injection.dart';
-import 'package:beaver/api/file.dart';
 
-/// 媒体业务逻辑层 - 对标 PC Business 结构
+/// 媒体业务逻辑 - 对标 Desktop MediaBusiness
+/// 职责：为 UI 提供集中的媒体资源访问接口
 class MediaBusiness {
-  final _mediaManager = getIt<MediaManager>();
-
-  /// 获取本地媒体文件路径，如果不存在则返回在线地址并触发异步下载
+  /// 获取媒体资源地址 (带缓存逻辑)
   Future<String> getMediaPath(String fileKey, CacheType type) async {
-    return await _mediaManager.get(type, fileKey);
+    return mediaManager.get(type, fileKey);
   }
 
-  /// 预下载媒体文件
-  Future<void> preDownload(String fileKey, CacheType type) async {
-    await _mediaManager.add(type, fileKey);
+  /// 预下载/添加到缓存
+  Future<String?> addMediaPath(String fileKey, CacheType type) async {
+    return mediaManager.add(type, fileKey);
   }
 }

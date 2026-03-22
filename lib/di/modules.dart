@@ -11,10 +11,8 @@ import 'business/group.dart';
 import 'business/chat.dart';
 import 'business/message.dart';
 import 'business/notification.dart';
-import 'business/moment.dart';
-import 'business/call.dart';
-import 'business/media.dart';
 import 'business/emoji.dart';
+import 'business/media.dart';
 import 'features/auth.dart';
 
 /// 模块注册
@@ -34,8 +32,6 @@ void registerModules(GetIt getIt) {
   configureChatBusinessDependencies(getIt);
   configureMessageBusinessDependencies(getIt);
   configureNotificationBusinessDependencies(getIt);
-  configureMomentBusinessDependencies(getIt);
-  configureCallBusinessDependencies(getIt);
-  configureMediaBusinessDependencies(getIt);
   configureEmojiBusinessDependencies(getIt);
+  configureMediaBusinessDependencies(getIt);
 }

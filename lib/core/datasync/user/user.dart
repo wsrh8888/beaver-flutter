@@ -1,4 +1,4 @@
-import 'package:beaver/core/datasync/user/user_sync.dart';
+import 'package:beaver/core/datasync/index.dart';
 
 /// 用户数据同步统一入口
 class UserDatasync {

@@ -18,7 +18,7 @@ import 'tables/group/groups.dart';
 import 'tables/group/members.dart';
 import 'tables/group/join_requests.dart';
 import 'tables/group/sync_status.dart';
-import 'tables/datasync/sync.dart';
+import 'tables/datasync/datasync.dart';
 import 'tables/emoji/emoji.dart';
 import 'tables/emoji/collect.dart';
 import 'tables/emoji/package.dart';

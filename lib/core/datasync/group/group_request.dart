@@ -20,18 +20,27 @@ class GroupJoinRequestSync {
       final lastSyncTime = cursor?.version ?? 0;
 
       // 获取服务器上变更的版本信息
-      final response = await datasyncGetSyncGroupRequestsApi(IGetSyncGroupRequestsReq(since: lastSyncTime));
+      final response = await datasyncGetSyncGroupRequestsApi(
+        IGetSyncGroupRequestsReq(since: lastSyncTime),
+      );
       if (response.code != 0 || response.result == null) {
         print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');
         return;
       }
 
       // 对比过滤
-      final needUpdateGroups = await _compareAndFilterRequestVersions(syncStatusService, response.result!.groupVersions);
+      final needUpdateGroups = await _compareAndFilterRequestVersions(
+        syncStatusService,
+        response.result!.groupVersions,
+      );
 
       if (needUpdateGroups.isNotEmpty) {
         // 同步具体数据
-        await _syncRequestData(groupJoinRequestService, syncStatusService, needUpdateGroups);
+        await _syncRequestData(
+          groupJoinRequestService,
+          syncStatusService,
+          needUpdateGroups,
+        );
       }
 
       // 更新游标
@@ -53,17 +62,25 @@ class GroupJoinRequestSync {
     if (groupVersions.isEmpty) return [];
 
     final groupIds = groupVersions.map((item) => item.groupId).toList();
-    final localVersions = await syncStatusService.getModuleVersions('requests', groupIds);
-    final localVersionMap = {for (var v in localVersions) (v['groupId'] as String): (v['version'] as int)};
+    final localVersions = await syncStatusService.getModuleVersions(
+      'requests',
+      groupIds,
+    );
+    final localVersionMap = {
+      for (var v in localVersions)
+        (v['groupId'] as String): (v['version'] as int),
+    };
 
     final List<IGroupVersionSyncItem> needUpdateGroups = [];
     for (var groupVersion in groupVersions) {
       final localVersion = localVersionMap[groupVersion.groupId] ?? 0;
       if (localVersion < groupVersion.version) {
-        needUpdateGroups.add(IGroupVersionSyncItem(
-          groupId: groupVersion.groupId,
-          version: localVersion,
-        ));
+        needUpdateGroups.add(
+          IGroupVersionSyncItem(
+            groupId: groupVersion.groupId,
+            version: localVersion,
+          ),
+        );
       }
     }
 
@@ -78,9 +95,15 @@ class GroupJoinRequestSync {
   ) async {
     if (groupsWithVersions.isEmpty) return;
 
-    final response = await groupJoinRequestSyncApi(IGroupJoinRequestSyncReq(groups: groupsWithVersions));
-    if (response.code == 0 && response.result != null && response.result!.groupJoinRequests.isNotEmpty) {
-      await groupJoinRequestService.batchCreate(response.result!.groupJoinRequests);
+    final response = await groupJoinRequestSyncApi(
+      IGroupJoinRequestSyncReq(groups: groupsWithVersions),
+    );
+    if (response.code == 0 &&
+        response.result != null &&
+        response.result!.groupJoinRequests.isNotEmpty) {
+      await groupJoinRequestService.batchCreate(
+        response.result!.groupJoinRequests,
+      );
 
       for (final req in response.result!.groupJoinRequests) {
         await syncStatusService.upsertSyncStatus(

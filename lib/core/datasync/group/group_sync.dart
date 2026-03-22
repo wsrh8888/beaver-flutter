@@ -22,14 +22,19 @@ class GroupSync {
       final lastSyncTime = cursor?.version ?? 0;
 
       // 获取服务器上变更的群组版本信息
-      final response = await datasyncGetSyncGroupInfoApi(IGetSyncGroupInfoReq(since: lastSyncTime));
+      final response = await datasyncGetSyncGroupInfoApi(
+        IGetSyncGroupInfoReq(since: lastSyncTime),
+      );
       if (response.code != 0 || response.result == null) {
         print('[GroupSync] 获取群组版本失败: ${response.msg}');
         return;
       }
 
       // 对比本地数据，过滤出需要更新的群组
-      final needUpdateGroups = await _compareAndFilterGroupVersions(syncStatusService, response.result!.groupVersions);
+      final needUpdateGroups = await _compareAndFilterGroupVersions(
+        syncStatusService,
+        response.result!.groupVersions,
+      );
 
       if (needUpdateGroups.isNotEmpty) {
         // 有需要更新的群资料
@@ -58,18 +63,26 @@ class GroupSync {
     final groupIds = groupVersions.map((item) => item.groupId).toList();
 
     // 查询本地已存在的群组资料版本状态
-    final localVersions = await syncStatusService.getModuleVersions('info', groupIds);
-    final localVersionMap = {for (var v in localVersions) (v['groupId'] as String): (v['version'] as int)};
+    final localVersions = await syncStatusService.getModuleVersions(
+      'info',
+      groupIds,
+    );
+    final localVersionMap = {
+      for (var v in localVersions)
+        (v['groupId'] as String): (v['version'] as int),
+    };
 
     // 过滤出需要更新的群组，并使用本地版本号
     final List<IGroupVersionSyncItem> needUpdateGroups = [];
     for (var groupVersion in groupVersions) {
       final localVersion = localVersionMap[groupVersion.groupId] ?? 0;
       if (localVersion < groupVersion.version) {
-        needUpdateGroups.add(IGroupVersionSyncItem(
-          groupId: groupVersion.groupId,
-          version: localVersion,
-        ));
+        needUpdateGroups.add(
+          IGroupVersionSyncItem(
+            groupId: groupVersion.groupId,
+            version: localVersion,
+          ),
+        );
       }
     }
 
@@ -85,20 +98,26 @@ class GroupSync {
     if (groupsWithVersions.isEmpty) return;
 
     // 直接使用传入的群组版本信息构造请求
-    final response = await groupSyncApi(IGroupSyncReq(groups: groupsWithVersions));
-    if (response.code == 0 && response.result != null && response.result!.groups.isNotEmpty) {
+    final response = await groupSyncApi(
+      IGroupSyncReq(groups: groupsWithVersions),
+    );
+    if (response.code == 0 &&
+        response.result != null &&
+        response.result!.groups.isNotEmpty) {
       for (final group in response.result!.groups) {
-        await groupService.upsert(GroupsCompanion(
-          groupId: Value(group.groupId),
-          title: Value(group.title),
-          avatar: Value(group.avatar),
-          creatorId: Value(group.creatorId),
-          joinType: Value(group.joinType),
-          status: Value(group.status),
-          version: Value(group.version),
-          createdAt: Value(group.createdAt),
-          updatedAt: Value(group.updatedAt),
-        ));
+        await groupService.upsert(
+          GroupsCompanion(
+            groupId: Value(group.groupId),
+            title: Value(group.title),
+            avatar: Value(group.avatar),
+            creatorId: Value(group.creatorId),
+            joinType: Value(group.joinType),
+            status: Value(group.status),
+            version: Value(group.version),
+            createdAt: Value(group.createdAt),
+            updatedAt: Value(group.updatedAt),
+          ),
+        );
 
         // 更新本地群组版本状态
         await syncStatusService.upsertSyncStatus(

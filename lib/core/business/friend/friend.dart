@@ -1,7 +1,6 @@
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/core/database/db.dart';
-import 'package:beaver/core/database/services/friend/friend.dart';
-import 'package:beaver/core/database/services/friend/friend_verify.dart';
+import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:intl/intl.dart';
 import 'package:beaver/types/business/contact.dart';
@@ -209,5 +208,13 @@ class FriendBusiness implements FriendRepositoryInterface {
   Future<bool> updateFriendRequestStatus(int id, int status) async {
     // TODO: 调用 API 同步状态到服务器，并更新本地数据库
     return true;
+  }
+
+  /**
+   * @description 处理好友表更新
+   */
+  Future<void> handleTableUpdates(int version, String? friendId) async {
+    print('[FriendBusiness] 处理好友表更新: friendId=$friendId, version=$version');
+    // TODO: 实现具体的更新逻辑 (如清理缓存、重新拉取数据等)
   }
 }

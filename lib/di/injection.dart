@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:beaver/core/datasync/sync.dart';
+import 'package:beaver/core/datasync/manager.dart';
 
 import 'modules.dart';
 

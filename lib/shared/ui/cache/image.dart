@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:beaver/types/cache.dart';
-import 'package:beaver/core/business/media/media.dart';
+import 'package:beaver/core/business/index.dart';
 import 'package:beaver/di/injection.dart';
 import '../image/image.dart';
 

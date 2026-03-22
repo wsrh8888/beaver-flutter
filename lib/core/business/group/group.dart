@@ -8,7 +8,6 @@ import 'package:beaver/types/business/group.dart';
 import 'package:drift/drift.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/api/group.dart';
-import 'package:beaver/core/business/group/group_member.dart';
 import 'package:beaver/core/business/group/group_join_request.dart';
 
 /// Group business logic.
@@ -96,15 +95,15 @@ class GroupBusiness implements GroupRepositoryInterface {
   }
 
   @override
-  Future<List<GroupNotification>> getGroupNotifications() => 
+  Future<List<GroupNotification>> getGroupNotifications() =>
       getIt<GroupJoinRequestBusiness>().getGroupNotifications();
 
   @override
-  Future<bool> updateGroupRequestStatus(int id, int status) => 
+  Future<bool> updateGroupRequestStatus(int id, int status) =>
       getIt<GroupJoinRequestBusiness>().updateGroupRequestStatus(id, status);
 
   @override
-  Future<int> getUnreadGroupNotificationCount(String userId) => 
+  Future<int> getUnreadGroupNotificationCount(String userId) =>
       getIt<GroupJoinRequestBusiness>().getUnreadGroupNotificationCount();
 
   /**
@@ -116,15 +115,17 @@ class GroupBusiness implements GroupRepositoryInterface {
       final List<GroupInfo> result = [];
       for (final g in groups) {
         final members = await _groupMemberService.getGroupMembers(g.groupId);
-        result.add(GroupInfo(
-          conversationId: 'group_${g.groupId}',
-          title: g.title,
-          avatar: g.avatar,
-          fileName: g.avatar,
-          lastMessage: '',
-          memberCount: members.length,
-          version: g.version,
-        ));
+        result.add(
+          GroupInfo(
+            conversationId: 'group_${g.groupId}',
+            title: g.title,
+            avatar: g.avatar,
+            fileName: g.avatar,
+            lastMessage: '',
+            memberCount: members.length,
+            version: g.version,
+          ),
+        );
       }
       return result;
     } catch (e) {

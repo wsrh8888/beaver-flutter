@@ -14,28 +14,41 @@ class EmojiDetailSync {
     final cursor = await datasyncService.get('emojis');
     final lastSyncTime = cursor?.version ?? 0;
 
-    final response = await datasyncGetSyncEmojisApi(IGetSyncEmojisReq(since: lastSyncTime));
+    final response = await datasyncGetSyncEmojisApi(
+      IGetSyncEmojisReq(since: lastSyncTime),
+    );
     if (response.code != 0 || response.result == null) return;
 
     final emojiVersions = response.result!.emojiVersions;
     if (emojiVersions.isEmpty) {
-      await datasyncService.upsert('emojis', lastSyncTime, response.result!.serverTimestamp);
+      await datasyncService.upsert(
+        'emojis',
+        lastSyncTime,
+        response.result!.serverTimestamp,
+      );
       return;
     }
 
     final ids = emojiVersions.map((v) => v.emojiId).toList();
     final localEmojis = await emojiService.getEmojisByIds(ids);
-    
+
     final needUpdateIds = ids.where((id) {
       final local = localEmojis[id];
-      final serverVersion = emojiVersions.firstWhere((v) => v.emojiId == id).version;
+      final serverVersion = emojiVersions
+          .firstWhere((v) => v.emojiId == id)
+          .version;
       return local == null || local.version < serverVersion;
     }).toList();
 
     if (needUpdateIds.isNotEmpty) {
       const batchSize = 50;
       for (var i = 0; i < needUpdateIds.length; i += batchSize) {
-        final batchIds = needUpdateIds.sublist(i, i + batchSize > needUpdateIds.length ? needUpdateIds.length : i + batchSize);
+        final batchIds = needUpdateIds.sublist(
+          i,
+          i + batchSize > needUpdateIds.length
+              ? needUpdateIds.length
+              : i + batchSize,
+        );
         final detailRes = await getEmojisByIdsApi({'ids': batchIds});
         if (detailRes.code == 0 && detailRes.result != null) {
           final List emojisJson = detailRes.result['emojis'] as List;
@@ -54,7 +67,13 @@ class EmojiDetailSync {
       }
     }
 
-    final maxVersion = emojiVersions.map((v) => v.version).fold(lastSyncTime, (a, b) => a > b ? a : b);
-    await datasyncService.upsert('emojis', maxVersion, response.result!.serverTimestamp);
+    final maxVersion = emojiVersions
+        .map((v) => v.version)
+        .fold(lastSyncTime, (a, b) => a > b ? a : b);
+    await datasyncService.upsert(
+      'emojis',
+      maxVersion,
+      response.result!.serverTimestamp,
+    );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:beaver/core/business/media/media.dart';
+import 'package:beaver/core/business/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/ui/gallery/index.dart';
 import 'package:beaver/shared/ui/gallery/item.dart';

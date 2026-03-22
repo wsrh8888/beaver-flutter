@@ -7,7 +7,7 @@ import 'package:beaver/types/api/datasync.dart';
 class NotificationSync {
   Future<void> checkAndSync() async {
     print('[NotificationSync] 开始同步通知数据');
-    
+
     final datasyncService = getIt<DatasyncService>();
 
     // 1. 获取本地同步游标
@@ -15,8 +15,10 @@ class NotificationSync {
     final lastSyncTime = cursor?.version ?? 0;
 
     // 2. 获取摘要
-    final response = await datasyncGetSyncNotificationEventsApi(IGetSyncNotificationEventsReq(sinceVersion: lastSyncTime));
-    
+    final response = await datasyncGetSyncNotificationEventsApi(
+      IGetSyncNotificationEventsReq(sinceVersion: lastSyncTime),
+    );
+
     if (response.code != 0 || response.result == null) {
       print('[NotificationSync] 获取通知版本失败: ${response.msg}');
       return;
@@ -26,8 +28,12 @@ class NotificationSync {
 
     // 3. 更新游标
     // TODO: 实现具体通知事件数据的拉取逻辑
-    
-    await datasyncService.upsert('notification_events', response.result!.maxVersion, serverTimestamp);
+
+    await datasyncService.upsert(
+      'notification_events',
+      response.result!.maxVersion,
+      serverTimestamp,
+    );
     print('[NotificationSync] 通知同步完成');
   }
 }

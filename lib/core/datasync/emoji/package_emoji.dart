@@ -9,11 +9,16 @@ class EmojiPackageEmojiSync {
   Future<void> sync(List<IEmojiPackageContentVersionItem> versions) async {
     final service = getIt<EmojiPackageEmojiService>();
     final ids = versions.map((v) => v.packageId).toList();
-    
+
     const batchSize = 50;
     for (var i = 0; i < ids.length; i += batchSize) {
-      final batchIds = ids.sublist(i, i + batchSize > ids.length ? ids.length : i + batchSize);
-      final detailRes = await getEmojiPackageContentsByPackageIdsApi({'packageIds': batchIds});
+      final batchIds = ids.sublist(
+        i,
+        i + batchSize > ids.length ? ids.length : i + batchSize,
+      );
+      final detailRes = await getEmojiPackageContentsByPackageIdsApi({
+        'packageIds': batchIds,
+      });
       if (detailRes.code == 0 && detailRes.result != null) {
         final companions = detailRes.result!.contents.map((item) {
           return EmojiPackageEmojiTableCompanion(

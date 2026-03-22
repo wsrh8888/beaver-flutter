@@ -26,10 +26,9 @@ class UserSyncModule {
       final lastSyncTime = cursor?.version ?? 0;
 
       // 获取变更的用户版本摘要
-      final response = await datasyncGetSyncAllUsersApi(IGetSyncAllUsersReq(
-        type: 'all',
-        since: lastSyncTime,
-      ));
+      final response = await datasyncGetSyncAllUsersApi(
+        IGetSyncAllUsersReq(type: 'all', since: lastSyncTime),
+      );
 
       if (response.code != 0 || response.result == null) {
         print('[UserSyncModule] 获取用户版本失败: ${response.msg}');
@@ -40,12 +39,19 @@ class UserSyncModule {
       final serverTimestamp = response.result!.serverTimestamp;
 
       // 对比本地数据，过滤出需要更新的用户
-      final needUpdateUsers = await _compareAndFilterUserVersions(userSyncStatusService, changedUserVersions);
+      final needUpdateUsers = await _compareAndFilterUserVersions(
+        userSyncStatusService,
+        changedUserVersions,
+      );
 
       if (needUpdateUsers.isNotEmpty) {
         // 有需要更新的用户数据
-        await _syncUserData(userService, userSyncStatusService, needUpdateUsers);
-        
+        await _syncUserData(
+          userService,
+          userSyncStatusService,
+          needUpdateUsers,
+        );
+
         // 从变更的数据中找到最大的版本号
         int maxVersion = 0;
         for (var item in changedUserVersions) {
@@ -74,17 +80,21 @@ class UserSyncModule {
 
     // 获取所有本地用户同步状态
     final localStatuses = await userSyncStatusService.getAllUsersSyncStatus();
-    final localVersionMap = {for (var s in localStatuses) s.userId: s.userVersion};
+    final localVersionMap = {
+      for (var s in localStatuses) s.userId: s.userVersion,
+    };
 
     // 过滤出需要更新的用户，并使用本地版本号
     final List<IUserVersionItem> needUpdateUsers = [];
     for (var userVersion in userVersions) {
       final localVersion = localVersionMap[userVersion.userId] ?? 0;
       if (localVersion < userVersion.version) {
-        needUpdateUsers.add(IUserVersionItem(
-          userId: userVersion.userId,
-          version: localVersion, // 使用本地版本号
-        ));
+        needUpdateUsers.add(
+          IUserVersionItem(
+            userId: userVersion.userId,
+            version: localVersion, // 使用本地版本号
+          ),
+        );
       }
     }
 
@@ -100,15 +110,18 @@ class UserSyncModule {
     if (usersWithVersions.isEmpty) return;
 
     // 直接使用传入的用户版本信息构造请求
-    final syncResponse = await userSyncApi(IUserSyncReq(userVersions: usersWithVersions));
-    if (syncResponse.code == 0 && syncResponse.result != null && syncResponse.result!.users.isNotEmpty) {
+    final syncResponse = await userSyncApi(
+      IUserSyncReq(userVersions: usersWithVersions),
+    );
+    if (syncResponse.code == 0 &&
+        syncResponse.result != null &&
+        syncResponse.result!.users.isNotEmpty) {
       await userService.batchCreate(syncResponse.result!.users);
 
       // 更新本地用户版本状态
-      final statusUpdates = syncResponse.result!.users.map((user) => {
-        'userId': user.userId,
-        'userVersion': user.version,
-      }).toList();
+      final statusUpdates = syncResponse.result!.users
+          .map((user) => {'userId': user.userId, 'userVersion': user.version})
+          .toList();
       await userSyncStatusService.batchUpsertUserSyncStatus(statusUpdates);
 
       // TODO: 发送通知到渲染进程

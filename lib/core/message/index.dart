@@ -1,7 +1,12 @@
-import 'package:beaver/core/datasync/sync.dart';
-import 'package:beaver/core/datasync/sync.dart' show syncManager;
+import 'package:beaver/core/datasync/manager.dart';
+import 'package:beaver/core/datasync/manager.dart' show syncManager;
 
-import 'receivers/call/call.dart';
+import 'package:beaver/core/message/receivers/call/call.dart';
+import 'package:beaver/core/message/receivers/chat/index.dart';
+import 'package:beaver/core/message/receivers/friend/index.dart';
+import 'package:beaver/core/message/receivers/group/index.dart';
+import 'package:beaver/core/message/receivers/notification/index.dart';
+import 'package:beaver/core/message/receivers/user/index.dart';
 
 /// 消息管理器
 /// 
@@ -14,7 +19,7 @@ class MessageManager {
   final List<Map<String, dynamic>> _messageQueue = [];
 
   final ChatMessageRouter _chatRouter = chatMessageRouter;
-  final FriendMessageReceiver _friendReceiver = FriendMessageReceiver();
+  final FriendMessageRouter _friendRouter = friendMessageRouter;
   final GroupMessageRouter _groupRouter = groupMessageRouter;
   final NotificationMessageRouter _notificationRouter = notificationMessageRouter;
   final UserMessageRouter _userRouter = userMessageRouter;
@@ -67,7 +72,7 @@ class MessageManager {
         _chatRouter.processChatMessage(map);
         break;
       case 'FRIEND_OPERATION':
-        _friendReceiver.processFriendMessage(map);
+        _friendRouter.processFriendMessage(map);
         break;
       case 'GROUP_OPERATION':
         _groupRouter.processGroupMessage(map);
