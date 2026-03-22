@@ -14,6 +14,8 @@ import 'business/notification.dart';
 import 'business/moment.dart';
 import 'business/call.dart';
 import 'business/media.dart';
+import 'business/emoji.dart';
+import 'features/auth.dart';
 
 /// 模块注册
 void registerModules(GetIt getIt) {
@@ -25,6 +27,7 @@ void registerModules(GetIt getIt) {
   configureStoreDependencies(getIt);
   
   // 业务层配置
+  configureAuthDependencies(getIt); // Add this
   configureUserBusinessDependencies(getIt);
   configureFriendBusinessDependencies(getIt);
   configureGroupBusinessDependencies(getIt);
@@ -34,4 +37,5 @@ void registerModules(GetIt getIt) {
   configureMomentBusinessDependencies(getIt);
   configureCallBusinessDependencies(getIt);
   configureMediaBusinessDependencies(getIt);
+  configureEmojiBusinessDependencies(getIt);
 }

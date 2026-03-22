@@ -86,6 +86,16 @@ class AppDatabase extends _$AppDatabase {
       },
     );
   }
+
+  /// 清除本地所有数据 (用于 设置-清理数据)
+  Future<void> clearAllData() async {
+    await transaction(() async {
+      // allTables 是 Drift 自动生成的包含所有表的列表
+      for (final table in allTables) {
+        await delete(table).go();
+      }
+    });
+  }
 }
 
 /// 数据库连接管理 (与 PC db.ts DBManager 一致：按 userId 分库、init/close)

@@ -6,4 +6,4 @@ class FriendMessageReceiver {
   }
 }
 
-final friendMessageReceiver = FriendMessageReceiver();
+// Removed global friendMessageReceiver

@@ -20,6 +20,7 @@ dependencies:
   dio: ^5.9.2
   web_socket_channel: ^3.0.3
   livekit_client: ^2.6.5
+  crypto: ^3.0.6
 
   # 本地数据与路径
   drift: ^2.32.0
@@ -83,6 +84,7 @@ flutter:
     - assets/images/moment/
     - assets/images/setting/
     - assets/images/update/
+    - assets/images/emoji/
     - assets/icons/
     - assets/icons/common/
     - assets/icons/new-friend/

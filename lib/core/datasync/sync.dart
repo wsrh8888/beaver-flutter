@@ -2,7 +2,7 @@ import 'package:beaver/core/datasync/chat/chat.dart';
 import 'package:beaver/core/datasync/friend/friend.dart';
 import 'package:beaver/core/datasync/group/group.dart';
 import 'package:beaver/core/datasync/user/user.dart';
-import 'package:beaver/core/datasync/emoji/emoji.dart';
+import 'package:beaver/core/datasync/emoji/sync.dart';
 import 'package:beaver/core/datasync/notification/notification.dart';
 
 /// 数据同步管理器

@@ -5,9 +5,24 @@ import 'package:beaver/core/database/services/base.dart';
 class ChatMessageService extends BaseService {
   ChatMessageService(super.db);
 
+  /// upsert单条消息
+  Future<void> upsert(ChatsCompanion message) async {
+    final messageId = message.messageId.value;
+    final existing = await (db.select(db.chats)
+          ..where((t) => t.messageId.equals(messageId))
+          ..limit(1))
+        .getSingleOrNull();
+
+    if (existing != null) {
+      await (db.update(db.chats)..where((t) => t.messageId.equals(messageId))).write(message);
+    } else {
+      await db.into(db.chats).insert(message);
+    }
+  }
+
   /// 创建单条消息
   Future<void> create(ChatsCompanion message) async {
-    await db.into(db.chats).insert(message);
+    await upsert(message);
   }
 
   /// 批量创建消息（一次性插入所有消息，如果重复则更新关键字段）

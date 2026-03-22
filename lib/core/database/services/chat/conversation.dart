@@ -12,27 +12,27 @@ class ChatConversationService extends BaseService {
 
   /// upsert单个会话（插入或更新）
   Future<void> upsert(ChatConversationsCompanion conversation) async {
-    await db.into(db.chatConversations).insert(
-          conversation,
-          mode: InsertMode.insertOrReplace,
-        );
+    final conversationId = conversation.conversationId.value;
+    final existing = await (db.select(db.chatConversations)
+          ..where((t) => t.conversationId.equals(conversationId))
+          ..limit(1))
+        .getSingleOrNull();
+
+    if (existing != null) {
+      await (db.update(db.chatConversations)
+            ..where((t) => t.conversationId.equals(conversationId)))
+          .write(conversation);
+    } else {
+      await db.into(db.chatConversations).insert(conversation);
+    }
   }
 
   /// 批量创建会话（支持插入或更新）
   Future<void> batchCreate(List<ChatConversationsCompanion> conversations) async {
-    if (conversations.isEmpty) {
-      return;
+    if (conversations.isEmpty) return;
+    for (final conversation in conversations) {
+      await upsert(conversation);
     }
-
-    await db.batch((batch) {
-      for (final conversation in conversations) {
-        batch.insert(
-          db.chatConversations,
-          conversation,
-          mode: InsertMode.insertOrReplace,
-        );
-      }
-    });
   }
 
   /// 获取所有会话（本地数据库场景，支持分页）

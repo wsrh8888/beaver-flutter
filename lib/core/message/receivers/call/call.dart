@@ -6,4 +6,4 @@ class CallMessageReceiver {
   }
 }
 
-final callMessageReceiver = CallMessageReceiver();
+// Removed global callMessageReceiver

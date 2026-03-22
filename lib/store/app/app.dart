@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/store/user/user.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/chat/chat.dart';
@@ -50,6 +51,14 @@ class AppStore extends Cubit<AppStoreState> {
    * 先同步身份 ID，然后并行初始化其余业务
    */
   Future<void> initApp() async {
+    // 增加守卫：如果没有初始化数据库，则跳过初始化 (可能是未登录状态)
+    try {
+      getIt<AppDatabase>();
+    } catch (e) {
+      print('AppStore: 数据库未就绪，跳过业务初始化 (当前可能处于未登录状态)');
+      return;
+    }
+
     print('AppStore: 开始应用一键初始化...');
     emit(state.copyWith(status: AppLifecycleStatus.syncing));
 

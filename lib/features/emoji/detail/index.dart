@@ -1,0 +1,113 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:beaver/shared/ui/cache/image.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/core/database/services/index.dart';
+import 'package:beaver/core/database/db.dart';
+
+class EmojiDetailScreen extends StatefulWidget {
+  final String emojiId;
+
+  const EmojiDetailScreen({super.key, required this.emojiId});
+
+  @override
+  State<EmojiDetailScreen> createState() => _EmojiDetailScreenState();
+}
+
+class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
+  Emoji? _emoji;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmoji();
+  }
+
+  Future<void> _loadEmoji() async {
+    final service = getIt<EmojiService>();
+    final emoji = await service.getEmojiById(widget.emojiId);
+    setState(() {
+      _emoji = emoji;
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          : _emoji == null
+              ? const Center(child: Text('表情不存在', style: TextStyle(color: Colors.white)))
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Hero(
+                        tag: 'emoji_${_emoji!.emojiId}',
+                        child: BeaverCachedImage(
+                          fileKey: _emoji!.fileKey,
+                          width: 250.w,
+                          height: 250.w,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      SizedBox(height: 30.h),
+                      Text(
+                        _emoji?.title ?? '',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 50.h),
+                      _buildActions(),
+                    ],
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildActions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildActionButton(Icons.favorite_border, '添加收藏', () {
+          // TODO: 实现收藏逻辑
+        }),
+        SizedBox(width: 40.w),
+        _buildActionButton(Icons.send, '发送', () {
+          Navigator.pop(context);
+        }),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 28.sp),
+          ),
+          SizedBox(height: 8.h),
+          Text(label, style: TextStyle(color: Colors.white70, fontSize: 12.sp)),
+        ],
+      ),
+    );
+  }
+}

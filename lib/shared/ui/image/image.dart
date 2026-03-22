@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../gallery/index.dart';
 
 /// 底层傻瓜图片渲染组件 (对标原生 <img>)
 /// 职责：只负责根据完整的 url (file:// 或 http://) 渲染图片
@@ -10,6 +11,7 @@ class BeaverImage extends StatelessWidget {
   final BoxFit? fit;
   final Widget? placeholder;
   final Widget? errorWidget;
+  final bool enableFullscreen;
 
   const BeaverImage({
     super.key,
@@ -19,27 +21,25 @@ class BeaverImage extends StatelessWidget {
     this.fit,
     this.placeholder,
     this.errorWidget,
+    this.enableFullscreen = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget image;
     if (url.isEmpty) {
-      return errorWidget ?? _buildDefaultError();
-    }
-
-    if (url.startsWith('file://')) {
+      image = errorWidget ?? _buildDefaultError();
+    } else if (url.startsWith('file://')) {
       final path = url.replaceFirst('file://', '');
-      return Image.file(
+      image = Image.file(
         File(path),
         width: width,
         height: height,
         fit: fit,
         errorBuilder: (context, error, stackTrace) => errorWidget ?? _buildDefaultError(),
       );
-    }
-
-    if (url.startsWith('http')) {
-      return Image.network(
+    } else if (url.startsWith('http')) {
+      image = Image.network(
         url,
         width: width,
         height: height,
@@ -50,10 +50,18 @@ class BeaverImage extends StatelessWidget {
         },
         errorBuilder: (context, error, stackTrace) => errorWidget ?? _buildDefaultError(),
       );
+    } else {
+      image = errorWidget ?? _buildDefaultError();
     }
 
-    // 适配其他资产图或纯相对路径（如果有的话）
-    return errorWidget ?? _buildDefaultError();
+    if (enableFullscreen && url.isNotEmpty) {
+      return GestureDetector(
+        onTap: () => BeaverGallery.show(context, url),
+        child: image,
+      );
+    }
+
+    return image;
   }
 
   Widget _buildDefaultPlaceholder() {

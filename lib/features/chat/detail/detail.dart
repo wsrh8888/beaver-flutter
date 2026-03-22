@@ -1,13 +1,12 @@
 import 'package:beaver/features/chat/detail/bloc/bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
-import 'package:beaver/features/chat/detail/widgets/chat_composer.dart';
-import 'package:beaver/features/chat/detail/widgets/message_list.dart';
+import 'package:beaver/features/chat/detail/components/bottom/bottom.dart';
+import 'package:beaver/features/chat/detail/components/content/content.dart';
 import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/store/chat/chat.dart';
-import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,19 +15,13 @@ import 'package:go_router/go_router.dart';
 
 class ChatDetailPage extends StatefulWidget {
   final String? conversationId;
-
-  const ChatDetailPage({
-    super.key,
-    this.conversationId,
-  });
-
+  const ChatDetailPage({super.key, this.conversationId});
   @override
   State<ChatDetailPage> createState() => _ChatDetailPageState();
 }
 
 class _ChatDetailPageState extends State<ChatDetailPage> {
   late final ChatBloc _chatBloc;
-
   @override
   void initState() {
     super.initState();
@@ -55,45 +48,44 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           }
         },
         builder: (context, state) {
+          final isMultiSelect = state.status == ChatStatus.multiSelect;
           return BeaverLayout(
             title: _resolveTitle(context, state),
             showBack: true,
             showBackground: true,
-            backgroundHeight: 160,
+            backgroundHeight: 160.h,
             isScrollable: false,
-            rightSlot: _buildMoreButton(context),
+            rightSlot: isMultiSelect
+                ? _buildCancelButton()
+                : _buildMoreButton(context),
             child: Column(
               children: [
                 Expanded(
-                  child: MessageList(
-                    messages: state.messages,
-                    isLoading: state.status == ChatStatus.loading,
-                    isLoadingMore: state.isLoadingMore,
-                    onLoadMore: () {
-                      context.read<ChatBloc>().add(const LoadMoreMessagesEvent());
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      _chatBloc.add(const DismissComposerEvent());
                     },
+                    child: ChatContent(
+                      messages: state.messages,
+                      isLoading: state.status == ChatStatus.loading,
+                      isLoadingMore: state.isLoadingMore,
+                      isMultiSelect: isMultiSelect,
+                      onLoadMore: () {
+                        context.read<ChatBloc>().add(
+                          const LoadMoreMessagesEvent(),
+                        );
+                      },
+                    ),
                   ),
                 ),
-                ChatComposer(
+                ChatBottom(
                   draft: state.draft,
                   activePanel: state.activePanel,
+                  isVoiceMode: state.isVoiceMode,
                   isSending: state.isSending,
-                  onDraftChanged: (draft) {
-                    context.read<ChatBloc>().add(UpdateDraftEvent(draft));
-                  },
-                  onSendText: (text) {
-                    context
-                        .read<ChatBloc>()
-                        .add(SendMessageEvent(text, MessageType.text));
-                  },
-                  onTogglePanel: (panel) {
-                    context
-                        .read<ChatBloc>()
-                        .add(ToggleComposerPanelEvent(panel));
-                  },
-                  onToolbarAction: (action) {
-                    context.read<ChatBloc>().add(ToolbarActionEvent(action));
-                  },
+                  isMultiSelect: isMultiSelect,
                 ),
               ],
             ),
@@ -108,7 +100,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
       onTap: () {
         final id = widget.conversationId ?? '';
         if (id.isEmpty) {
-          BeaverToast.show(context, 'Conversation not found');
+          BeaverToast.show(context, '找不到会话');
           return;
         }
         context.push('${AppRoutes.chatSetting}?id=$id');
@@ -126,38 +118,38 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     );
   }
 
+  Widget _buildCancelButton() {
+    return TextButton(
+      onPressed: () =>
+          context.read<ChatBloc>().add(const CancelMultiSelectEvent()),
+      child: Text(
+        '取消',
+        style: TextStyle(
+          color: const Color(0xFFFF7D45),
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
   String _resolveTitle(BuildContext context, ChatState state) {
     final id = widget.conversationId ?? '';
     final chatItem = context.select<ChatStore, dynamic>((store) {
       for (final item in store.state.conversations) {
-        if (item.conversationId == id) {
-          return item;
-        }
+        if (item.conversationId == id) return item;
       }
       return null;
     });
-
     final titleFromStore = chatItem?.nickname?.toString() ?? '';
-    if (titleFromStore.isNotEmpty) {
-      return _truncateTitle(titleFromStore);
-    }
-
-    final titleFromConversation =
-        (state.conversation is Map<String, dynamic>)
-            ? (state.conversation['title']?.toString() ?? '')
-            : '';
-
+    if (titleFromStore.isNotEmpty) return _truncateTitle(titleFromStore);
+    final titleFromConversation = state.conversation?.nickname ?? '';
     if (titleFromConversation.isNotEmpty) {
       return _truncateTitle(titleFromConversation);
     }
-
-    return 'Chat';
+    return '聊天';
   }
 
-  String _truncateTitle(String title) {
-    if (title.length <= 10) {
-      return title;
-    }
-    return '${title.substring(0, 10)}...';
-  }
+  String _truncateTitle(String title) =>
+      title.length <= 10 ? title : '${title.substring(0, 10)}...';
 }

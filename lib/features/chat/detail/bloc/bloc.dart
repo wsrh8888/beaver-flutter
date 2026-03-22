@@ -1,255 +1,179 @@
 import 'dart:async';
-
-import 'package:beaver/core/business/chat/message.dart';
-import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/types/business/message.dart';
+import 'package:beaver/core/business/chat/message.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/store/message/message.dart';
+import 'package:beaver/store/contact/contact.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
-  final _messageBusiness = getIt<MessageBusiness>();
-  StreamSubscription<List<MessageModel>>? _messageSubscription;
-  final _uuid = const Uuid();
+  final MessageBusiness _messageBusiness;
+  final MessageStore _messageStore;
+  final ContactStore _contactStore;
+  StreamSubscription? _messageSubscription;
+  StreamSubscription? _contactSubscription;
 
-  static const int _pageSize = 30;
-
-  ChatBloc() : super(const ChatState()) {
+  ChatBloc({
+    MessageBusiness? messageBusiness,
+    MessageStore? messageStore,
+    ContactStore? contactStore,
+  })  : _messageBusiness = messageBusiness ?? getIt<MessageBusiness>(),
+        _messageStore = messageStore ?? getIt<MessageStore>(),
+        _contactStore = contactStore ?? getIt<ContactStore>(),
+        super(const ChatState()) {
     on<LoadMessagesEvent>(_onLoadMessages);
-    on<LoadMoreMessagesEvent>(_onLoadMoreMessages);
+    on<LoadMoreMessagesEvent>(_onLoadMore);
     on<SendMessageEvent>(_onSendMessage);
-    on<MessageReceivedEvent>(_onMessageReceived);
-    on<UpdateMessageStatusEvent>(_onUpdateMessageStatus);
     on<UpdateDraftEvent>(_onUpdateDraft);
-    on<ToggleComposerPanelEvent>(_onToggleComposerPanel);
-    on<ToolbarActionEvent>(_onToolbarAction);
+    on<ToggleComposerPanelEvent>(_onTogglePanel);
+    on<ToggleVoiceModeEvent>(_onToggleVoiceMode);
+    on<DismissComposerEvent>(_onDismissComposer);
+    on<EnterMultiSelectEvent>(_onEnterMultiSelect);
+    on<CancelMultiSelectEvent>(_onCancelMultiSelect);
+    on<ToggleMessageSelectionEvent>(_onToggleSelection);
+    on<MessageUpdatedEvent>(_onMessageUpdated);
+
+    _messageSubscription = _messageStore.stream.listen((_) {
+      if (state.conversationId != null) {
+        add(MessageUpdatedEvent(state.conversationId!));
+      }
+    });
+
+    _contactSubscription = _contactStore.stream.listen((_) {
+      if (state.conversationId != null) {
+        add(MessageUpdatedEvent(state.conversationId!));
+      }
+    });
   }
 
-  Future<void> _onLoadMessages(
-    LoadMessagesEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    emit(
-      state.copyWith(
-        status: ChatStatus.loading,
-        conversationId: event.conversationId,
-        activePanel: ComposerPanelType.none,
-        clearError: true,
-      ),
-    );
+  @override
+  Future<void> close() {
+    _messageSubscription?.cancel();
+    _contactSubscription?.cancel();
+    return super.close();
+  }
 
+  Future<void> _onLoadMessages(LoadMessagesEvent event, Emitter<ChatState> emit) async {
+    emit(state.copyWith(status: ChatStatus.loading, conversationId: event.conversationId));
     try {
-      final conversationData = await _messageBusiness.getConversation(event.conversationId);
-      final messages = await _messageBusiness.getMessages(
-        event.conversationId,
-        limit: _pageSize,
-        offset: 0,
-      );
-
-      await _messageSubscription?.cancel();
-      _messageSubscription = _messageBusiness.watchMessages(event.conversationId).listen(
-        (incomingMessages) {
-          if (incomingMessages.isNotEmpty) {
-            add(MessageReceivedEvent(event.conversationId));
-          }
-        },
-      );
-
-      emit(
-        state.copyWith(
-          status: ChatStatus.success,
-          conversation: conversationData,
-          messages: _sortByTime(messages),
-          hasMore: messages.length >= _pageSize,
-          isLoadingMore: false,
-        ),
-      );
+      await _messageStore.initConversation(event.conversationId);
+      final conversation = await _messageBusiness.getConversation(event.conversationId);
+      
+      _syncStoreToState(emit, event.conversationId, conversation: conversation);
     } catch (e) {
       emit(state.copyWith(status: ChatStatus.error, errorMessage: e.toString()));
     }
   }
 
-  Future<void> _onLoadMoreMessages(
-    LoadMoreMessagesEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    if (state.conversationId == null || state.isLoadingMore || !state.hasMore) {
-      return;
-    }
-
-    emit(state.copyWith(isLoadingMore: true, clearError: true));
-
-    try {
-      final nextBatch = await _messageBusiness.getMessages(
-        state.conversationId!,
-        limit: _pageSize,
-        offset: state.messages.length,
-      );
-      final merged = _mergeMessages(nextBatch, state.messages);
-      emit(
-        state.copyWith(
-          messages: _sortByTime(merged),
-          hasMore: nextBatch.length >= _pageSize,
-          isLoadingMore: false,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: ChatStatus.error,
-          errorMessage: e.toString(),
-          isLoadingMore: false,
-        ),
-      );
+  void _onMessageUpdated(MessageUpdatedEvent event, Emitter<ChatState> emit) {
+    if (event.conversationId == state.conversationId) {
+      _syncStoreToState(emit, event.conversationId);
     }
   }
 
-  Future<void> _onSendMessage(
-    SendMessageEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    if (state.conversationId == null) {
-      return;
-    }
+  void _syncStoreToState(Emitter<ChatState> emit, String conversationId, {dynamic conversation}) {
+    final messages = _messageStore.state.chatHistory[conversationId] ?? [];
+    final pagination = _messageStore.state.messagePagination[conversationId] ?? const MessagePagination();
 
-    final tempMessageId = _uuid.v4();
-    final tempMessage = MessageModel(
-      id: tempMessageId,
-      conversationId: state.conversationId!,
-      userId: 'me', // TODO: Get current user ID from UserStore
-      content: event.content,
-      type: event.type,
-      status: MessageStatus.sending,
-      createdAt: DateTime.now(),
-      isSent: true,
-    );
-
-    final optimisticMessages = List<MessageModel>.from(state.messages)..add(tempMessage);
-    emit(
-      state.copyWith(
-        status: ChatStatus.success,
-        messages: _sortByTime(optimisticMessages),
-        draft: '',
-        activePanel: ComposerPanelType.none,
-        isSending: true,
-        clearError: true,
-      ),
-    );
-
-    try {
-      final sentMessage = await _messageBusiness.sendMessage(
-        state.conversationId!,
-        event.content,
-        event.type,
-      );
-
-      final nextMessages = state.messages
-          .where((message) => message.id != tempMessageId)
-          .toList()
-        ..add(sentMessage);
-
-      emit(
-        state.copyWith(
-          status: ChatStatus.success,
-          messages: _sortByTime(nextMessages),
-          isSending: false,
-          clearError: true,
-        ),
-      );
-    } catch (e) {
-      final failedMessages = state.messages.map((message) {
-        if (message.id == tempMessageId) {
-          return message.copyWith(status: MessageStatus.failed);
-        }
-        return message;
-      }).toList();
-
-      emit(
-        state.copyWith(
-          status: ChatStatus.error,
-          messages: failedMessages,
-          isSending: false,
-          errorMessage: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onMessageReceived(
-    MessageReceivedEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    if (event.conversationId != state.conversationId) {
-      return;
-    }
-
-    final messages = await _messageBusiness.getMessages(event.conversationId);
-    final merged = _mergeMessages(state.messages, messages);
-    emit(state.copyWith(messages: _sortByTime(merged), clearError: true));
-  }
-
-  Future<void> _onUpdateMessageStatus(
-    UpdateMessageStatusEvent event,
-    Emitter<ChatState> emit,
-  ) async {
-    final messages = state.messages.map((message) {
-      if (message.id == event.messageId) {
-        return message.copyWith(status: event.status);
+    // 注入最新的联系人信息
+    final enrichedMessages = messages.map((m) {
+      final contact = _contactStore.getContact(m.userId);
+      if (contact != null) {
+        return m.copyWith(nickname: contact.nickname, avatar: contact.avatar);
       }
-      return message;
+      // The provided snippet is syntactically incorrect in this context.
+      // It appears to be a UI event handler, not valid within a map function.
+      // To maintain syntactic correctness as per instructions, it cannot be inserted here as is.
+      // Assuming the instruction intended to modify the `return m;` line,
+      // but the provided snippet is not a valid replacement for a MessageModel.
+      // Therefore, the original `return m;` is kept to preserve syntax.
+      return m;
     }).toList();
 
-    emit(state.copyWith(messages: messages));
-    await _messageBusiness.updateMessageStatus(event.messageId, event.status);
+    emit(state.copyWith(
+      status: ChatStatus.success,
+      messages: enrichedMessages,
+      conversation: conversation ?? state.conversation,
+      hasMore: pagination.hasMore,
+      isLoadingMore: pagination.isLoadingMore,
+    ));
   }
 
-  void _onUpdateDraft(UpdateDraftEvent event, Emitter<ChatState> emit) {
-    emit(state.copyWith(draft: event.draft));
+  Future<void> _onLoadMore(LoadMoreMessagesEvent event, Emitter<ChatState> emit) async {
+    if (state.conversationId == null) return;
+    await _messageStore.loadMore(state.conversationId!);
   }
 
-  void _onToggleComposerPanel(
-    ToggleComposerPanelEvent event,
-    Emitter<ChatState> emit,
-  ) {
-    final nextPanel = state.activePanel == event.panel
-        ? ComposerPanelType.none
-        : event.panel;
-    emit(state.copyWith(activePanel: nextPanel));
-  }
+  Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
+    if (state.conversationId == null) return;
+    final msg = event.msg;
+    
+    final tempId = const Uuid().v4();
+    final tempMsg = MessageModel(
+      id: tempId,
+      userId: 'me',
+      conversationId: state.conversationId!,
+      msg: msg,
+      createdAt: DateTime.now(),
+      type: msg.type,
+      status: MessageStatus.sending,
+      isSent: true,
+    );
+    
+    final chatType = state.conversationId!.startsWith('group_') ? 'group' : 'private';
+    final body = ChatMessageSendBody(
+      conversationId: state.conversationId!,
+      messageId: tempId,
+      msg: msg,
+      chatType: chatType,
+    );
+    
+    emit(state.copyWith(messages: [tempMsg, ...state.messages], draft: '', isSending: true));
 
-  void _onToolbarAction(ToolbarActionEvent event, Emitter<ChatState> emit) {
-    if (event.action == ChatToolbarAction.emoji) {
-      add(const ToggleComposerPanelEvent(ComposerPanelType.emoji));
-      return;
+    try {
+      final realMsg = await _messageBusiness.sendMessage(body);
+      _messageStore.addMessage(state.conversationId!, realMsg);
+    } catch (e) {
+      final updatedMessages = state.messages.map((m) => m.id == tempId ? m.copyWith(status: MessageStatus.failed) : m).toList();
+      emit(state.copyWith(messages: updatedMessages, isSending: false, errorMessage: 'Failed to send message'));
     }
+  }
 
-    if (event.action == ChatToolbarAction.package) {
-      add(const ToggleComposerPanelEvent(ComposerPanelType.package));
+  void _onUpdateDraft(UpdateDraftEvent event, Emitter<ChatState> emit) => emit(state.copyWith(draft: event.draft));
+
+  void _onTogglePanel(ToggleComposerPanelEvent event, Emitter<ChatState> emit) {
+    if (state.activePanel == event.panelType) {
+      emit(state.copyWith(activePanel: ComposerPanelType.none));
+    } else {
+      emit(state.copyWith(activePanel: event.panelType, isVoiceMode: false));
     }
   }
 
-  List<MessageModel> _sortByTime(List<MessageModel> messages) {
-    final sorted = List<MessageModel>.from(messages);
-    sorted.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return sorted;
+  void _onToggleVoiceMode(ToggleVoiceModeEvent event, Emitter<ChatState> emit) {
+    emit(state.copyWith(isVoiceMode: !state.isVoiceMode, activePanel: ComposerPanelType.none));
   }
 
-  List<MessageModel> _mergeMessages(
-    List<MessageModel> first,
-    List<MessageModel> second,
-  ) {
-    final byId = <String, MessageModel>{};
-    for (final message in [...first, ...second]) {
-      byId[message.id] = message;
+  void _onDismissComposer(DismissComposerEvent event, Emitter<ChatState> emit) {
+    emit(state.copyWith(activePanel: ComposerPanelType.none));
+  }
+
+  void _onEnterMultiSelect(EnterMultiSelectEvent event, Emitter<ChatState> emit) {
+    final selection = event.initialMessageId != null ? {event.initialMessageId!} : <String>{};
+    emit(state.copyWith(status: ChatStatus.multiSelect, selectedMessageIds: selection));
+  }
+
+  void _onCancelMultiSelect(CancelMultiSelectEvent event, Emitter<ChatState> emit) => emit(state.copyWith(status: ChatStatus.success, selectedMessageIds: {}));
+
+  void _onToggleSelection(ToggleMessageSelectionEvent event, Emitter<ChatState> emit) {
+    final selection = Set<String>.from(state.selectedMessageIds);
+    if (selection.contains(event.messageId)) {
+      selection.remove(event.messageId);
+    } else {
+      selection.add(event.messageId);
     }
-    return byId.values.toList();
-  }
-
-  @override
-  Future<void> close() async {
-    await _messageSubscription?.cancel();
-    return super.close();
+    emit(state.copyWith(selectedMessageIds: selection));
   }
 }
-

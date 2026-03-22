@@ -273,6 +273,67 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       return '${dateTime.month}/${dateTime.day}';
     }
   }
+
+  @override
+  Future<ChatModel?> getConversation(String conversationId) async {
+    final currentUserId = DatabaseManager.currentUserId ?? '';
+    if (currentUserId.isEmpty) return null;
+
+    final meta = await _conversationService.getConversationById(conversationId);
+    if (meta == null) return null;
+
+    final setting = await _userConversationService.getByConversationId(conversationId);
+    
+    var avatar = meta.avatar ?? '';
+    var nickname = meta.title ?? '';
+
+    if (_isPrivateConversation(conversationId)) {
+      final peerId = _parsePrivatePeerId(conversationId, currentUserId);
+      if (peerId != null) {
+        final friends = await _friendService.getFriends();
+        final friendIndex = friends.indexWhere(
+          (f) => (f.sendUserId == currentUserId && f.revUserId == peerId) ||
+                 (f.sendUserId == peerId && f.revUserId == currentUserId)
+        );
+        
+        final userInfos = await _userService.getUsersBasicInfo([peerId]);
+        final user = userInfos.isNotEmpty ? userInfos.first : null;
+        
+        if (friendIndex != -1) {
+          final friend = friends[friendIndex];
+          final notice = friend.sendUserId == currentUserId
+              ? (friend.revUserNotice ?? '')
+              : (friend.sendUserNotice ?? '');
+          nickname = notice.isNotEmpty ? notice : (user?['nickName']?.toString() ?? peerId);
+        } else {
+          nickname = user?['nickName']?.toString() ?? peerId;
+        }
+        avatar = user?['avatar']?.toString() ?? '';
+      }
+    } else if (_isGroupConversation(conversationId)) {
+      final groupId = _parseGroupId(conversationId);
+      final groups = groupId == null ? <Group>[] : await _groupService.getGroupsByIds([groupId]);
+      if (groups.isNotEmpty) {
+        avatar = groups.first.avatar;
+        nickname = groups.first.title;
+      }
+    }
+
+    final updatedAt = meta.updatedAt == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(meta.updatedAt! * 1000);
+    final unreadCount = _computeUnread(meta.maxSeq, setting?.userReadSeq ?? 0);
+
+    return ChatModel(
+      conversationId: conversationId,
+      nickname: nickname,
+      avatar: avatar,
+      msgPreview: meta.lastMessage ?? '',
+      updateAt: _formatTime(updatedAt),
+      isTop: setting?.isPinned == 1,
+      unreadCount: unreadCount,
+    );
+  }
 }
 
 class _MergedConversation {

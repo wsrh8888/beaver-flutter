@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:beaver/api/auth.dart';
 import 'package:beaver/types/api/auth.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
@@ -10,7 +12,8 @@ class LoginRepository {
   ) async {
     final req = EmailPasswordLoginReq(
       email: email,
-      password: password,
+      // 使用 MD5 加密密码
+      password: md5.convert(utf8.encode(password)).toString(),
       deviceId: 'device_id_placeholder', // TODO: 从设备信息获取
     );
     final response = await emailPasswordLoginApi(req);

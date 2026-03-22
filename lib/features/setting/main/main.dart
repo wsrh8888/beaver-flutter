@@ -10,6 +10,8 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/core/datasync/emoji/sync.dart';
+import 'package:beaver/core/database/db.dart';
 
 class SettingMainPage extends StatefulWidget {
   const SettingMainPage({super.key});
@@ -68,11 +70,16 @@ class _SettingMainPageState extends State<SettingMainPage> {
                   ]),
                   SizedBox(height: 24.w),
 
-                  // 2. 主题设置
+                  // 2. 主题与存储
                   _buildSettingsCard([
                     _buildSettingItem(
                       title: '主题设置',
                       onTap: () => context.push(AppRoutes.settingTheme),
+                      showBorder: true,
+                    ),
+                    _buildSettingItem(
+                      title: '清理本地数据',
+                      onTap: _handleClearLocalData,
                       showBorder: false,
                     ),
                   ]),
@@ -223,6 +230,38 @@ class _SettingMainPageState extends State<SettingMainPage> {
             },
             child: const Text(
               '确认退出',
+              style: TextStyle(color: Color(0xFFFF5252)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleClearLocalData() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清理本地数据'),
+        content: const Text('这将清除本地数据库中所有聊天、好友、群组及表情记录，是否继续？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // 1. 清除数据库所有表
+              await DatabaseManager.instance.clearAllData();
+              // 2. 清除表情同步记录 (文件等，如果有的话)
+              await clearEmojiSyncState();
+              if (mounted) {
+                BeaverToast.show(context, '本地数据已清空');
+              }
+            },
+            child: const Text(
+              '确定清理',
               style: TextStyle(color: Color(0xFFFF5252)),
             ),
           ),

@@ -10,6 +10,7 @@ class AppRoutes {
   static const String chatList = '/chat/list';
   static const String chatDetail = '/chat/detail';
   static const String chatSetting = '/chat/setting';
+  static const String chatForward = '/chat/forward';
   
   // 联系人模块
   static const String contactList = '/contact/list';
@@ -53,4 +54,8 @@ class AppRoutes {
   static const String mine = '/user/mine';
   static const String qrcode = '/user/qrcode';
   static const String userConfig = '/user/config';
+
+  // 表情模块
+  static const String emojiShop = '/emoji/shop';
+  static const String emojiDetail = '/emoji/detail';
 }

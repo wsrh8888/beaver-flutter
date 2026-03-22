@@ -6,4 +6,4 @@ class NotificationMessageReceiver {
   }
 }
 
-final notificationMessageReceiver = NotificationMessageReceiver();
+// Removed global notificationMessageReceiver

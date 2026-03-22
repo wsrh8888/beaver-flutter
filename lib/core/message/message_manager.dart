@@ -96,5 +96,3 @@ class MessageManager {
     }
   }
 }
-
-final messageManager = MessageManager();

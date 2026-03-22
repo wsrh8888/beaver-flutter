@@ -124,8 +124,38 @@ class EmojiPackageContent {
   );
 }
 
+class EmojiCollectItem {
+  final String emojiCollectId;
+  final String userId;
+  final String emojiId;
+  final String? packageId;
+  final int status;
+  final int version;
+  final int updatedAt;
+
+  EmojiCollectItem({
+    required this.emojiCollectId,
+    required this.userId,
+    required this.emojiId,
+    this.packageId,
+    required this.status,
+    required this.version,
+    required this.updatedAt,
+  });
+
+  factory EmojiCollectItem.fromJson(Map<String, dynamic> json) => EmojiCollectItem(
+    emojiCollectId: json['emojiCollectId'] ?? '',
+    userId: json['userId'] ?? '',
+    emojiId: json['emojiId'] ?? '',
+    packageId: json['packageId'],
+    status: json['status'] ?? 1,
+    version: json['version'] ?? 0,
+    updatedAt: json['updatedAt'] ?? 0,
+  );
+}
+
 class EmojiCollectsResponse {
-  final List<EmojiItem> collects;
+  final List<EmojiCollectItem> collects;
   EmojiCollectsResponse({required this.collects});
 }
 
@@ -142,4 +172,85 @@ class EmojiPackagesResponse {
 class EmojiPackageContentsResponse {
   final List<EmojiPackageContent> contents;
   EmojiPackageContentsResponse({required this.contents});
+}
+
+// 表情商店相关模型
+class EmojiShopPackageItem {
+  final String packageId;
+  final String title;
+  final String coverFile;
+  final String description;
+  final String type; // 'official' | 'user'
+  final int collectCount;
+  final int emojiCount;
+  final bool isCollected;
+  final bool isAuthor;
+
+  EmojiShopPackageItem({
+    required this.packageId,
+    required this.title,
+    required this.coverFile,
+    required this.description,
+    required this.type,
+    required this.collectCount,
+    required this.emojiCount,
+    required this.isCollected,
+    required this.isAuthor,
+  });
+
+  factory EmojiShopPackageItem.fromJson(Map<String, dynamic> json) {
+    return EmojiShopPackageItem(
+      packageId: json['packageId'] ?? '',
+      title: json['title'] ?? '',
+      coverFile: json['coverFile'] ?? '',
+      description: json['description'] ?? '',
+      type: json['type'] ?? 'official',
+      collectCount: json['collectCount'] ?? 0,
+      emojiCount: json['emojiCount'] ?? 0,
+      isCollected: json['isCollected'] ?? false,
+      isAuthor: json['isAuthor'] ?? false,
+    );
+  }
+}
+
+class EmojiShopPackagesResponse {
+  final int count;
+  final List<EmojiShopPackageItem> list;
+
+  EmojiShopPackagesResponse({required this.count, required this.list});
+}
+
+class EmojiPackageDetailResponse extends EmojiShopPackageItem {
+  final List<EmojiItem> emojis;
+
+  EmojiPackageDetailResponse({
+    required super.packageId,
+    required super.title,
+    required super.coverFile,
+    required super.description,
+    required super.type,
+    required super.collectCount,
+    required super.emojiCount,
+    required super.isCollected,
+    required super.isAuthor,
+    required this.emojis,
+  });
+
+  factory EmojiPackageDetailResponse.fromJson(Map<String, dynamic> json) {
+    return EmojiPackageDetailResponse(
+      packageId: json['packageId'] ?? '',
+      title: json['title'] ?? '',
+      coverFile: json['coverFile'] ?? '',
+      description: json['description'] ?? '',
+      type: json['type'] ?? 'official',
+      collectCount: json['collectCount'] ?? 0,
+      emojiCount: json['emojiCount'] ?? 0,
+      isCollected: json['isCollected'] ?? false,
+      isAuthor: json['isAuthor'] ?? false,
+      emojis: (json['emojis'] as List?)
+              ?.map((e) => EmojiItem.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
 }

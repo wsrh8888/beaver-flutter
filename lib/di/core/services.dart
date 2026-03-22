@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/core/database/services/index.dart';
+import 'package:beaver/core/datasync/emoji/sync.dart';
 
 /// 数据服务层依赖配置
 void configureServiceDependencies(GetIt getIt) {
@@ -27,7 +28,13 @@ void configureServiceDependencies(GetIt getIt) {
   // 其他服务
   getIt.registerLazySingleton<DatasyncService>(() => DatasyncService(getIt<AppDatabase>()));
   getIt.registerLazySingleton<MediaService>(() => MediaService(getIt<AppDatabase>()));
+  // 表情模块服务
   getIt.registerLazySingleton<EmojiService>(() => EmojiService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiCollectService>(() => EmojiCollectService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiPackageService>(() => EmojiPackageService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiPackageCollectService>(() => EmojiPackageCollectService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiPackageEmojiService>(() => EmojiPackageEmojiService(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<EmojiSync>(() => EmojiSync());
   getIt.registerLazySingleton<NotificationInboxService>(() => NotificationInboxService(getIt<AppDatabase>()));
   getIt.registerLazySingleton<NotificationReadCursorService>(() => NotificationReadCursorService(getIt<AppDatabase>()));
   getIt.registerLazySingleton<NotificationEventService>(() => NotificationEventService(getIt<AppDatabase>()));

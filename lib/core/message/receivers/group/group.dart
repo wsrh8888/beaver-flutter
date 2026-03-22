@@ -6,4 +6,4 @@ class GroupMessageReceiver {
   }
 }
 
-final groupMessageReceiver = GroupMessageReceiver();
+// Removed global groupMessageReceiver

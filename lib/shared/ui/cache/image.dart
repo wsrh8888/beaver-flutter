@@ -15,6 +15,7 @@ class BeaverCachedImage extends StatefulWidget {
   final Widget? placeholder;
   final Widget? errorWidget;
   final double? borderRadius;
+  final bool enableFullscreen;
 
   const BeaverCachedImage({
     super.key,
@@ -26,6 +27,7 @@ class BeaverCachedImage extends StatefulWidget {
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
+    this.enableFullscreen = true,
   });
 
   @override
@@ -105,6 +107,7 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
         fit: widget.fit,
         placeholder: widget.placeholder ?? _buildDefaultLoading(),
         errorWidget: widget.errorWidget ?? _buildDefaultError(),
+        enableFullscreen: widget.enableFullscreen,
       ),
     );
   }

@@ -12,27 +12,28 @@ class ChatUserConversationService extends BaseService {
 
   /// upsert单个用户会话设置（插入或更新）
   Future<void> upsert(ChatUserConversationsCompanion setting) async {
-    await db.into(db.chatUserConversations).insert(
-          setting,
-          mode: InsertMode.insertOrReplace,
-        );
+    final conversationId = setting.conversationId.value;
+    final existing = await (db.select(db.chatUserConversations)
+          ..where((t) => t.conversationId.equals(conversationId))
+          ..limit(1))
+        .getSingleOrNull();
+
+    if (existing != null) {
+      await (db.update(db.chatUserConversations)
+            ..where((t) => t.conversationId.equals(conversationId)))
+          .write(setting);
+    } else {
+      await db.into(db.chatUserConversations).insert(setting);
+    }
   }
 
   /// 批量创建用户会话设置（支持插入或更新）
   Future<void> batchCreate(List<ChatUserConversationsCompanion> settings) async {
-    if (settings.isEmpty) {
-      return;
-    }
+    if (settings.isEmpty) return;
 
-    await db.batch((batch) {
-      for (final setting in settings) {
-        batch.insert(
-          db.chatUserConversations,
-          setting,
-          mode: InsertMode.insertOrReplace,
-        );
-      }
-    });
+    for (final setting in settings) {
+      await upsert(setting);
+    }
   }
 
   /// 根据会话ID获取用户会话设置

@@ -1,10 +1,10 @@
-
 /// 会话仓库接口
 abstract class ConversationRepositoryInterface {
   Future<List<ChatModel>> getChatList();
   Future<void> markAsRead(String conversationId);
   Future<void> togglePinChat(String conversationId, bool isPinned);
   Future<void> deleteChat(String conversationId);
+  Future<ChatModel?> getConversation(String conversationId);
 }
 
 class ChatModel {

@@ -1,5 +1,6 @@
-import 'package:beaver/core/message/message_manager.dart';
 import 'package:beaver/common/websocket/index.dart';
+import 'package:beaver/core/message/message_manager.dart';
+import 'package:beaver/di/injection.dart';
 
 /// WebSocket 连接管理器
 /// 
@@ -8,7 +9,7 @@ import 'package:beaver/common/websocket/index.dart';
 /// - 连接消息管理器处理业务消息
 class WsConnectionManager {
   WsClient? _wsClient;
-  final MessageManager _messageManager = messageManager;
+  MessageManager get _messageManager => getIt<MessageManager>();
 
   void connectWithToken(String token) {
     disconnect();

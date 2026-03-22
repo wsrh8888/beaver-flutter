@@ -1,18 +1,23 @@
+import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class ChatEvent extends Equatable {
   const ChatEvent();
-
   @override
   List<Object?> get props => [];
 }
 
+class MessageUpdatedEvent extends ChatEvent {
+  final String conversationId;
+  const MessageUpdatedEvent(this.conversationId);
+  @override
+  List<Object?> get props => [conversationId];
+}
+
 class LoadMessagesEvent extends ChatEvent {
   final String conversationId;
-
   const LoadMessagesEvent(this.conversationId);
-
   @override
   List<Object?> get props => [conversationId];
 }
@@ -22,71 +27,48 @@ class LoadMoreMessagesEvent extends ChatEvent {
 }
 
 class SendMessageEvent extends ChatEvent {
-  final String content;
-  final MessageType type;
-
-  const SendMessageEvent(this.content, this.type);
-
+  final MessageContentModel msg;
+  const SendMessageEvent(this.msg);
   @override
-  List<Object?> get props => [content, type];
-}
-
-class UpdateMessageStatusEvent extends ChatEvent {
-  final String messageId;
-  final MessageStatus status;
-
-  const UpdateMessageStatusEvent(this.messageId, this.status);
-
-  @override
-  List<Object?> get props => [messageId, status];
-}
-
-class MessageReceivedEvent extends ChatEvent {
-  final String conversationId;
-
-  const MessageReceivedEvent(this.conversationId);
-
-  @override
-  List<Object?> get props => [conversationId];
+  List<Object?> get props => [msg];
 }
 
 class UpdateDraftEvent extends ChatEvent {
   final String draft;
-
   const UpdateDraftEvent(this.draft);
-
   @override
   List<Object?> get props => [draft];
 }
 
-enum ComposerPanelType {
-  none,
-  emoji,
-  package,
-}
-
 class ToggleComposerPanelEvent extends ChatEvent {
-  final ComposerPanelType panel;
-
-  const ToggleComposerPanelEvent(this.panel);
-
+  final ComposerPanelType panelType;
+  const ToggleComposerPanelEvent(this.panelType);
   @override
-  List<Object?> get props => [panel];
+  List<Object?> get props => [panelType];
 }
 
-class ToolbarActionEvent extends ChatEvent {
-  final ChatToolbarAction action;
-
-  const ToolbarActionEvent(this.action);
-
-  @override
-  List<Object?> get props => [action];
+class ToggleVoiceModeEvent extends ChatEvent {
+  const ToggleVoiceModeEvent();
 }
 
-enum ChatToolbarAction {
-  image,
-  camera,
-  audio,
-  emoji,
-  package,
+class DismissComposerEvent extends ChatEvent {
+  const DismissComposerEvent();
+}
+
+class EnterMultiSelectEvent extends ChatEvent {
+  final String? initialMessageId;
+  const EnterMultiSelectEvent({this.initialMessageId});
+  @override
+  List<Object?> get props => [initialMessageId];
+}
+
+class CancelMultiSelectEvent extends ChatEvent {
+  const CancelMultiSelectEvent();
+}
+
+class ToggleMessageSelectionEvent extends ChatEvent {
+  final String messageId;
+  const ToggleMessageSelectionEvent(this.messageId);
+  @override
+  List<Object?> get props => [messageId];
 }

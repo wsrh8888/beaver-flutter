@@ -5,5 +5,3 @@ class UserMessageReceiver {
     // TODO: 实现用户消息处理逻辑
   }
 }
-
-final userMessageReceiver = UserMessageReceiver();
