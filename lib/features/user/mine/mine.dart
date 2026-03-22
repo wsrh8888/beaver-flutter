@@ -9,7 +9,8 @@ import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:drift_db_viewer/drift_db_viewer.dart';
-import 'package:beaver/core/database/db.dart';
+import 'package:beaver/store/app/app.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/router/routes.dart';
 import 'package:beaver/store/user/user.dart';
@@ -69,7 +70,7 @@ class _MinePageState extends State<MinePage> {
   void _navigateToDatabase() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => DriftDbViewer(DatabaseManager.instance),
+        builder: (context) => DriftDbViewer(getIt<AppStore>().localDatabase),
       ),
     );
   }

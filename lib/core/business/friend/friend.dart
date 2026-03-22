@@ -1,7 +1,9 @@
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/friend/friend.dart';
+import 'package:beaver/core/database/services/friend/friend_verify.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:intl/intl.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/types/business/user.dart';
 
@@ -143,6 +145,69 @@ class FriendBusiness implements FriendRepositoryInterface {
   Future<bool> addFriend(String userId) async {
     // 模拟发送好友请求
     await Future.delayed(const Duration(seconds: 1));
+    return true;
+  }
+
+  @override
+  Future<List<FriendRequest>> getFriendRequests() async {
+    final currentUserId = DatabaseManager.currentUserId ?? '';
+    if (currentUserId.isEmpty) return [];
+
+    final verifyService = getIt<FriendVerifyService>();
+    final userBusiness = getIt<UserBusiness>();
+
+    // 1. 获取验证记录
+    final verifies = await verifyService.getValidList(currentUserId);
+    if (verifies.isEmpty) return [];
+
+    // 2. 收集需要查询的用户ID
+    final userIds = verifies.map((v) {
+      return v.sendUserId == currentUserId ? v.revUserId : v.sendUserId;
+    }).toSet().toList();
+
+    // 3. 批量获取用户信息
+    final userInfos = await userBusiness.getUsersBasicInfo(userIds);
+    final userMap = {for (var u in userInfos) u.userId: u};
+
+    // 4. 组装数据
+    final requests = verifies.map((v) {
+      final friendUserId = v.sendUserId == currentUserId ? v.revUserId : v.sendUserId;
+      final userInfo = userMap[friendUserId];
+      final flag = v.sendUserId == currentUserId ? 'send' : 'receive';
+      
+      int status = (v.revStatus == 1 || v.sendStatus == 1) ? 1 : (v.revStatus == 2 || v.sendStatus == 2 ? 2 : 0);
+
+      final createdAt = v.createdAt != null 
+          ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.fromMillisecondsSinceEpoch(v.createdAt! * 1000))
+          : '';
+
+      return FriendRequest(
+        id: v.id,
+        nickname: userInfo?.nickname ?? friendUserId,
+        fileName: userInfo?.avatar ?? '',
+        message: v.message,
+        source: v.source ?? 'search',
+        flag: flag,
+        status: status,
+        createdAt: createdAt,
+      );
+    }).toList();
+
+    // 按时间降序排序
+    requests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    
+    return requests;
+  }
+
+  @override
+  Future<int> getUnreadFriendRequestCount(String userId) async {
+    final verifyService = getIt<FriendVerifyService>();
+    return await verifyService.getUnreadCount(userId);
+  }
+
+  @override
+  Future<bool> updateFriendRequestStatus(int id, int status) async {
+    // TODO: 调用 API 同步状态到服务器，并更新本地数据库
     return true;
   }
 }

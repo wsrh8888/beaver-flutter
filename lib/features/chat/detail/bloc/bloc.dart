@@ -7,6 +7,7 @@ import 'package:beaver/di/injection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/contact/contact.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
@@ -38,6 +39,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     _messageSubscription = _messageStore.stream.listen((_) {
       if (state.conversationId != null) {
+        // 收到新消息时，如果是当前会话，自动标为已读
+        getIt<ConversationBusiness>().markAsRead(state.conversationId!);
         add(MessageUpdatedEvent(state.conversationId!));
       }
     });
@@ -62,6 +65,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       await _messageStore.initConversation(event.conversationId);
       final conversation = await _messageBusiness.getConversation(event.conversationId);
       
+      // 进入会话自动标为已读
+      await getIt<ConversationBusiness>().markAsRead(event.conversationId);
+
       _syncStoreToState(emit, event.conversationId, conversation: conversation);
     } catch (e) {
       emit(state.copyWith(status: ChatStatus.error, errorMessage: e.toString()));

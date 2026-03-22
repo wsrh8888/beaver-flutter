@@ -27,4 +27,15 @@ class GroupJoinRequestService extends BaseService {
       }
     });
   }
+
+  /// 获取未读（待处理）申请数
+  Future<int> getUnreadCount() async {
+    // 这里简单处理：所有由于我是管理员/创建者而收到的待处理申请
+    // 实际业务可能更复杂，这里先根据 status == 0 统计
+    final query = db.selectOnly(db.groupJoinRequests)
+      ..addColumns([db.groupJoinRequests.id.count()])
+      ..where(db.groupJoinRequests.status.equals(0));
+    final result = await query.map((row) => row.read<int>(db.groupJoinRequests.id.count())).getSingle();
+    return result ?? 0;
+  }
 }

@@ -10,8 +10,8 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/router/routes.dart';
-import 'package:beaver/core/datasync/emoji/sync.dart';
-import 'package:beaver/core/database/db.dart';
+import 'package:beaver/store/app/app.dart';
+import 'package:beaver/di/injection.dart';
 
 class SettingMainPage extends StatefulWidget {
   const SettingMainPage({super.key});
@@ -252,10 +252,8 @@ class _SettingMainPageState extends State<SettingMainPage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              // 1. 清除数据库所有表
-              await DatabaseManager.instance.clearAllData();
-              // 2. 清除表情同步记录 (文件等，如果有的话)
-              await clearEmojiSyncState();
+              // 1. 清除数据库和状态
+              await getIt<AppStore>().clearLocalData();
               if (mounted) {
                 BeaverToast.show(context, '本地数据已清空');
               }

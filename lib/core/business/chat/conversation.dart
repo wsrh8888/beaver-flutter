@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/chat/conversation.dart';
 import 'package:beaver/core/database/services/chat/message.dart';
@@ -5,8 +6,12 @@ import 'package:beaver/core/database/services/chat/user_conversation.dart';
 import 'package:beaver/core/database/services/friend/friend.dart';
 import 'package:beaver/core/database/services/group/group.dart';
 import 'package:beaver/core/database/services/user/user.dart';
+import 'package:beaver/api/chat.dart';
+import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:beaver/core/business/chat/user_conversation.dart';
+import 'package:drift/drift.dart';
 
 class ConversationBusiness implements ConversationRepositoryInterface {
   final _conversationService = getIt<ChatConversationService>();
@@ -15,6 +20,16 @@ class ConversationBusiness implements ConversationRepositoryInterface {
   final _friendService = getIt<FriendService>();
   final _groupService = getIt<GroupService>();
   final _userService = getIt<UserService>();
+
+  // 响应式数据流 (对标 PC 的 Notification 机制)
+  final _conversationUpdateController = StreamController<void>.broadcast();
+  Stream<void> get conversationUpdateStream =>
+      _conversationUpdateController.stream;
+
+  void notifyConversationUpdate() {
+    print('[ConversationBusiness] 发送会话列表更新通知');
+    _conversationUpdateController.add(null);
+  }
 
   @override
   Future<List<ChatModel>> getChatList() async {
@@ -38,8 +53,9 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     }
 
     // 2) conversation metas
-    final conversationIds =
-        visibleUserConversations.map((uc) => uc.conversationId).toList();
+    final conversationIds = visibleUserConversations
+        .map((uc) => uc.conversationId)
+        .toList();
     final conversationMetas = await _conversationService.getConversationsByIds(
       conversationIds,
     );
@@ -89,9 +105,12 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     if (privatePeerIds.isNotEmpty) {
       final allFriends = await _friendService.getFriends();
       final relatedFriends = allFriends.where((f) {
-        final isMine = f.sendUserId == currentUserId || f.revUserId == currentUserId;
+        final isMine =
+            f.sendUserId == currentUserId || f.revUserId == currentUserId;
         if (!isMine) return false;
-        final peerId = f.sendUserId == currentUserId ? f.revUserId : f.sendUserId;
+        final peerId = f.sendUserId == currentUserId
+            ? f.revUserId
+            : f.sendUserId;
         return privatePeerIds.contains(peerId);
       }).toList();
 
@@ -103,8 +122,9 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       };
 
       for (final friend in relatedFriends) {
-        final peerId =
-            friend.sendUserId == currentUserId ? friend.revUserId : friend.sendUserId;
+        final peerId = friend.sendUserId == currentUserId
+            ? friend.revUserId
+            : friend.sendUserId;
         final notice = friend.sendUserId == currentUserId
             ? (friend.revUserNotice ?? '')
             : (friend.sendUserNotice ?? '');
@@ -158,8 +178,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         if (group != null) {
           avatar = group.avatar;
           nickname = group.title;
-        } else if (nickname.isEmpty && groupId != null) {
-          nickname = '群聊($groupId)';
         }
       }
 
@@ -170,7 +188,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         conversationId,
         item.meta.lastMessage,
       );
-      final unreadCount = _computeUnread(item.meta.maxSeq, item.setting.userReadSeq);
+      final unreadCount = _computeUnread(
+        item.meta.maxSeq,
+        item.setting.userReadSeq,
+      );
 
       list.add(
         ChatModel(
@@ -195,14 +216,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
   }
 
   @override
-  Future<void> markAsRead(String conversationId) async {
-    await _userConversationService.markAsRead(conversationId, 0);
-  }
+  Future<void> markAsRead(String conversationId) async => getIt<UserConversationBusiness>().markAsRead(conversationId);
 
   @override
-  Future<void> togglePinChat(String conversationId, bool isPinned) async {
-    await _userConversationService.togglePinConversation(conversationId, isPinned);
-  }
+  Future<void> togglePinChat(String conversationId, bool isPinned) async => getIt<UserConversationBusiness>().togglePinChat(conversationId, isPinned);
 
   @override
   Future<void> deleteChat(String conversationId) async {
@@ -218,7 +235,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       return conversationLastMessage;
     }
 
-    final latest = await _messageService.getChatHistory(conversationId, limit: 1);
+    final latest = await _messageService.getChatHistory(
+      conversationId,
+      limit: 1,
+    );
     if (latest.isEmpty) {
       return '';
     }
@@ -282,8 +302,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     final meta = await _conversationService.getConversationById(conversationId);
     if (meta == null) return null;
 
-    final setting = await _userConversationService.getByConversationId(conversationId);
-    
+    final setting = await _userConversationService.getByConversationId(
+      conversationId,
+    );
+
     var avatar = meta.avatar ?? '';
     var nickname = meta.title ?? '';
 
@@ -292,19 +314,22 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       if (peerId != null) {
         final friends = await _friendService.getFriends();
         final friendIndex = friends.indexWhere(
-          (f) => (f.sendUserId == currentUserId && f.revUserId == peerId) ||
-                 (f.sendUserId == peerId && f.revUserId == currentUserId)
+          (f) =>
+              (f.sendUserId == currentUserId && f.revUserId == peerId) ||
+              (f.sendUserId == peerId && f.revUserId == currentUserId),
         );
-        
+
         final userInfos = await _userService.getUsersBasicInfo([peerId]);
         final user = userInfos.isNotEmpty ? userInfos.first : null;
-        
+
         if (friendIndex != -1) {
           final friend = friends[friendIndex];
           final notice = friend.sendUserId == currentUserId
               ? (friend.revUserNotice ?? '')
               : (friend.sendUserNotice ?? '');
-          nickname = notice.isNotEmpty ? notice : (user?['nickName']?.toString() ?? peerId);
+          nickname = notice.isNotEmpty
+              ? notice
+              : (user?['nickName']?.toString() ?? peerId);
         } else {
           nickname = user?['nickName']?.toString() ?? peerId;
         }
@@ -312,10 +337,16 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       }
     } else if (_isGroupConversation(conversationId)) {
       final groupId = _parseGroupId(conversationId);
-      final groups = groupId == null ? <Group>[] : await _groupService.getGroupsByIds([groupId]);
+      final groups = groupId == null
+          ? <Group>[]
+          : await _groupService.getGroupsByIds([groupId]);
       if (groups.isNotEmpty) {
-        avatar = groups.first.avatar;
+        avatar = groups.first.avatar.isEmpty
+            ? 'assets/images/friend/group.svg'
+            : groups.first.avatar;
         nickname = groups.first.title;
+      } else {
+        avatar = 'assets/images/friend/group.svg';
       }
     }
 
@@ -334,16 +365,60 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       unreadCount: unreadCount,
     );
   }
+
+  /**
+   * 按版本号同步会话元数据 (对标 PC syncConversationByVersion)
+   */
+  Future<void> syncConversationByVersion(
+    String conversationId,
+    int version,
+  ) async {
+    try {
+      final response = await getConversationsListByIdsApi(
+        IGetConversationsListByIdsReq(conversationIds: [conversationId]),
+      );
+
+      if (response.code == 0 && response.result != null) {
+        final items = response.result!.conversations;
+        for (final item in items) {
+          await _conversationService.upsert(
+            ChatConversationsCompanion(
+              conversationId: Value(item.conversationId),
+              type: Value(item.conversationType),
+              title: Value(item.title),
+              avatar: Value(item.avatar),
+              maxSeq: Value(item.maxSeq),
+              lastMessage: Value(item.lastMessage),
+              version: Value(item.version),
+              updatedAt: Value(
+                item.updatedAt > 0
+                    ? item.updatedAt
+                    : DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              ),
+            ),
+          );
+        }
+        // 同步成功后刷新 UI
+        notifyConversationUpdate();
+      }
+    } catch (e) {
+      print('[ConversationBusiness] syncConversationByVersion failed: $e');
+    }
+  }
+
+  @override
+  Future<void> syncUserConversationByVersion(
+    String userId,
+    String conversationId,
+    int version,
+  ) async => getIt<UserConversationBusiness>().syncUserConversationByVersion(userId, conversationId, version);
 }
 
 class _MergedConversation {
   final ChatConversation meta;
   final ChatUserConversation setting;
 
-  const _MergedConversation({
-    required this.meta,
-    required this.setting,
-  });
+  const _MergedConversation({required this.meta, required this.setting});
 }
 
 class _FriendDetail {

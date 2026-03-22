@@ -69,4 +69,13 @@ class FriendVerifyService extends BaseService {
 
     return (db.select(db.friendVerifies)..where((t) => t.verifyId.isIn(verifyIds))).get();
   }
+
+  /// 获取未读（待处理）申请数
+  Future<int> getUnreadCount(String userId) async {
+    final query = db.selectOnly(db.friendVerifies)
+      ..addColumns([db.friendVerifies.id.count()])
+      ..where(db.friendVerifies.revUserId.equals(userId) & db.friendVerifies.revStatus.equals(0));
+    final result = await query.map((row) => row.read<int>(db.friendVerifies.id.count())).getSingle();
+    return result ?? 0;
+  }
 }

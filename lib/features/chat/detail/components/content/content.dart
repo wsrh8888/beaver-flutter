@@ -172,25 +172,25 @@ class ChatContent extends StatelessWidget {
     final m = message.msg;
     switch (message.type) {
       case MessageType.text:
-        return TextMessage(msg: m.textMsg!, isSelf: isSelf);
+        return TextMessage(msg: m.textMsg ?? TextMsg(content: '不支持的格式'), isSelf: isSelf);
       case MessageType.image:
-        return ImageMessage(msg: m.imageMsg!);
+        return m.imageMsg == null ? const SizedBox() : ImageMessage(msg: m.imageMsg!);
       case MessageType.video:
-        return VideoMessage(msg: m.videoMsg!);
+        return m.videoMsg == null ? const SizedBox() : VideoMessage(msg: m.videoMsg!);
       case MessageType.audio:
-        return AudioMessage(msg: m.audioFileMsg!, isSelf: isSelf);
+        return m.audioFileMsg == null ? const SizedBox() : AudioMessage(msg: m.audioFileMsg!, isSelf: isSelf);
       case MessageType.file:
-        return FileMessage(msg: m.fileMsg!, isSelf: isSelf);
+        return m.fileMsg == null ? const SizedBox() : FileMessage(msg: m.fileMsg!, isSelf: isSelf);
       case MessageType.emoji:
-        return EmojiMessage(msg: m.emojiMsg!);
+        return m.emojiMsg == null ? const SizedBox() : EmojiMessage(msg: m.emojiMsg!);
       case MessageType.reply:
-        return ReplyMessage(msg: m.replyMsg!, isSelf: isSelf);
+        return m.replyMsg == null ? const SizedBox() : ReplyMessage(msg: m.replyMsg!, isSelf: isSelf);
       case MessageType.mergedForward:
-        return ForwardMessage(msg: m.forwardMsg!, isSelf: isSelf);
+        return m.forwardMsg == null ? const SizedBox() : ForwardMessage(msg: m.forwardMsg!, isSelf: isSelf);
       case MessageType.call:
         return CallMessage(message: message, isSelf: isSelf);
       default:
-        return TextMessage(msg: m.textMsg ?? TextMsg(content: ''), isSelf: isSelf);
+        return TextMessage(msg: m.textMsg ?? TextMsg(content: '未知消息'), isSelf: isSelf);
     }
   }
 

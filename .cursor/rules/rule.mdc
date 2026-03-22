@@ -200,8 +200,7 @@ class BaseResponse<T> {
 
 #### 1. 读操作 (Read Flow)
 ```
-UI (Bloc) -> Global Store (In-Memory) -> UI (Reactive Update)
-(若 Store 未初始化) Global Store -> Business -> Database (Cache) -> Global Store -> UI
+UI (Bloc) -> Global Store (In-Memory) -> UI (Reactive Update) -> Global Store -> Business -> Database (Cache) -> Global Store -> UI
 ```
 
 #### 2. 写操作 (Write Flow)

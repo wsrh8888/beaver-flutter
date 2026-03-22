@@ -10,6 +10,8 @@ import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
 import 'package:beaver/types/api/moment.dart';
 import 'package:beaver/shared/widgets/skeleton.dart';
+import 'package:beaver/store/user/user.dart';
+import 'package:beaver/store/contact/contact.dart';
 
 class MomentListPage extends StatelessWidget {
   const MomentListPage({super.key});
@@ -137,10 +139,15 @@ class _MomentListViewState extends State<MomentListView> {
                   },
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: EdgeInsets.all(8.w),
-                    itemCount: state.moments.length + (state.hasMore ? 1 : 0),
+                    padding: EdgeInsets.zero,
+                    itemCount: state.moments.length + 1 + (state.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
-                      if (index >= state.moments.length) {
+                      if (index == 0) {
+                        return _buildHeader();
+                      }
+                      
+                      final dataIndex = index - 1;
+                      if (dataIndex >= state.moments.length) {
                         return Padding(
                           padding: EdgeInsets.symmetric(vertical: 20.w),
                           child: const Center(
@@ -149,8 +156,11 @@ class _MomentListViewState extends State<MomentListView> {
                         );
                       }
 
-                      final item = state.moments[index];
-                      return _buildMomentItem(item);
+                      final item = state.moments[dataIndex];
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w),
+                        child: _buildMomentItem(item),
+                      );
                     },
                   ),
                 );
@@ -190,6 +200,85 @@ class _MomentListViewState extends State<MomentListView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return BlocBuilder<UserStore, UserStoreState>(
+      builder: (context, state) {
+        final userInfo = context.watch<ContactStore>().getContact(state.currentUserId);
+        
+        return Container(
+          margin: EdgeInsets.only(bottom: 24.w),
+          height: 300.w,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Cover
+              Positioned.fill(
+                bottom: 30.w,
+                child: Container(
+                   color: const Color(0xFFE86835),
+                   child: const Center(child: Icon(Icons.image, color: Colors.white30, size: 48)),
+                ),
+              ),
+              // User Info (Nickname & Avatar)
+              Positioned(
+                right: 16.w,
+                bottom: 0,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 40.w),
+                      child: Text(
+                        userInfo?.nickname ?? '我',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.5),
+                              offset: const Offset(1, 1),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Container(
+                      width: 70.w,
+                      height: 70.w,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.w),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      padding: EdgeInsets.all(2.w),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6.w),
+                        child: BeaverCachedImage(
+                          fileKey: userInfo?.avatar,
+                          type: CacheType.avatar,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -414,14 +503,21 @@ class _MomentListViewState extends State<MomentListView> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Using BeaverImage to load image. If url comes from API construct it here.
-                      // For now mock the actual file URL for testing.
-                      // If you have 'fileKey', you append it to a base URL.
-                      BeaverCachedImage(
-                        fileKey: file.url,
-                        type: CacheType.image,
-                        fit: BoxFit.cover,
-                      ),
+                      if (file.type == 2)
+                        BeaverCachedImage(
+                          fileKey: file.fileKey,
+                          type: CacheType.image,
+                          fit: BoxFit.cover,
+                        )
+                      else
+                        Container(
+                          color: const Color(0xFFF1F2F6),
+                          child: Icon(
+                            Icons.insert_drive_file_outlined,
+                            color: const Color(0xFFB2BEC3),
+                            size: 24.w,
+                          ),
+                        ),
                       if (isLast)
                         Container(
                           color: Colors.black.withOpacity(0.6),

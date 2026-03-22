@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/features/contact/new_friends/bloc/bloc.dart';
 import 'package:beaver/features/contact/new_friends/bloc/event.dart';
 import 'package:beaver/features/contact/new_friends/bloc/state.dart';
-import 'package:beaver/features/contact/new_friends/data/models/friend_request.dart';
+import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
@@ -41,6 +41,7 @@ class NewFriendsView extends StatelessWidget {
           title: '新的朋友',
           showBack: true,
           showHeader: true,
+          isScrollable: false,
           child: Column(
             children: [
               _buildTabs(context, state),

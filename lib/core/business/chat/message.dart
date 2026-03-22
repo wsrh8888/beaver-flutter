@@ -9,7 +9,11 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/store/user/user.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/api/chat.dart';
+import 'package:beaver/types/api/chat.dart';
+import 'package:beaver/store/message/message.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/core/database/services/chat/conversation.dart';
 
 /// 聊天消息业务逻辑
 class MessageBusiness implements MessageRepositoryInterface {
@@ -206,13 +210,182 @@ class MessageBusiness implements MessageRepositoryInterface {
     }
   }
 
+  /**
+   * 处理 WebSocket 推送的新消息 (对标 PC handleWSMessage)
+   */
+  Future<void> handleNewWSMessage(Map<String, dynamic> data) async {
+    final body = data['body'] as Map<String, dynamic>?;
+    final conversationId = data['conversationId'] as String?;
+    if (conversationId == null || body == null) return;
+
+    final sender = body['sender'] as Map<String, dynamic>?;
+    final sendUserId = sender?['userId'] as String?;
+    final msgData = body['msg'] as Map<String, dynamic>?;
+    final seq = body['seq'] as int? ?? 0;
+    final createdAtStr = body['createdAt']?.toString() ?? '';
+    final createdAt =
+        int.tryParse(createdAtStr) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+    if (msgData == null) return;
+
+    // 1. 保存到数据库
+    await _service.create(
+      ChatsCompanion(
+        messageId: Value(body['messageId'] as String),
+        conversationId: Value(conversationId),
+        conversationType: Value(conversationId.startsWith('group_') ? 2 : 1),
+        sendUserId: Value(sendUserId),
+        msgType: Value(msgData['type'] as int? ?? 1),
+        msg: Value(jsonEncode(msgData)),
+        seq: Value(seq),
+        sendStatus: const Value(1), // Sent
+        createdAt: Value(createdAt),
+        updatedAt: Value(createdAt),
+      ),
+    );
+
+    // 2. 更新会话最后消息
+    await getIt<ChatConversationService>().updateLastMessage(
+      conversationId,
+      _generateMessagePreview(MessageContentModel.fromJson(msgData)),
+      maxSeq: seq,
+    );
+
+    // 3. 通知 Store 更新 UI (MessageStore 暂时维持直接调用，ChatStore 走 Stream)
+    final model = MessageModel(
+      id: body['messageId'] as String,
+      conversationId: conversationId,
+      userId: sendUserId ?? '',
+      nickname: sender?['nickName']?.toString() ?? '',
+      avatar: sender?['avatar']?.toString() ?? '',
+      msg: MessageContentModel.fromJson(msgData),
+      type: _mapIntToType(msgData['type'] as int? ?? 1),
+      status: MessageStatus.sent,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt * 1000),
+      isSent: sendUserId == getIt<UserStore>().state.currentUserId,
+    );
+    getIt<MessageStore>().addMessage(conversationId, model);
+
+    // 4. 发送会话流更新通知 (让 ChatStore 响应)
+    getIt<ConversationBusiness>().notifyConversationUpdate();
+  }
+
+  /**
+   * 按具体版本号同步消息 (对标 PC syncMessagesByVersion)
+   */
+  Future<void> syncMessagesByVersion(String conversationId, int version) async {
+    // 简单起见，这里直接调用区间同步。PC端这里通常会进队列聚合。
+    await syncMessagesByVersionRange(conversationId, version, version);
+  }
+
+  /**
+   * 按版本区间同步消息 (对标 PC syncMessagesByVersionRange)
+   */
+  Future<void> syncMessagesByVersionRange(
+    String conversationId,
+    int minVersion,
+    int maxVersion,
+  ) async {
+    print('[MessageBusiness] 开始拉取消息: conv=$conversationId, range=[$minVersion, $maxVersion]');
+    try {
+      final response = await chatSyncApi(IChatSyncReq(
+        conversationId: conversationId,
+        fromSeq: minVersion,
+        toSeq: maxVersion,
+        limit: 100,
+      ));
+
+      if (response.code == 0 && response.result != null) {
+        final messages = response.result!.messages;
+        print('[MessageBusiness] 拉取成功: count=${messages.length}');
+        if (messages.isNotEmpty) {
+          await _handleSyncedMessages(messages);
+          print(
+            '[MessageBusiness] 同步消息落库完成: conv=$conversationId, range=[$minVersion, $maxVersion]',
+          );
+        }
+      } else {
+        print('[MessageBusiness] 拉取失败: code=${response.code}, msg=${response.msg}');
+      }
+    } catch (e) {
+      print('[MessageBusiness] 同步消息异常: $e');
+    }
+  }
+
+  /**
+   * 处理同步到的消息并落库 (对标 PC handleSyncedMessages)
+   */
+  Future<void> _handleSyncedMessages(List<IChatMessageItem> messages) async {
+    if (messages.isEmpty) return;
+
+    print('[MessageBusiness] 正在处理落库消息: count=${messages.length}');
+
+    final companions = messages.map((msg) {
+      return ChatsCompanion(
+        messageId: Value(msg.messageId),
+        conversationId: Value(msg.conversationId),
+        conversationType: Value(msg.conversationType),
+        sendUserId: Value(msg.sendUserId),
+        msgType: Value(msg.msgType),
+        msgPreview: Value(msg.msgPreview),
+        msg: Value(msg.msg),
+        seq: Value(msg.seq),
+        sendStatus: const Value(1), // 1: 已发送 (服务端同步回来的必然是已发送)
+        createdAt: Value(msg.createdAt),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      );
+    }).toList();
+
+    // 批量保存到数据库 (使用 upsert 逻辑由 service 层保证)
+    await _service.batchCreate(companions);
+
+    // 同步到 Store 更新 UI
+    final messageStore = getIt<MessageStore>();
+    for (final msg in messages) {
+      // 简单映射为 UI 模型
+      final model = MessageModel(
+        id: msg.messageId,
+        conversationId: msg.conversationId,
+        userId: msg.sendUserId,
+        msg: MessageContentModel.fromJson(jsonDecode(msg.msg)),
+        type: _mapIntToType(msg.msgType),
+        status: MessageStatus.sent,
+        createdAt: DateTime.fromMillisecondsSinceEpoch(msg.createdAt * 1000),
+        isSent: msg.sendUserId == getIt<UserStore>().state.currentUserId,
+      );
+      messageStore.addMessage(msg.conversationId, model);
+    }
+    
+    // 触发 ChatStore 刷新，更新会话列表的未读数和最后一条消息
+    getIt<ConversationBusiness>().notifyConversationUpdate();
+  }
+
+  MessageType _mapIntToType(int type) {
+    switch (type) {
+      case 1:
+        return MessageType.text;
+      case 2:
+        return MessageType.image;
+      case 3:
+        return MessageType.video;
+      case 6:
+        return MessageType.emoji;
+      default:
+        return MessageType.text;
+    }
+  }
+
   int _mapTypeToInt(MessageType type) {
     switch (type) {
       case MessageType.text:
         return 1;
       case MessageType.image:
         return 2;
-      // ... 其他类型映射
+      case MessageType.video:
+        return 3;
+      case MessageType.emoji:
+        return 6;
       default:
         return 1;
     }

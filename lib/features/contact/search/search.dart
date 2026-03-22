@@ -20,6 +20,7 @@ class SearchContactPage extends StatefulWidget {
 class _SearchContactPageState extends State<SearchContactPage> {
   final _searchController = TextEditingController();
   late SearchContactBloc _searchBloc;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _SearchContactPageState extends State<SearchContactPage> {
   void _handleSearch() {
     final query = _searchController.text.trim();
     if (query.isNotEmpty) {
+      setState(() => _isSearching = true);
       _searchBloc.add(SearchUserEvent(query));
     }
   }
@@ -47,19 +49,15 @@ class _SearchContactPageState extends State<SearchContactPage> {
     return BlocProvider.value(
       value: _searchBloc,
       child: BeaverLayout(
-        title: '搜索好友',
+        title: '添加朋友',
         showBack: true,
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              _buildSearchBar(),
-              SizedBox(height: 20.w),
-              _buildSearchResult(),
-              SizedBox(height: 40.w),
-              _buildMyQrcode(),
-            ],
-          ),
+        isScrollable: true,
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            SizedBox(height: 12.w),
+            _buildSearchContent(),
+          ],
         ),
       ),
     );
@@ -67,44 +65,62 @@ class _SearchContactPageState extends State<SearchContactPage> {
 
   Widget _buildSearchBar() {
     return Container(
-      height: 48.w,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.w),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: Row(
-        children: [
-          Icon(Icons.search, color: Colors.grey, size: 20.w),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                hintText: '搜索手机号/邮箱/海狸号',
-                border: InputBorder.none,
-                isDense: true,
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+      child: Container(
+        height: 40.w,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F2F6),
+          borderRadius: BorderRadius.circular(6.w),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        child: Row(
+          children: [
+            Icon(Icons.search, color: const Color(0xFFB2BEC3), size: 20.w),
+            SizedBox(width: 8.w),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+                decoration: InputDecoration(
+                  hintText: '账号 / 手机号',
+                  hintStyle: TextStyle(fontSize: 15.sp, color: const Color(0xFFB2BEC3)),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                onSubmitted: (_) => _handleSearch(),
+                onChanged: (val) {
+                  if (val.isEmpty && _isSearching) {
+                    setState(() => _isSearching = false);
+                  }
+                },
               ),
-              onSubmitted: (_) => _handleSearch(),
             ),
-          ),
-          if (_searchController.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                _searchController.clear();
-                setState(() {});
-              },
-              child: Icon(Icons.clear, color: Colors.grey, size: 20.w),
-            ),
-        ],
+            if (_searchController.text.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  _searchController.clear();
+                  setState(() => _isSearching = false);
+                },
+                child: Icon(Icons.cancel, color: const Color(0xFFB2BEC3), size: 18.w),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildSearchContent() {
+    if (_isSearching) {
+      return _buildSearchResult();
+    }
+    return Column(
+      children: [
+        SizedBox(height: 32.w),
+        _buildMyQrcode(),
+      ],
     );
   }
 
@@ -112,48 +128,109 @@ class _SearchContactPageState extends State<SearchContactPage> {
     return BlocBuilder<SearchContactBloc, SearchContactState>(
       builder: (context, state) {
         if (state.status == SearchContactStatus.loading) {
-          return const Center(child: CircularProgressIndicator());
+          return Container(
+            margin: EdgeInsets.only(top: 40.w),
+            child: const Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF7D45)),
+            ),
+          );
         }
 
         if (state.status == SearchContactStatus.success && state.user != null) {
           final user = state.user!;
           return Container(
+            margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12.w),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10.w,
+                  offset: Offset(0, 4.w),
+                ),
+              ],
             ),
             child: Row(
               children: [
                 BeaverCachedImage(
                   fileKey: user.avatar,
                   type: CacheType.avatar,
-                  width: 48.w,
-                  height: 48.w,
-                  borderRadius: 24.w,
+                  width: 50.w,
+                  height: 50.w,
+                  borderRadius: 8.w,
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 16.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(user.nickname, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+                      Text(
+                        user.nickname,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF2D3436),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4.w),
+                      Text(
+                        '海狸号: ${user.userId}',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: const Color(0xFFB2BEC3),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
+                SizedBox(width: 12.w),
+                GestureDetector(
+                  onTap: () {
                     _searchBloc.add(AddFriendEvent(user.userId));
+                    BeaverToast.show(context, '已发送申请');
                   },
-                  child: const Text('添加'),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF7D45),
+                      borderRadius: BorderRadius.circular(16.w),
+                    ),
+                    child: Text(
+                      '添加',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        if (state.status == SearchContactStatus.error) {
-          return Center(child: Text(state.errorMessage ?? '搜索失败'));
+        if (state.status == SearchContactStatus.error ||
+            (state.status == SearchContactStatus.success && state.user == null)) {
+          return Container(
+            margin: EdgeInsets.only(top: 40.w),
+            child: Column(
+              children: [
+                Icon(Icons.search_off_rounded, size: 64.w, color: const Color(0xFFDFE6E9)),
+                SizedBox(height: 16.w),
+                Text(
+                  state.errorMessage ?? '未查找到该用户',
+                  style: TextStyle(fontSize: 14.sp, color: const Color(0xFFB2BEC3)),
+                ),
+              ],
+            ),
+          );
         }
 
         return const SizedBox();
@@ -162,31 +239,20 @@ class _SearchContactPageState extends State<SearchContactPage> {
   }
 
   Widget _buildMyQrcode() {
-    return Column(
-      children: [
-        const Text('我的二维码', style: TextStyle(color: Colors.grey)),
-        SizedBox(height: 12.w),
-        Container(
-          width: 200.w,
-          height: 200.w,
-          padding: EdgeInsets.all(12.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.w),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-            ],
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.qr_code_2_rounded, size: 20.w, color: const Color(0xFF636E72)),
+          SizedBox(width: 8.w),
+          Text(
+            '我的扫描二维码快速添加',
+            style: TextStyle(fontSize: 14.sp, color: const Color(0xFF636E72)),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.qr_code_2, size: 120.w, color: Colors.orange),
-              SizedBox(height: 12.w),
-              const Text('扫一扫，加我好友', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-        ),
-      ],
+          SizedBox(width: 4.w),
+          Icon(Icons.keyboard_arrow_right, size: 20.w, color: const Color(0xFFB2BEC3)),
+        ],
+      ),
     );
   }
 }

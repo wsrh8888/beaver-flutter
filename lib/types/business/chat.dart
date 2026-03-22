@@ -5,6 +5,8 @@ abstract class ConversationRepositoryInterface {
   Future<void> togglePinChat(String conversationId, bool isPinned);
   Future<void> deleteChat(String conversationId);
   Future<ChatModel?> getConversation(String conversationId);
+  Future<void> syncConversationByVersion(String conversationId, int version);
+  Future<void> syncUserConversationByVersion(String userId, String conversationId, int version);
 }
 
 class ChatModel {
@@ -25,6 +27,8 @@ class ChatModel {
     this.isTop = false,
     this.unreadCount = 0,
   });
+
+  String get updatedAtStr => updateAt; // For now just return updateAt
 
   ChatModel copyWith({
     String? conversationId,

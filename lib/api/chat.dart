@@ -18,3 +18,14 @@ Future<BaseResponse<IGetUserConversationSettingsListByIdsRes>> getUserConversati
   const url = '/api/chat/getUserConversationSettingsListByIds';
   return httpClient.post<IGetUserConversationSettingsListByIdsRes>(url, data: data.toJson(), fromJsonT: (json) => IGetUserConversationSettingsListByIdsRes.fromJson(json));
 }
+/// 更新会话已读序列号
+Future<BaseResponse<IUpdateReadSeqRes>> updateReadSeqApi(IUpdateReadSeqReq data) {
+  const url = '/api/chat/updateReadSeq';
+  return httpClient.post<IUpdateReadSeqRes>(url, data: data.toJson(), fromJsonT: (json) => IUpdateReadSeqRes.fromJson(json));
+}
+
+/// 置顶/取消置顶会话
+Future<BaseResponse<IPinnedChatRes>> pinnedChatApi(IPinnedChatReq data) {
+  const url = '/api/chat/pinnedChat';
+  return httpClient.post<IPinnedChatRes>(url, data: data.toJson(), fromJsonT: (json) => IPinnedChatRes.fromJson(json));
+}

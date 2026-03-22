@@ -187,3 +187,31 @@ class IGroupJoinRequestSyncRes {
     groupJoinRequests: (json['groupJoinRequests'] as List?)?.map((e) => IGroupJoinRequestSyncItem.fromJson(e)).toList() ?? [],
   );
 }
+
+/// 创建群组请求
+class IGroupCreateReq {
+  final String? title;
+  final List<String>? userIdList;
+
+  IGroupCreateReq({this.title, this.userIdList});
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (title != null) data['title'] = title;
+    if (userIdList != null) data['userIdList'] = userIdList;
+    return data;
+  }
+}
+
+/// 创建群组响应
+class IGroupCreateRes {
+  final String groupId;
+
+  IGroupCreateRes({required this.groupId});
+
+  factory IGroupCreateRes.fromJson(Map<String, dynamic> json) {
+    return IGroupCreateRes(
+      groupId: json['groupId'] ?? '',
+    );
+  }
+}

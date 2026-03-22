@@ -56,6 +56,8 @@ dependencies:
   url_launcher: ^6.3.1
   qr_flutter: ^4.1.0
   image_gallery_saver_plus: ^4.0.1
+  video_player: ^2.11.1
+  flutter_slidable: ^3.1.2
 
 # 仅开发/构建时使用，不进入 release 产物逻辑依赖
 dev_dependencies:

@@ -3,6 +3,7 @@ import 'package:beaver/features/group/list/list.dart';
 import 'package:beaver/features/group/create/create.dart';
 import 'package:beaver/features/group/config/config.dart';
 import 'package:beaver/features/group/member/member.dart';
+import 'package:beaver/features/group/notifications/page.dart';
 import 'package:beaver/router/routes.dart';
 
 List<GoRoute> groupRoutes() {
@@ -22,6 +23,10 @@ List<GoRoute> groupRoutes() {
     GoRoute(
       path: AppRoutes.groupMember,
       builder: (context, state) => GroupMemberPage(groupId: state.extra as String? ?? ''),
+    ),
+    GoRoute(
+      path: AppRoutes.groupNotifications,
+      builder: (context, state) => const GroupNotificationsPage(),
     ),
   ];
 }

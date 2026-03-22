@@ -35,7 +35,7 @@ class GroupListPage extends StatelessWidget {
       builder: (context, groupState) {
         return BlocBuilder<AppStore, AppStoreState>(
           builder: (context, appState) {
-            final groups = groupState.groups;
+            final groups = groupState.groupMap.values.toList();
             final isInitLoading =
                 !appState.isInitComplete &&
                 appState.status != AppLifecycleStatus.error;

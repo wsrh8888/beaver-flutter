@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/di/injection.dart';
-import 'package:beaver/core/database/services/index.dart';
-import 'package:beaver/core/database/db.dart';
+import 'package:beaver/core/business/emoji/emoji.dart';
+import 'package:beaver/types/business/emoji.dart';
 
 class EmojiDetailScreen extends StatefulWidget {
   final String emojiId;
@@ -15,7 +15,7 @@ class EmojiDetailScreen extends StatefulWidget {
 }
 
 class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
-  Emoji? _emoji;
+  EmojiModel? _emoji;
   bool _isLoading = true;
 
   @override
@@ -25,7 +25,7 @@ class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
   }
 
   Future<void> _loadEmoji() async {
-    final service = getIt<EmojiService>();
+    final service = getIt<EmojiBusinessInterface>();
     final emoji = await service.getEmojiById(widget.emojiId);
     setState(() {
       _emoji = emoji;
@@ -61,7 +61,7 @@ class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
                       ),
                       SizedBox(height: 30.h),
                       Text(
-                        _emoji?.title ?? '',
+                        _emoji?.name ?? '',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18.sp,

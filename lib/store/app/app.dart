@@ -13,6 +13,7 @@ import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/call/call.dart';
+import 'package:beaver/core/datasync/emoji/sync.dart';
 
 enum AppLifecycleStatus { connecting, syncing, ready, error }
 
@@ -45,6 +46,20 @@ class AppStoreState extends Equatable {
 
 class AppStore extends Cubit<AppStoreState> {
   AppStore() : super(const AppStoreState());
+
+  /// Get the current local database instance (for debug tools like DriftDbViewer)
+  AppDatabase get localDatabase => DatabaseManager.instance;
+
+  /// Initialize the local database for the current user
+  Future<void> initUserDatabase(String userId) async {
+    await DatabaseManager.init(userId);
+  }
+
+  /// Clear all local user data
+  Future<void> clearLocalData() async {
+    await DatabaseManager.instance.clearAllData();
+    await clearEmojiSyncState();
+  }
 
   /**
    * @description: 启动应用一键初始化 (对标 desktop.initApp)

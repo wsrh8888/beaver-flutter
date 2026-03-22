@@ -18,6 +18,15 @@ class UserBusiness implements UserRepositoryInterface {
   final _profileUpdateController = StreamController<UserInfo>.broadcast();
   Stream<UserInfo> get profileUpdateStream => _profileUpdateController.stream;
 
+  // 用户数据更新流 (对标 PC 的 Notification 机制)
+  final _userUpdateController = StreamController<List<String>>.broadcast();
+  Stream<List<String>> get userUpdateStream => _userUpdateController.stream;
+
+  void notifyUserUpdate(List<String> userIds) {
+    print('[UserBusiness] 发送用户更新通知: $userIds');
+    _userUpdateController.add(userIds);
+  }
+
   /**
    * @description 根据 userId 获取用户信息 (Drift Model)
    */
@@ -181,5 +190,26 @@ class UserBusiness implements UserRepositoryInterface {
           ),
         )
         .toList();
+  }
+
+  /**
+   * 按版本号同步用户资料 (对标 PC handleTableUpdates)
+   */
+  Future<void> handleTableUpdates(String targetId, int version) async {
+    try {
+      final res = await userSyncApi(
+        IUserSyncReq(
+          userVersions: [IUserVersionItem(userId: targetId, version: version)],
+        ),
+      );
+
+      if (res.code == 0 && res.result != null && res.result!.users.isNotEmpty) {
+        await _userService.batchCreate(res.result!.users);
+        print('[UserBusiness] 用户资料同步成功: $targetId, version=$version');
+        notifyUserUpdate([targetId]);
+      }
+    } catch (e) {
+      print('[UserBusiness] handleTableUpdates failed: $e');
+    }
   }
 }

@@ -1,15 +1,30 @@
+import 'dart:async';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/core/business/friend/friend.dart';
-import 'package:beaver/core/database/db.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/types/api/group.dart';
+import 'package:beaver/api/group.dart';
+import 'package:beaver/core/business/group/group_member.dart';
+import 'package:beaver/core/business/group/group_join_request.dart';
 
 /// Group business logic.
 class GroupBusiness implements GroupRepositoryInterface {
   final _groupService = getIt<GroupService>();
   final _groupMemberService = getIt<GroupMemberService>();
   final _friendBusiness = getIt<FriendBusiness>();
+
+  // 响应式数据流 (对标 PC 的 Notification 机制)
+  final _groupUpdateController = StreamController<List<String>>.broadcast();
+  Stream<List<String>> get groupUpdateStream => _groupUpdateController.stream;
+
+  void notifyGroupUpdate(List<String> groupIds) {
+    print('[GroupBusiness] 发送群组更新通知: $groupIds');
+    _groupUpdateController.add(groupIds);
+  }
 
   @override
   Future<List<Contact>?> getContacts() async {
@@ -18,12 +33,12 @@ class GroupBusiness implements GroupRepositoryInterface {
         .map(
           (item) => Contact(
             userId: item.userId,
-            nickname:
-                item.notice?.isNotEmpty == true ? item.notice! : item.nickname,
-            fileName:
-                item.avatar?.isNotEmpty == true
-                    ? item.avatar!
-                    : (item.fileName ?? ''),
+            nickname: item.notice?.isNotEmpty == true
+                ? item.notice!
+                : item.nickname,
+            fileName: item.avatar?.isNotEmpty == true
+                ? item.avatar!
+                : (item.fileName ?? ''),
             status: '',
           ),
         )
@@ -38,43 +53,20 @@ class GroupBusiness implements GroupRepositoryInterface {
     }
 
     final memberIds = userIds.where((id) => id.trim().isNotEmpty).toSet();
-    memberIds.add(currentUserId);
 
-    final nowMs = DateTime.now().millisecondsSinceEpoch;
-    final now = nowMs ~/ 1000;
-    final groupId = 'group_$nowMs';
+    // Call API First
+    final req = IGroupCreateReq(title: '新群聊', userIdList: memberIds.toList());
 
-    await _groupService.upsert(
-      GroupsCompanion(
-        groupId: Value(groupId),
-        title: const Value('新群聊'),
-        avatar: const Value(''),
-        creatorId: Value(currentUserId),
-        joinType: const Value(0),
-        status: const Value(1),
-        version: const Value(0),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-      ),
-    );
+    final response = await createGroupApi(req);
 
-    final members =
-        memberIds
-            .map(
-              (userId) => GroupMembersCompanion(
-                groupId: Value(groupId),
-                userId: Value(userId),
-                role: Value(userId == currentUserId ? 1 : 3),
-                status: const Value(1),
-                joinTime: Value(now),
-                version: const Value(0),
-                createdAt: Value(now),
-                updatedAt: Value(now),
-              ),
-            )
-            .toList();
+    if (response.code != 0 || response.result == null) {
+      throw Exception(response.msg);
+    }
 
-    await _groupMemberService.batchCreate(members);
+    final groupId = response.result!.groupId;
+
+    // Note: 我们不再在这里进行本地落库逻辑，而是等待服务器的 WS 推送 (GROUP_OPERATION)。
+    // 这确保了会话列表只有在服务器确认后才会显示真实数据，避免竞态。
     return groupId;
   }
 
@@ -90,14 +82,103 @@ class GroupBusiness implements GroupRepositoryInterface {
       final members = await _groupMemberService.getGroupMembers(group.groupId);
       result.add(
         GroupInfo(
-          conversationId: group.groupId,
+          conversationId: 'group_${group.groupId}',
           title: group.title,
+          avatar: group.avatar,
           fileName: group.avatar,
           lastMessage: group.notice ?? '',
           memberCount: members.length,
+          version: group.version,
         ),
       );
     }
     return result;
+  }
+
+  @override
+  Future<List<GroupNotification>> getGroupNotifications() => 
+      getIt<GroupJoinRequestBusiness>().getGroupNotifications();
+
+  @override
+  Future<bool> updateGroupRequestStatus(int id, int status) => 
+      getIt<GroupJoinRequestBusiness>().updateGroupRequestStatus(id, status);
+
+  @override
+  Future<int> getUnreadGroupNotificationCount(String userId) => 
+      getIt<GroupJoinRequestBusiness>().getUnreadGroupNotificationCount();
+
+  /**
+   * 按版本号同步群资料 (对标 PC syncGroupByVersion)
+   */
+  Future<List<GroupInfo>?> getGroupsByIds(List<String> groupIds) async {
+    try {
+      final groups = await _groupService.getGroupsByIds(groupIds);
+      final List<GroupInfo> result = [];
+      for (final g in groups) {
+        final members = await _groupMemberService.getGroupMembers(g.groupId);
+        result.add(GroupInfo(
+          conversationId: 'group_${g.groupId}',
+          title: g.title,
+          avatar: g.avatar,
+          fileName: g.avatar,
+          lastMessage: '',
+          memberCount: members.length,
+          version: g.version,
+        ));
+      }
+      return result;
+    } catch (e) {
+      print('GroupBusiness: getGroupsByIds 失败: $e');
+      return null;
+    }
+  }
+
+  Future<void> syncGroupByVersion(String groupId, int version) async {
+    try {
+      final response = await groupSyncApi(
+        IGroupSyncReq(
+          groups: [IGroupVersionSyncItem(groupId: groupId, version: version)],
+        ),
+      );
+
+      if (response.code == 0 &&
+          response.result != null &&
+          response.result!.groups.isNotEmpty) {
+        final group = response.result!.groups.first;
+        await _groupService.upsert(
+          GroupsCompanion(
+            groupId: Value(group.groupId),
+            title: Value(group.title),
+            avatar: Value(group.avatar),
+            creatorId: Value(group.creatorId),
+            joinType: Value(group.joinType),
+            status: Value(group.status),
+            version: Value(group.version),
+            createdAt: Value(
+              group.createdAt ??
+                  (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+            ),
+            updatedAt: Value(
+              group.updatedAt ??
+                  (DateTime.now().millisecondsSinceEpoch ~/ 1000),
+            ),
+          ),
+        );
+
+        // 更新本地群组版本状态
+        final syncStatusService = getIt<GroupSyncStatusService>();
+        await syncStatusService.upsertSyncStatus(
+          module: 'info',
+          groupId: group.groupId,
+          version: group.version,
+        );
+
+        // 通知外部更新 (通过 Stream)
+        notifyGroupUpdate([group.groupId]);
+        getIt<ConversationBusiness>().notifyConversationUpdate();
+      }
+    } catch (e) {
+      print('[GroupBusiness] syncGroupByVersion failed: $e');
+    }
   }
 }

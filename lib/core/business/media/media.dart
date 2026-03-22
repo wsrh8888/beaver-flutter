@@ -1,6 +1,7 @@
 import 'package:beaver/core/cache/index.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/api/file.dart';
 
 /// 媒体业务逻辑层 - 对标 PC Business 结构
 class MediaBusiness {

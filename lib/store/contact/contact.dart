@@ -24,10 +24,22 @@ class ContactStoreState extends Equatable {
 
 class ContactStore extends Cubit<ContactStoreState> {
   final UserBusiness _userBusiness;
+  StreamSubscription? _userBusinessSubscription;
 
   ContactStore({UserBusiness? userBusiness})
     : _userBusiness = userBusiness ?? getIt<UserBusiness>(),
-      super(const ContactStoreState());
+      super(const ContactStoreState()) {
+    // 监听业务层流，实现响应式同步 (对标 PC 的 Main-to-Render 通知)
+    _userBusinessSubscription = _userBusiness.userUpdateStream.listen((userIds) {
+      updateContactsByIds(userIds);
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _userBusinessSubscription?.cancel();
+    return super.close();
+  }
 
   /**
    * @description: 初始化，从数据库加载所有用户基础数据

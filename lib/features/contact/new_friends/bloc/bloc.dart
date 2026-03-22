@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/new_friends/bloc/event.dart';
 import 'package:beaver/features/contact/new_friends/bloc/state.dart';
-import 'package:beaver/features/contact/new_friends/data/models/friend_request.dart';
+import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/features/contact/new_friends/data/repositories/repository.dart';
 
 class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {

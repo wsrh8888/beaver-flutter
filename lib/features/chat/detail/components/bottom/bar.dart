@@ -49,6 +49,7 @@ class ChatBar extends StatelessWidget {
                       if (activePanel != ComposerPanelType.none) {
                         bloc.add(const DismissComposerEvent());
                       }
+                      focusNode.requestFocus();
                     },
                     onSubmitted: (val) {
                       bloc.add(

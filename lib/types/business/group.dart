@@ -2,16 +2,20 @@
 class GroupInfo {
   final String conversationId;
   final String title;
+  final String avatar;
   final String fileName;
   final String lastMessage;
   final int memberCount;
+  final int version;
 
   const GroupInfo({
     required this.conversationId,
     required this.title,
+    required this.avatar,
     required this.fileName,
     required this.lastMessage,
     required this.memberCount,
+    required this.version,
   });
 }
 
@@ -35,4 +39,33 @@ abstract class GroupRepositoryInterface {
   Future<List<Contact>?> getContacts();
   Future<String> createGroup(List<String> userIds);
   Future<List<GroupInfo>?> getGroupList();
+  Future<List<GroupNotification>> getGroupNotifications();
+  Future<bool> updateGroupRequestStatus(int id, int status);
+  Future<int> getUnreadGroupNotificationCount(String userId);
 }
+
+class GroupNotification {
+  final int id;
+  final String groupId;
+  final String groupName;
+  final String groupAvatar;
+  final String applicantUserId;
+  final String applicantNickname;
+  final String applicantAvatar;
+  final String? message;
+  final int status; // 0: pending, 1: accepted, 2: rejected
+  final String createdAt;
+
+  const GroupNotification({
+    required this.id,
+    required this.groupId,
+    required this.groupName,
+    required this.groupAvatar,
+    required this.applicantUserId,
+    required this.applicantNickname,
+    required this.applicantAvatar,
+    this.message,
+    required this.status,
+    required this.createdAt,
+  });
+}

@@ -19,7 +19,8 @@ class MediaManager {
 
   String? _userId;
   String? _cacheRoot;
-  final Set<String> _downloadingFiles = {};
+  final Map<String, Future<String?>> _downloadFutures = {};
+  final Set<String> _downloadingFiles = {}; // Keep for backward compatibility or remove
   final Map<String, String> _cacheFile = {};
   bool _initialized = false;
   late Dio _dio;
@@ -57,19 +58,29 @@ class MediaManager {
   /// 获取媒体数据库服务
   MediaService get _mediaService => getIt<MediaService>();
 
-  /// 添加缓存记录并执行下载
+  /// 添加缓存记录并执行下载 (支持并发等待)
   Future<String?> add(CacheType type, String fileKey) async {
     await _ensureInitialized();
-    
-    final fileUrl = previewOnlineFileApi(fileKey);
-    print('[MediaFlow] [MediaManager] add start: fileKey=$fileKey, url=$fileUrl');
 
-    if (_downloadingFiles.contains(fileKey)) {
-      print('[MediaFlow] [MediaManager] is already downloading: $fileKey');
-      return fileUrl;
+    // 如果已经在下载中，等待之前的 Future
+    if (_downloadFutures.containsKey(fileKey)) {
+      print('[MediaFlow] [MediaManager] already downloading, waiting for future: $fileKey');
+      return _downloadFutures[fileKey];
     }
 
-    _downloadingFiles.add(fileKey);
+    final downloadFuture = _doAdd(type, fileKey);
+    _downloadFutures[fileKey] = downloadFuture;
+
+    try {
+      return await downloadFuture;
+    } finally {
+      _downloadFutures.remove(fileKey);
+    }
+  }
+
+  Future<String?> _doAdd(CacheType type, String fileKey) async {
+    final fileUrl = previewOnlineFileApi(fileKey);
+    print('[MediaFlow] [MediaManager] _doAdd start: fileKey=$fileKey, url=$fileUrl');
 
     try {
       final subPath = CachePathConfig.getRelativePath(type, _userId ?? 'public');
@@ -116,15 +127,17 @@ class MediaManager {
 
       return outputPath;
     } catch (e) {
-      print('[MediaFlow] [MediaManager] Error in add($fileKey): $e');
-      return fileUrl;
-    } finally {
-      _downloadingFiles.remove(fileKey);
+      print('[MediaFlow] [MediaManager] Error in _doAdd($fileKey): $e');
+      return null; // 返回 null 表示下载失败
     }
   }
 
-  /// 获取缓存文件路径
   Future<String> get(CacheType type, String fileKey) async {
+    if (fileKey.startsWith('http') ||
+        fileKey.startsWith('file://') ||
+        fileKey.startsWith('assets/')) {
+      return fileKey;
+    }
     await _ensureInitialized();
     
     final fileUrl = previewOnlineFileApi(fileKey);

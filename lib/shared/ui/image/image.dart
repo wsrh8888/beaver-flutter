@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../gallery/index.dart';
+import '../gallery/item.dart';
 
 /// 底层傻瓜图片渲染组件 (对标原生 <img>)
 /// 职责：只负责根据完整的 url (file:// 或 http://) 渲染图片
@@ -50,13 +52,33 @@ class BeaverImage extends StatelessWidget {
         },
         errorBuilder: (context, error, stackTrace) => errorWidget ?? _buildDefaultError(),
       );
+    } else if (url.startsWith('assets/')) {
+      if (url.toLowerCase().endsWith('.svg')) {
+        image = SvgPicture.asset(
+          url,
+          width: width,
+          height: height,
+          fit: fit ?? BoxFit.contain,
+        );
+      } else {
+        image = Image.asset(
+          url,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => errorWidget ?? _buildDefaultError(),
+        );
+      }
     } else {
       image = errorWidget ?? _buildDefaultError();
     }
 
     if (enableFullscreen && url.isNotEmpty) {
       return GestureDetector(
-        onTap: () => BeaverGallery.show(context, url),
+        onTap: () => BeaverGallery.show(
+          context,
+          GalleryItem(url: url, type: GalleryItemType.image),
+        ),
         child: image,
       );
     }

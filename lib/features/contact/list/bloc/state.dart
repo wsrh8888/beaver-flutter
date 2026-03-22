@@ -9,6 +9,8 @@ class ContactListState {
   final List<String> indexList;
   final String? errorMessage;
   final String currentIndex;
+  final int friendRequestCount;
+  final int groupNotificationCount;
 
   const ContactListState({
     this.status = ContactListStatus.initial,
@@ -17,6 +19,8 @@ class ContactListState {
     this.indexList = const [],
     this.errorMessage,
     this.currentIndex = '',
+    this.friendRequestCount = 0,
+    this.groupNotificationCount = 0,
   });
 
   ContactListState copyWith({
@@ -26,6 +30,8 @@ class ContactListState {
     List<String>? indexList,
     String? errorMessage,
     String? currentIndex,
+    int? friendRequestCount,
+    int? groupNotificationCount,
   }) {
     return ContactListState(
       status: status ?? this.status,
@@ -34,6 +40,8 @@ class ContactListState {
       indexList: indexList ?? this.indexList,
       errorMessage: errorMessage ?? this.errorMessage,
       currentIndex: currentIndex ?? this.currentIndex,
+      friendRequestCount: friendRequestCount ?? this.friendRequestCount,
+      groupNotificationCount: groupNotificationCount ?? this.groupNotificationCount,
     );
   }
 }

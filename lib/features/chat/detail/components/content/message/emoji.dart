@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,11 +10,33 @@ class EmojiMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/emoji/default/${msg.emojiId}.gif',
-      width: 80.w,
-      height: 80.w,
-      errorBuilder: (context, error, stackTrace) => Icon(Icons.sentiment_satisfied, size: 60.w, color: Colors.orangeAccent),
+    // 参考桌面端逻辑计算尺寸 (max: 120, min: 32)
+    final double rawWidth = (msg.width ?? 64).toDouble();
+    final double rawHeight = (msg.height ?? 64).toDouble();
+
+    const double maxSize = 120.0;
+    const double minSize = 32.0;
+
+    double width = rawWidth;
+    double height = rawHeight;
+
+    if (width > maxSize || height > maxSize) {
+      final double ratio = min(maxSize / width, maxSize / height);
+      width = max(minSize, width * ratio);
+      height = max(minSize, height * ratio);
+    } else {
+      width = max(minSize, width);
+      height = max(minSize, height);
+    }
+
+    // 仅使用 BeaverCachedImage 渲染，由 fileKey 决定内容同步
+    return BeaverCachedImage(
+      fileKey: msg.fileKey,
+      width: width.w,
+      height: height.w,
+      fit: BoxFit.contain,
+      borderRadius: 6.w,
+      enableFullscreen: false,
     );
   }
 }

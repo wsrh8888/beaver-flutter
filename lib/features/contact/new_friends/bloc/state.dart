@@ -1,4 +1,4 @@
-import 'package:beaver/features/contact/new_friends/data/models/friend_request.dart';
+import 'package:beaver/types/business/contact.dart';
 
 enum NewFriendsStatus { initial, loading, success, error }
 

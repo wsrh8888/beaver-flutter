@@ -18,6 +18,7 @@ class AppRoutes {
   static const String addContact = '/contact/add';
   static const String searchContact = '/contact/search';
   static const String newFriends = '/contact/new-friends';
+  static const String groupNotifications = '/group/notifications';
   
   // 动态模块
   static const String momentList = '/moment/list';

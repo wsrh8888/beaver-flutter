@@ -33,19 +33,6 @@ class ContactListView extends StatefulWidget {
 class _ContactListViewState extends State<ContactListView> {
   final ScrollController _scrollController = ScrollController();
 
-  final List<Map<String, dynamic>> _quickActions = [
-    {
-      'title': '新朋友',
-      'icon': 'assets/icons/friend/add-friend-icon.svg',
-      'route': AppRoutes.newFriends,
-    },
-    {
-      'title': '群聊',
-      'icon': 'assets/icons/friend/dropdown-group-icon.svg',
-      'route': AppRoutes.groupList,
-    },
-    {'title': 'AI', 'icon': 'assets/icons/friend/ai-icon.svg', 'route': '/ai'},
-  ];
 
   @override
   void dispose() {
@@ -85,7 +72,7 @@ class _ContactListViewState extends State<ContactListView> {
               Column(
                 children: [
                   // 快捷操作区
-                  _buildQuickActions(),
+                  _buildQuickActions(state),
                   // 联系人列表
                   Expanded(
                     child: ListView.builder(
@@ -123,7 +110,34 @@ class _ContactListViewState extends State<ContactListView> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(ContactListState state) {
+    final actions = [
+      {
+        'title': '新朋友',
+        'icon': 'assets/icons/friend/add-friend-icon.svg',
+        'route': AppRoutes.newFriends,
+        'count': state.friendRequestCount,
+      },
+      {
+        'title': '群通知',
+        'icon': 'assets/icons/friend/dropdown-group-icon.svg',
+        'route': AppRoutes.groupNotifications,
+        'count': state.groupNotificationCount,
+      },
+      {
+        'title': '群聊',
+        'icon': 'assets/icons/friend/dropdown-group-icon.svg',
+        'route': AppRoutes.groupList,
+        'count': 0,
+      },
+      {
+        'title': 'AI助手',
+        'icon': 'assets/icons/friend/ai-icon.svg',
+        'route': '/ai',
+        'count': 0,
+      },
+    ];
+
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.w),
       padding: EdgeInsets.all(8.w),
@@ -133,41 +147,67 @@ class _ContactListViewState extends State<ContactListView> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: _quickActions.map((action) {
+        children: actions.map((action) {
+          final count = action['count'] as int? ?? 0;
           return GestureDetector(
             onTap: () => context.push(action['route'] as String),
             child: Column(
               children: [
-                Container(
-                  width: 48.w,
-                  height: 48.w,
-                  padding: EdgeInsets.all(12.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(7.w),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        offset: Offset(0, 1.w),
-                        blurRadius: 3.w,
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Container(
+                      width: 48.w,
+                      height: 48.w,
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(7.w),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            offset: Offset(0, 1.w),
+                            blurRadius: 3.w,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: SvgPicture.asset(
-                    action['icon'] as String,
-                    width: 24.w,
-                    height: 24.w,
-                    colorFilter: const ColorFilter.mode(
-                      Color(0xFFFF7D45),
-                      BlendMode.srcIn,
+                      child: SvgPicture.asset(
+                        action['icon'] as String,
+                        width: 24.w,
+                        height: 24.w,
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFFFF7D45),
+                          BlendMode.srcIn,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (count > 0)
+                      Transform.translate(
+                        offset: Offset(4.w, -4.w),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.w),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFF5252),
+                            borderRadius: BorderRadius.circular(10.w),
+                            border: Border.all(color: Colors.white, width: 1.5.w),
+                          ),
+                          child: Text(
+                            count > 99 ? '99+' : count.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 SizedBox(height: 4.w),
                 Text(
                   action['title'] as String,
                   style: TextStyle(
-                    fontSize: 12.w,
+                    fontSize: 12.sp,
                     color: const Color(0xFF636E72),
                   ),
                 ),

@@ -2,15 +2,10 @@ import 'package:beaver/core/datasync/sync.dart';
 import 'package:beaver/core/datasync/sync.dart' show syncManager;
 
 import 'receivers/call/call.dart';
-import 'receivers/chat/chat.dart';
-import 'receivers/friend/friend.dart';
-import 'receivers/group/group.dart';
-import 'receivers/notification/notification.dart';
-import 'receivers/user/user.dart';
 
 /// 消息管理器
 /// 
-/// 职责：业务层消息管理，协调数据同步和消息分发
+/// 职责：业务层消息管理，协调数据同步 and 消息分发
 /// - 管理数据同步状态
 /// - 消息队列管理
 /// - 消息分发到各业务接收器
@@ -18,11 +13,11 @@ class MessageManager {
   bool _isDataSyncing = false;
   final List<Map<String, dynamic>> _messageQueue = [];
 
-  final ChatMessageReceiver _chatReceiver = ChatMessageReceiver();
+  final ChatMessageRouter _chatRouter = chatMessageRouter;
   final FriendMessageReceiver _friendReceiver = FriendMessageReceiver();
-  final GroupMessageReceiver _groupReceiver = GroupMessageReceiver();
-  final NotificationMessageReceiver _notificationReceiver = NotificationMessageReceiver();
-  final UserMessageReceiver _userReceiver = UserMessageReceiver();
+  final GroupMessageRouter _groupRouter = groupMessageRouter;
+  final NotificationMessageRouter _notificationRouter = notificationMessageRouter;
+  final UserMessageRouter _userRouter = userMessageRouter;
   final CallMessageReceiver _callReceiver = CallMessageReceiver();
 
   Future<void> onWsConnect() async {
@@ -69,19 +64,19 @@ class MessageManager {
     final map = content is Map ? Map<String, dynamic>.from(content) : <String, dynamic>{};
     switch (command) {
       case 'CHAT_MESSAGE':
-        _chatReceiver.processChatMessage(map);
+        _chatRouter.processChatMessage(map);
         break;
       case 'FRIEND_OPERATION':
         _friendReceiver.processFriendMessage(map);
         break;
       case 'GROUP_OPERATION':
-        _groupReceiver.processGroupMessage(map);
+        _groupRouter.processGroupMessage(map);
         break;
       case 'NOTIFICATION':
-        _notificationReceiver.processNotificationMessage(map);
+        _notificationRouter.processNotificationMessage(map);
         break;
       case 'USER_PROFILE':
-        _userReceiver.processUserMessage(map);
+        _userRouter.processUserMessage(map);
         break;
       case 'SYSTEM_MESSAGE':
         // TODO: 处理系统消息

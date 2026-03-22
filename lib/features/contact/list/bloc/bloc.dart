@@ -5,6 +5,9 @@ import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
 import 'package:beaver/features/contact/list/data/repositories/repository.dart';
 import 'package:beaver/store/friend/friend.dart';
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/core/business/group/group.dart';
+import 'package:beaver/store/user/user.dart';
 
 class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   final ContactListRepository _contactListRepository;
@@ -40,9 +43,7 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   ) async {
     // 遵循规范：从 Global Store 获取已组装好的数据
     final contacts = _friendStore.state.friends;
-
-    // 对于本地数据，不需要强制 Loading 状态，直接进行分组渲染
-    // 如果数据为空，UI 会由 _buildEmptyState 处理
+    final currentUserId = getIt<UserStore>().state.currentUserId;
 
     try {
       final groupedContacts = _contactListRepository.groupContactsByLetter(
@@ -50,12 +51,22 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
       );
       final indexList = _contactListRepository.getIndexList(groupedContacts);
 
+      // 获取未读数
+      int friendCount = 0;
+      int groupCount = 0;
+      if (currentUserId.isNotEmpty) {
+        friendCount = await getIt<FriendBusiness>().getUnreadFriendRequestCount(currentUserId);
+        groupCount = await getIt<GroupBusiness>().getUnreadGroupNotificationCount(currentUserId);
+      }
+
       emit(
         state.copyWith(
           status: ContactListStatus.success,
           contacts: contacts,
           groupedContacts: groupedContacts,
           indexList: indexList,
+          friendRequestCount: friendCount,
+          groupNotificationCount: groupCount,
         ),
       );
     } catch (e) {

@@ -46,18 +46,19 @@ class IChatMessageItem {
     required this.createdAt,
   });
 
-  factory IChatMessageItem.fromJson(Map<String, dynamic> json) => IChatMessageItem(
-    messageId: json['messageId'] ?? '',
-    conversationId: json['conversationId'] ?? '',
-    conversationType: json['conversationType'] ?? 0,
-    sendUserId: json['sendUserId'] ?? '',
-    msgType: json['msgType'] ?? 0,
-    targetMessageId: json['targetMessageId'],
-    msgPreview: json['msgPreview'] ?? '',
-    msg: json['msg'] ?? '',
-    seq: json['seq'] ?? 0,
-    createdAt: json['createdAt'] ?? 0,
-  );
+  factory IChatMessageItem.fromJson(Map<String, dynamic> json) =>
+      IChatMessageItem(
+        messageId: json['messageId'] ?? '',
+        conversationId: json['conversationId'] ?? '',
+        conversationType: json['conversationType'] ?? 0,
+        sendUserId: json['sendUserId'] ?? '',
+        msgType: json['msgType'] ?? 0,
+        targetMessageId: json['targetMessageId'],
+        msgPreview: json['msgPreview'] ?? '',
+        msg: json['msg'] ?? '',
+        seq: json['seq'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+      );
 }
 
 /// 同步聊天消息响应
@@ -67,7 +68,11 @@ class IChatSyncRes {
   IChatSyncRes({required this.messages});
 
   factory IChatSyncRes.fromJson(Map<String, dynamic> json) => IChatSyncRes(
-    messages: (json['messages'] as List?)?.map((e) => IChatMessageItem.fromJson(e)).toList() ?? [],
+    messages:
+        (json['messages'] as List?)
+            ?.map((e) => IChatMessageItem.fromJson(e))
+            .toList() ??
+        [],
   );
 }
 
@@ -77,23 +82,36 @@ class IConversationItem {
   final int conversationType;
   final String? title;
   final String? avatar;
+  final int maxSeq;
+  final String? lastMessage;
   final int version;
+  final int createdAt;
+  final int updatedAt;
 
   IConversationItem({
     required this.conversationId,
     required this.conversationType,
     this.title,
     this.avatar,
+    required this.maxSeq,
+    this.lastMessage,
     required this.version,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  factory IConversationItem.fromJson(Map<String, dynamic> json) => IConversationItem(
-    conversationId: json['conversationId'] ?? '',
-    conversationType: json['conversationType'] ?? 0,
-    title: json['title'],
-    avatar: json['avatar'],
-    version: json['version'] ?? 0,
-  );
+  factory IConversationItem.fromJson(Map<String, dynamic> json) =>
+      IConversationItem(
+        conversationId: json['conversationId'] ?? '',
+        conversationType: json['conversationType'] ?? (json['type'] ?? 0),
+        title: json['title'],
+        avatar: json['avatar'],
+        maxSeq: json['maxSeq'] ?? 0,
+        lastMessage: json['lastMessage'],
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+        updatedAt: json['updatedAt'] ?? 0,
+      );
 }
 
 /// 批量获取会话请求
@@ -111,9 +129,14 @@ class IGetConversationsListByIdsRes {
 
   IGetConversationsListByIdsRes({required this.conversations});
 
-  factory IGetConversationsListByIdsRes.fromJson(Map<String, dynamic> json) => IGetConversationsListByIdsRes(
-    conversations: (json['conversations'] as List?)?.map((e) => IConversationItem.fromJson(e)).toList() ?? [],
-  );
+  factory IGetConversationsListByIdsRes.fromJson(Map<String, dynamic> json) =>
+      IGetConversationsListByIdsRes(
+        conversations:
+            (json['conversations'] as List?)
+                ?.map((e) => IConversationItem.fromJson(e))
+                .toList() ??
+            [],
+      );
 }
 
 /// 用户会话设置项
@@ -122,6 +145,7 @@ class IUserConversationSettingItem {
   final String conversationId;
   final bool isHidden;
   final bool isPinned;
+  final bool? isTop; // 兼容字段
   final bool isMuted;
   final int userReadSeq;
   final int version;
@@ -133,6 +157,7 @@ class IUserConversationSettingItem {
     required this.conversationId,
     required this.isHidden,
     required this.isPinned,
+    this.isTop,
     required this.isMuted,
     required this.userReadSeq,
     required this.version,
@@ -140,17 +165,19 @@ class IUserConversationSettingItem {
     required this.updatedAt,
   });
 
-  factory IUserConversationSettingItem.fromJson(Map<String, dynamic> json) => IUserConversationSettingItem(
-    userId: json['userId'] ?? '',
-    conversationId: json['conversationId'] ?? '',
-    isHidden: json['isHidden'] ?? false,
-    isPinned: json['isPinned'] ?? false,
-    isMuted: json['isMuted'] ?? false,
-    userReadSeq: json['userReadSeq'] ?? 0,
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? 0,
-    updatedAt: json['updatedAt'] ?? 0,
-  );
+  factory IUserConversationSettingItem.fromJson(Map<String, dynamic> json) =>
+      IUserConversationSettingItem(
+        userId: json['userId'] ?? '',
+        conversationId: json['conversationId'] ?? '',
+        isHidden: json['isHidden'] ?? false,
+        isPinned: json['isPinned'] ?? json['isTop'] ?? false,
+        isTop: json['isTop'],
+        isMuted: json['isMuted'] ?? false,
+        userReadSeq: json['userReadSeq'] ?? 0,
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+        updatedAt: json['updatedAt'] ?? 0,
+      );
 }
 
 /// 批量获取用户会话设置请求
@@ -166,9 +193,63 @@ class IGetUserConversationSettingsListByIdsReq {
 class IGetUserConversationSettingsListByIdsRes {
   final List<IUserConversationSettingItem> userConversationSettings;
 
-  IGetUserConversationSettingsListByIdsRes({required this.userConversationSettings});
+  IGetUserConversationSettingsListByIdsRes({
+    required this.userConversationSettings,
+  });
 
-  factory IGetUserConversationSettingsListByIdsRes.fromJson(Map<String, dynamic> json) => IGetUserConversationSettingsListByIdsRes(
-    userConversationSettings: (json['userConversationSettings'] as List?)?.map((e) => IUserConversationSettingItem.fromJson(e)).toList() ?? [],
+  factory IGetUserConversationSettingsListByIdsRes.fromJson(
+    Map<String, dynamic> json,
+  ) => IGetUserConversationSettingsListByIdsRes(
+    userConversationSettings:
+        (json['userConversationSettings'] as List?)
+            ?.map((e) => IUserConversationSettingItem.fromJson(e))
+            .toList() ??
+        [],
   );
+}
+
+/// 更新已读序列号请求
+class IUpdateReadSeqReq {
+  final String conversationId;
+  final int readSeq;
+
+  IUpdateReadSeqReq({required this.conversationId, required this.readSeq});
+
+  Map<String, dynamic> toJson() => {
+    'conversationId': conversationId,
+    'readSeq': readSeq,
+  };
+}
+
+/// 更新已读序列号响应
+class IUpdateReadSeqRes {
+  final bool success;
+
+  IUpdateReadSeqRes({required this.success});
+
+  factory IUpdateReadSeqRes.fromJson(Map<String, dynamic> json) =>
+      IUpdateReadSeqRes(success: json['success'] ?? (json['code'] == 0));
+}
+
+/// 置顶会话请求
+class IPinnedChatReq {
+  final String conversationId;
+  final bool isPinned;
+
+  IPinnedChatReq({required this.conversationId, required this.isPinned});
+
+  Map<String, dynamic> toJson() => {
+    'conversationId': conversationId,
+    'isPinned': isPinned,
+  };
+}
+
+/// 置顶会话响应
+class IPinnedChatRes {
+  final bool success;
+
+  IPinnedChatRes({required this.success});
+
+  factory IPinnedChatRes.fromJson(Map<String, dynamic> json) =>
+      IPinnedChatRes(success: json['success'] ?? (json['code'] == 0));
 }

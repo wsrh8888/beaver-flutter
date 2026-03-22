@@ -10,20 +10,28 @@ class NotificationInboxService extends BaseService {
    * @description 创建通知收件箱记录
    */
   Future<void> create(Map<String, dynamic> req) async {
-    await db.into(db.notificationInboxTable).insert(NotificationInboxTableCompanion(
-      userId: Value(req['userId']),
-      eventId: Value(req['eventId']),
-      eventType: Value(req['eventType']),
-      category: Value(req['category']),
-      version: Value(req['version'] ?? 0),
-      isRead: Value(req['isRead'] ?? 0),
-      readAt: Value(req['readAt']),
-      status: Value(req['status'] ?? 1),
-      isDeleted: Value(req['isDeleted'] ?? 0),
-      silent: Value(req['silent'] ?? 0),
-      createdAt: Value(req['createdAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000),
-      updatedAt: Value(req['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000),
-    ));
+    await db
+        .into(db.notificationInboxTable)
+        .insert(
+          NotificationInboxTableCompanion(
+            userId: Value(req['userId']),
+            eventId: Value(req['eventId']),
+            eventType: Value(req['eventType']),
+            category: Value(req['category']),
+            version: Value(req['version'] ?? 0),
+            isRead: Value(req['isRead'] ?? 0),
+            readAt: Value(req['readAt']),
+            status: Value(req['status'] ?? 1),
+            isDeleted: Value(req['isDeleted'] ?? 0),
+            silent: Value(req['silent'] ?? 0),
+            createdAt: Value(
+              req['createdAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            ),
+            updatedAt: Value(
+              req['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            ),
+          ),
+        );
   }
 
   /**
@@ -36,36 +44,54 @@ class NotificationInboxService extends BaseService {
     }
 
     for (final inboxData in inboxes) {
-      await db.into(db.notificationInboxTable).insert(
-        NotificationInboxTableCompanion(
-          userId: Value(inboxData['userId']),
-          eventId: Value(inboxData['eventId']),
-          eventType: Value(inboxData['eventType']),
-          category: Value(inboxData['category']),
-          version: Value(inboxData['version'] ?? 0),
-          isRead: Value(inboxData['isRead'] ?? 0),
-          readAt: Value(inboxData['readAt']),
-          status: Value(inboxData['status'] ?? 1),
-          isDeleted: Value(inboxData['isDeleted'] ?? 0),
-          silent: Value(inboxData['silent'] ?? 0),
-          createdAt: Value(inboxData['createdAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000),
-          updatedAt: Value(inboxData['updatedAt'] ?? DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        ),
-        mode: InsertMode.insertOrReplace,
-      );
+      await db
+          .into(db.notificationInboxTable)
+          .insert(
+            NotificationInboxTableCompanion(
+              userId: Value(inboxData['userId']),
+              eventId: Value(inboxData['eventId']),
+              eventType: Value(inboxData['eventType']),
+              category: Value(inboxData['category']),
+              version: Value(inboxData['version'] ?? 0),
+              isRead: Value(inboxData['isRead'] ?? 0),
+              readAt: Value(inboxData['readAt']),
+              status: Value(inboxData['status'] ?? 1),
+              isDeleted: Value(inboxData['isDeleted'] ?? 0),
+              silent: Value(inboxData['silent'] ?? 0),
+              createdAt: Value(
+                inboxData['createdAt'] ??
+                    DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              ),
+              updatedAt: Value(
+                inboxData['updatedAt'] ??
+                    DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              ),
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
     }
   }
 
   /**
    * @description 根据用户ID和分类获取通知列表
    */
-  Future<List<dynamic>> getInboxByUserIdAndCategory(Map<String, dynamic> req) async {
+  Future<List<dynamic>> getInboxByUserIdAndCategory(
+    Map<String, dynamic> req,
+  ) async {
     final userId = req['userId'] as String;
     final category = req['category'] as String;
-    final result = await (db.select(db.notificationInboxTable)
-      ..where((t) => t.userId.equals(userId) & t.category.equals(category))
-      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
-      .get();
+    final result =
+        await (db.select(db.notificationInboxTable)
+              ..where(
+                (t) => t.userId.equals(userId) & t.category.equals(category),
+              )
+              ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.createdAt,
+                  mode: OrderingMode.desc,
+                ),
+              ]))
+            .get();
     return result.map((item) => item.toJson()).toList();
   }
 
@@ -74,10 +100,16 @@ class NotificationInboxService extends BaseService {
    */
   Future<List<dynamic>> getInboxByUserId(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
-    final result = await (db.select(db.notificationInboxTable)
-      ..where((t) => t.userId.equals(userId))
-      ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
-      .get();
+    final result =
+        await (db.select(db.notificationInboxTable)
+              ..where((t) => t.userId.equals(userId))
+              ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.createdAt,
+                  mode: OrderingMode.desc,
+                ),
+              ]))
+            .get();
     return result.map((item) => item.toJson()).toList();
   }
 
@@ -87,13 +119,15 @@ class NotificationInboxService extends BaseService {
   Future<void> markAsRead(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
     final eventId = req['eventId'] as String;
-    await (db.update(db.notificationInboxTable)
-      ..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId)))
-      .write(NotificationInboxTableCompanion(
+    await (db.update(
+      db.notificationInboxTable,
+    )..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId))).write(
+      NotificationInboxTableCompanion(
         isRead: const Value(1),
         readAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-      ));
+      ),
+    );
   }
 
   /**
@@ -102,8 +136,8 @@ class NotificationInboxService extends BaseService {
   Future<void> delete(Map<String, dynamic> req) async {
     final userId = req['userId'] as String;
     final eventId = req['eventId'] as String;
-    await (db.delete(db.notificationInboxTable)
-      ..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId)))
-      .go();
+    await (db.delete(
+      db.notificationInboxTable,
+    )..where((t) => t.userId.equals(userId) & t.eventId.equals(eventId))).go();
   }
 }

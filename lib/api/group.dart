@@ -18,3 +18,9 @@ Future<BaseResponse<IGroupJoinRequestSyncRes>> groupJoinRequestSyncApi(IGroupJoi
   const url = '/api/group/join-request-sync';
   return httpClient.post<IGroupJoinRequestSyncRes>(url, data: data.toJson(), fromJsonT: (json) => IGroupJoinRequestSyncRes.fromJson(json));
 }
+
+/// 发起群聊
+Future<BaseResponse<IGroupCreateRes>> createGroupApi(IGroupCreateReq data) {
+  const url = '/api/group/create';
+  return httpClient.post<IGroupCreateRes>(url, data: data.toJson(), fromJsonT: (json) => IGroupCreateRes.fromJson(json));
+}
