@@ -68,7 +68,6 @@ class MessageStore extends Cubit<MessageStoreState> {
         super(const MessageStoreState());
 
   Future<void> init() async {
-    print('MessageStore: 初始化完成');
   }
 
   /**

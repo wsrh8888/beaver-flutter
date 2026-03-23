@@ -23,7 +23,6 @@ class UserBusiness implements UserRepositoryInterface {
   Stream<List<String>> get userUpdateStream => _userUpdateController.stream;
 
   void notifyUserUpdate(List<String> userIds) {
-    print('[UserBusiness] 发送用户更新通知: $userIds');
     _userUpdateController.add(userIds);
   }
 
@@ -80,13 +79,11 @@ class UserBusiness implements UserRepositoryInterface {
       if (res.code == 0 && res.result != null && res.result!.users.isNotEmpty) {
         // 保存同步回来的用户信息到数据库
         await _userService.batchCreate(res.result!.users);
-        print('UserBusiness: 个人资料同步完成并入库');
 
         // 发送更新流
         _profileUpdateController.add(await getMyUserInfo());
       }
     } catch (e) {
-      print('UserBusiness: 同步个人资料出错: $e');
     }
   }
 
@@ -205,11 +202,9 @@ class UserBusiness implements UserRepositoryInterface {
 
       if (res.code == 0 && res.result != null && res.result!.users.isNotEmpty) {
         await _userService.batchCreate(res.result!.users);
-        print('[UserBusiness] 用户资料同步成功: $targetId, version=$version');
         notifyUserUpdate([targetId]);
       }
     } catch (e) {
-      print('[UserBusiness] handleTableUpdates failed: $e');
     }
   }
 }

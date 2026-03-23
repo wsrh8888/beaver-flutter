@@ -58,7 +58,6 @@ class WsClient {
     if (_isConnecting || _channel != null) return;
     _isConnecting = true;
     onConnecting?.call();
-    print('[WS] 正在连接: $wsUrl');
     try {
       _channel = WebSocketChannel.connect(Uri.parse('$wsUrl?token=$token'));
       _channel!.stream.listen(
@@ -68,7 +67,6 @@ class WsClient {
       );
       _startHeartbeat();
       _isConnecting = false;
-      print('[WS] 连接建立成功');
       Future.microtask(() => onConnect?.call());
     } catch (e) {
       _onConnectError(e);
@@ -81,8 +79,6 @@ class WsClient {
         : Map<String, dynamic>.from(message as Map);
     if (onMessage != null) {
       onMessage!(data);
-    } else {
-      print('[WS] 收到消息(未设置 onMessage): $data');
     }
   }
 
@@ -93,7 +89,6 @@ class WsClient {
   }
 
   void _onDisconnected() {
-    print('[WS] 连接已断开，尝试重连...');
     onDisconnect?.call();
     _channel = null;
     _stopHeartbeat();

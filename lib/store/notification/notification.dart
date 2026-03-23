@@ -1,9 +1,10 @@
-import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:beaver/di/injection.dart';
-import 'package:beaver/core/database/db.dart';
+﻿import 'dart:async';
+
 import 'package:beaver/core/business/index.dart';
+import 'package:beaver/core/database/db.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationStoreState extends Equatable {
   final List<dynamic> notifications;
@@ -31,17 +32,22 @@ class NotificationStoreState extends Equatable {
 class NotificationStore extends Cubit<NotificationStoreState> {
   final NotificationInboxBusiness _inboxBusiness;
   StreamSubscription? _subscription;
+  Timer? _initDebounceTimer;
 
   NotificationStore({NotificationInboxBusiness? inboxBusiness})
-    : _inboxBusiness = inboxBusiness ?? getIt<NotificationInboxBusiness>(),
-      super(const NotificationStoreState()) {
-    _subscription = _inboxBusiness.inboxUpdateStream.listen((_) => init());
+      : _inboxBusiness = inboxBusiness ?? getIt<NotificationInboxBusiness>(),
+        super(const NotificationStoreState()) {
+    _subscription = _inboxBusiness.inboxUpdateStream.listen((_) {
+      _initDebounceTimer?.cancel();
+      _initDebounceTimer = Timer(const Duration(milliseconds: 200), init);
+    });
     init();
   }
 
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _initDebounceTimer?.cancel();
     return super.close();
   }
 
@@ -54,14 +60,13 @@ class NotificationStore extends Cubit<NotificationStoreState> {
       emit(
         state.copyWith(
           unreadCount: summary['total'] as int? ?? 0,
-          notifications: [], // 暂时不做详情列表，对标 PC Pinia store
+          notifications: const [],
         ),
       );
     } catch (e) {
-      print('NotificationStore: 初始化失败: $e');
+      print('NotificationStore: init failed: $e');
     }
   }
 
-  // 暴露业务层以便未来直接调用
   NotificationInboxBusiness get business => _inboxBusiness;
 }

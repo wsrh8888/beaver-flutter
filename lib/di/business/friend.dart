@@ -10,5 +10,7 @@ void configureFriendBusinessDependencies(GetIt getIt) {
   getIt.registerLazySingleton<FriendVerifyBusiness>(() => FriendVerifyBusiness());
   
   // 业务接口注册
-  getIt.registerLazySingleton<FriendRepositoryInterface>(() => FriendBusiness());
+  getIt.registerLazySingleton<FriendRepositoryInterface>(
+    () => getIt<FriendBusiness>(),
+  );
 }

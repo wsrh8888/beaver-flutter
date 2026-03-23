@@ -6,8 +6,6 @@ import 'package:beaver/types/api/datasync.dart';
 /// 通知事件同步
 class NotificationSync {
   Future<void> checkAndSync() async {
-    print('[NotificationSync] 开始同步通知数据');
-
     final datasyncService = getIt<DatasyncService>();
 
     // 1. 获取本地同步游标
@@ -20,7 +18,7 @@ class NotificationSync {
     );
 
     if (response.code != 0 || response.result == null) {
-      print('[NotificationSync] 获取通知版本失败: ${response.msg}');
+      // print('[NotificationSync] 获取通知版本失败: ${response.msg}');
       return;
     }
 
@@ -34,7 +32,6 @@ class NotificationSync {
       response.result!.maxVersion,
       serverTimestamp,
     );
-    print('[NotificationSync] 通知同步完成');
   }
 }
 

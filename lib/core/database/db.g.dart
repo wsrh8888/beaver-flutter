@@ -3014,19 +3014,6 @@ class $ChatSyncStatusTable extends ChatSyncStatus
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ChatSyncStatusTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
   static const VerificationMeta _conversationIdMeta = const VerificationMeta(
     'conversationId',
   );
@@ -3082,7 +3069,6 @@ class $ChatSyncStatusTable extends ChatSyncStatus
   );
   @override
   List<GeneratedColumn> get $columns => [
-    id,
     conversationId,
     module,
     seq,
@@ -3101,9 +3087,6 @@ class $ChatSyncStatusTable extends ChatSyncStatus
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('conversation_id')) {
       context.handle(
         _conversationIdMeta,
@@ -3145,15 +3128,11 @@ class $ChatSyncStatusTable extends ChatSyncStatus
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {conversationId, module};
   @override
   ChatSyncStatusData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ChatSyncStatusData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
       conversationId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}conversation_id'],
@@ -3185,14 +3164,12 @@ class $ChatSyncStatusTable extends ChatSyncStatus
 
 class ChatSyncStatusData extends DataClass
     implements Insertable<ChatSyncStatusData> {
-  final int id;
   final String conversationId;
   final String module;
   final int seq;
   final int version;
   final int? updatedAt;
   const ChatSyncStatusData({
-    required this.id,
     required this.conversationId,
     required this.module,
     required this.seq,
@@ -3202,7 +3179,6 @@ class ChatSyncStatusData extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['conversation_id'] = Variable<String>(conversationId);
     map['module'] = Variable<String>(module);
     map['seq'] = Variable<int>(seq);
@@ -3215,7 +3191,6 @@ class ChatSyncStatusData extends DataClass
 
   ChatSyncStatusCompanion toCompanion(bool nullToAbsent) {
     return ChatSyncStatusCompanion(
-      id: Value(id),
       conversationId: Value(conversationId),
       module: Value(module),
       seq: Value(seq),
@@ -3232,7 +3207,6 @@ class ChatSyncStatusData extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ChatSyncStatusData(
-      id: serializer.fromJson<int>(json['id']),
       conversationId: serializer.fromJson<String>(json['conversationId']),
       module: serializer.fromJson<String>(json['module']),
       seq: serializer.fromJson<int>(json['seq']),
@@ -3244,7 +3218,6 @@ class ChatSyncStatusData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'conversationId': serializer.toJson<String>(conversationId),
       'module': serializer.toJson<String>(module),
       'seq': serializer.toJson<int>(seq),
@@ -3254,14 +3227,12 @@ class ChatSyncStatusData extends DataClass
   }
 
   ChatSyncStatusData copyWith({
-    int? id,
     String? conversationId,
     String? module,
     int? seq,
     int? version,
     Value<int?> updatedAt = const Value.absent(),
   }) => ChatSyncStatusData(
-    id: id ?? this.id,
     conversationId: conversationId ?? this.conversationId,
     module: module ?? this.module,
     seq: seq ?? this.seq,
@@ -3270,7 +3241,6 @@ class ChatSyncStatusData extends DataClass
   );
   ChatSyncStatusData copyWithCompanion(ChatSyncStatusCompanion data) {
     return ChatSyncStatusData(
-      id: data.id.present ? data.id.value : this.id,
       conversationId: data.conversationId.present
           ? data.conversationId.value
           : this.conversationId,
@@ -3284,7 +3254,6 @@ class ChatSyncStatusData extends DataClass
   @override
   String toString() {
     return (StringBuffer('ChatSyncStatusData(')
-          ..write('id: $id, ')
           ..write('conversationId: $conversationId, ')
           ..write('module: $module, ')
           ..write('seq: $seq, ')
@@ -3296,12 +3265,11 @@ class ChatSyncStatusData extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, conversationId, module, seq, version, updatedAt);
+      Object.hash(conversationId, module, seq, version, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ChatSyncStatusData &&
-          other.id == this.id &&
           other.conversationId == this.conversationId &&
           other.module == this.module &&
           other.seq == this.seq &&
@@ -3310,71 +3278,68 @@ class ChatSyncStatusData extends DataClass
 }
 
 class ChatSyncStatusCompanion extends UpdateCompanion<ChatSyncStatusData> {
-  final Value<int> id;
   final Value<String> conversationId;
   final Value<String> module;
   final Value<int> seq;
   final Value<int> version;
   final Value<int?> updatedAt;
+  final Value<int> rowid;
   const ChatSyncStatusCompanion({
-    this.id = const Value.absent(),
     this.conversationId = const Value.absent(),
     this.module = const Value.absent(),
     this.seq = const Value.absent(),
     this.version = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   ChatSyncStatusCompanion.insert({
-    this.id = const Value.absent(),
     required String conversationId,
     required String module,
     this.seq = const Value.absent(),
     this.version = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
   }) : conversationId = Value(conversationId),
        module = Value(module);
   static Insertable<ChatSyncStatusData> custom({
-    Expression<int>? id,
     Expression<String>? conversationId,
     Expression<String>? module,
     Expression<int>? seq,
     Expression<int>? version,
     Expression<int>? updatedAt,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (conversationId != null) 'conversation_id': conversationId,
       if (module != null) 'module': module,
       if (seq != null) 'seq': seq,
       if (version != null) 'version': version,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   ChatSyncStatusCompanion copyWith({
-    Value<int>? id,
     Value<String>? conversationId,
     Value<String>? module,
     Value<int>? seq,
     Value<int>? version,
     Value<int?>? updatedAt,
+    Value<int>? rowid,
   }) {
     return ChatSyncStatusCompanion(
-      id: id ?? this.id,
       conversationId: conversationId ?? this.conversationId,
       module: module ?? this.module,
       seq: seq ?? this.seq,
       version: version ?? this.version,
       updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (conversationId.present) {
       map['conversation_id'] = Variable<String>(conversationId.value);
     }
@@ -3390,18 +3355,21 @@ class ChatSyncStatusCompanion extends UpdateCompanion<ChatSyncStatusData> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<int>(updatedAt.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('ChatSyncStatusCompanion(')
-          ..write('id: $id, ')
           ..write('conversationId: $conversationId, ')
           ..write('module: $module, ')
           ..write('seq: $seq, ')
           ..write('version: $version, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -14063,21 +14031,21 @@ typedef $$ChatUserConversationsTableProcessedTableManager =
     >;
 typedef $$ChatSyncStatusTableCreateCompanionBuilder =
     ChatSyncStatusCompanion Function({
-      Value<int> id,
       required String conversationId,
       required String module,
       Value<int> seq,
       Value<int> version,
       Value<int?> updatedAt,
+      Value<int> rowid,
     });
 typedef $$ChatSyncStatusTableUpdateCompanionBuilder =
     ChatSyncStatusCompanion Function({
-      Value<int> id,
       Value<String> conversationId,
       Value<String> module,
       Value<int> seq,
       Value<int> version,
       Value<int?> updatedAt,
+      Value<int> rowid,
     });
 
 class $$ChatSyncStatusTableFilterComposer
@@ -14089,11 +14057,6 @@ class $$ChatSyncStatusTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get conversationId => $composableBuilder(
     column: $table.conversationId,
     builder: (column) => ColumnFilters(column),
@@ -14129,11 +14092,6 @@ class $$ChatSyncStatusTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get conversationId => $composableBuilder(
     column: $table.conversationId,
     builder: (column) => ColumnOrderings(column),
@@ -14169,9 +14127,6 @@ class $$ChatSyncStatusTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<String> get conversationId => $composableBuilder(
     column: $table.conversationId,
     builder: (column) => column,
@@ -14227,35 +14182,35 @@ class $$ChatSyncStatusTableTableManager
               $$ChatSyncStatusTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<String> conversationId = const Value.absent(),
                 Value<String> module = const Value.absent(),
                 Value<int> seq = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ChatSyncStatusCompanion(
-                id: id,
                 conversationId: conversationId,
                 module: module,
                 seq: seq,
                 version: version,
                 updatedAt: updatedAt,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 required String conversationId,
                 required String module,
                 Value<int> seq = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<int?> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => ChatSyncStatusCompanion.insert(
-                id: id,
                 conversationId: conversationId,
                 module: module,
                 seq: seq,
                 version: version,
                 updatedAt: updatedAt,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

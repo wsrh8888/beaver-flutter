@@ -1,18 +1,19 @@
-import 'package:beaver/di/injection.dart';
+import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
-import 'package:beaver/types/business/moment.dart';
 
 class MomentListRepository {
-  final MomentRepositoryInterface _momentRepository;
-
-  MomentListRepository({MomentRepositoryInterface? momentRepository}) 
-    : _momentRepository = momentRepository ?? getIt<MomentRepositoryInterface>();
+  MomentListRepository();
 
   Future<List<IMomentListItem>> getMomentList(int page, int limit) async {
-    return _momentRepository.getMomentList(page: page, limit: limit);
+    final response = await getMomentListApi(IGetMomentListReq(page: page, limit: limit));
+    if (response.isSuccess && response.result != null) {
+      return response.result!.list;
+    }
+    return [];
   }
 
   Future<bool> toggleLike(String momentId, bool status) async {
-    return _momentRepository.likeMoment(momentId, status);
+    final response = await likeMomentApi(ILikeMomentReq(momentId: momentId, status: status));
+    return response.isSuccess;
   }
 }

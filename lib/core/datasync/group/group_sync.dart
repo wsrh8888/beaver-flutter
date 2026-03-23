@@ -11,7 +11,6 @@ import 'package:drift/drift.dart';
 class GroupSync {
   /// 检查并同步群资料
   Future<void> checkAndSync() async {
-    print('[GroupSync] 开始同步群资料数据');
     try {
       final datasyncService = getIt<DatasyncService>();
       final groupService = getIt<GroupService>();
@@ -26,7 +25,7 @@ class GroupSync {
         IGetSyncGroupInfoReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        print('[GroupSync] 获取群组版本失败: ${response.msg}');
+        // print('[GroupSync] 获取群组版本失败: ${response.msg}');
         return;
       }
 
@@ -48,7 +47,7 @@ class GroupSync {
         response.result!.serverTimestamp,
       );
     } catch (error) {
-      print('[GroupSync] 群资料同步失败: $error');
+      // print('[GroupSync] 群资料同步失败: $error');
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:beaver/core/database/db.dart';
 
 /// 用户仓库接口
@@ -15,7 +16,7 @@ abstract class UserRepositoryInterface {
 }
 
 /// 用户信息模型 (UI)
-class UserInfo {
+class UserInfo extends Equatable {
   final String userId;
   final String nickname;
   final String? avatar;
@@ -31,6 +32,17 @@ class UserInfo {
     this.email,
     this.gender = 0,
   });
+
+  @override
+  List<Object?> get props => [
+    userId,
+    nickname,
+    avatar,
+    abstract,
+    email,
+    gender,
+  ];
+
 
   factory UserInfo.fromMap(Map<String, dynamic> map) {
     return UserInfo(

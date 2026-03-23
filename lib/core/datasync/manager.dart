@@ -17,8 +17,6 @@ class DataSyncManager {
 
   /// 自动开始全量同步流程
   Future<void> autoSync() async {
-    print('[DataSyncManager] 开始自动同步');
-    
     try {
       _isSyncing = true;
       // TODO: 发送状态变更通知
@@ -38,11 +36,9 @@ class DataSyncManager {
 
       _isSyncing = false;
       // TODO: 发送状态变更通知 (ready)
-      print('[DataSyncManager] 数据同步完成');
     } catch (e) {
       _isSyncing = false;
       // TODO: 发送状态变更通知 (sync_error)
-      print('[DataSyncManager] 数据同步失败: $e');
     }
   }
 }

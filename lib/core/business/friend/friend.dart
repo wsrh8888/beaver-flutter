@@ -1,52 +1,44 @@
+import 'dart:async';
+import 'package:beaver/api/friend.dart';
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:intl/intl.dart';
+import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/types/business/user.dart';
 
 /// 好友业务逻辑
 class FriendBusiness implements FriendRepositoryInterface {
   final _service = getIt<FriendService>();
+  final _friendUpdateController = StreamController<List<String>>.broadcast();
+  final Map<String, int> _lastHandledVersionByFriendId = {};
+
+  Stream<List<String>> get friendUpdateStream => _friendUpdateController.stream;
+
+  void notifyFriendUpdate(List<String> friendIds) {
+    _friendUpdateController.add(friendIds);
+  }
 
   /**
    * @description 获取好友列表 (UI 格式)
    */
   Future<List<ContactModel>> getContactList() async {
-    final friends = await _service.getFriends();
-    print('FriendBusiness: 1. 从数据库读取到原始好友记录: ${friends.length} 条');
-    if (friends.isEmpty) return [];
-
     final myUserId = DatabaseManager.currentUserId ?? '';
+
     if (myUserId.isEmpty) {
-      print('FriendBusiness: [警告] currentUserId 为空，无法正确解析好友关系');
       return [];
     }
 
-    // 确定好友的用户ID列表 (用于批量查询资料)
-    final friendUserIds = friends.map((f) {
-      return f.sendUserId == myUserId ? f.revUserId : f.sendUserId;
-    }).toList();
-
-    final userBusiness = getIt<UserBusiness>();
-
-    // 批量获取这些好友的基础资料 (从 users 表)
-    final userInfos = await userBusiness.getUsersBasicInfo(friendUserIds);
-    print('FriendBusiness: 2. 获取到用户基础资料元数据: ${userInfos.length} 条');
-
-    final userMap = {for (var u in userInfos) u.userId: u};
+    final friends = await _service.getFriends();
+    if (friends.isEmpty) return [];
 
     final results = friends.map((friend) {
       // 确定好友的用户ID
       final friendUserId = friend.sendUserId == myUserId
           ? friend.revUserId
           : friend.sendUserId;
-
-      final userInfo = userMap[friendUserId];
-      if (userInfo == null) {
-        print('FriendBusiness: [警告] 找不到好友 $friendUserId 的基础资料');
-      }
 
       // 确定备注信息 (根据我是发送者还是接收者)
       final notice = friend.sendUserId == myUserId
@@ -55,19 +47,11 @@ class FriendBusiness implements FriendRepositoryInterface {
 
       return ContactModel(
         userId: friendUserId,
-        nickname: userInfo?.nickname ?? '',
+        nickname: '', // Store will resolve this from ContactStore
         notice: notice,
-        avatar: userInfo?.avatar ?? '',
+        avatar: '', // Store will resolve this from ContactStore
       );
     }).toList();
-
-    // 2、打印 getContactList 的值
-    print('FriendBusiness: 3. getContactList 组装结果共有 ${results.length} 条:');
-    for (var item in results) {
-      print(
-        '  - userId: ${item.userId}, nickname: ${item.nickname}, notice: ${item.notice}',
-      );
-    }
 
     return results;
   }
@@ -160,9 +144,12 @@ class FriendBusiness implements FriendRepositoryInterface {
     if (verifies.isEmpty) return [];
 
     // 2. 收集需要查询的用户ID
-    final userIds = verifies.map((v) {
-      return v.sendUserId == currentUserId ? v.revUserId : v.sendUserId;
-    }).toSet().toList();
+    final userIds = verifies
+        .map((v) {
+          return v.sendUserId == currentUserId ? v.revUserId : v.sendUserId;
+        })
+        .toSet()
+        .toList();
 
     // 3. 批量获取用户信息
     final userInfos = await userBusiness.getUsersBasicInfo(userIds);
@@ -170,14 +157,20 @@ class FriendBusiness implements FriendRepositoryInterface {
 
     // 4. 组装数据
     final requests = verifies.map((v) {
-      final friendUserId = v.sendUserId == currentUserId ? v.revUserId : v.sendUserId;
+      final friendUserId = v.sendUserId == currentUserId
+          ? v.revUserId
+          : v.sendUserId;
       final userInfo = userMap[friendUserId];
       final flag = v.sendUserId == currentUserId ? 'send' : 'receive';
-      
-      int status = (v.revStatus == 1 || v.sendStatus == 1) ? 1 : (v.revStatus == 2 || v.sendStatus == 2 ? 2 : 0);
 
-      final createdAt = v.createdAt != null 
-          ? DateFormat('yyyy-MM-dd HH:mm').format(DateTime.fromMillisecondsSinceEpoch(v.createdAt! * 1000))
+      int status = (v.revStatus == 1 || v.sendStatus == 1)
+          ? 1
+          : (v.revStatus == 2 || v.sendStatus == 2 ? 2 : 0);
+
+      final createdAt = v.createdAt != null
+          ? DateFormat(
+              'yyyy-MM-dd HH:mm',
+            ).format(DateTime.fromMillisecondsSinceEpoch(v.createdAt! * 1000))
           : '';
 
       return FriendRequest(
@@ -194,7 +187,7 @@ class FriendBusiness implements FriendRepositoryInterface {
 
     // 按时间降序排序
     requests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    
+
     return requests;
   }
 
@@ -214,7 +207,28 @@ class FriendBusiness implements FriendRepositoryInterface {
    * @description 处理好友表更新
    */
   Future<void> handleTableUpdates(int version, String? friendId) async {
-    print('[FriendBusiness] 处理好友表更新: friendId=$friendId, version=$version');
-    // TODO: 实现具体的更新逻辑 (如清理缓存、重新拉取数据等)
+    if (friendId == null || friendId.trim().isEmpty) {
+      notifyFriendUpdate(const []);
+      return;
+    }
+
+    final lastVersion = _lastHandledVersionByFriendId[friendId] ?? 0;
+    if (version <= lastVersion) {
+      return;
+    }
+
+    final response = await getFriendsListByIdsApi(
+      IGetFriendsListByIdsReq(friendIds: [friendId]),
+    );
+    if (response.code != 0 || response.result == null) {
+      return;
+    }
+
+    if (response.result!.friends.isNotEmpty) {
+      await _service.batchCreate(response.result!.friends);
+    }
+
+    _lastHandledVersionByFriendId[friendId] = version;
+    notifyFriendUpdate([friendId]);
   }
 }

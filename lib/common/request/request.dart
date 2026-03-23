@@ -57,17 +57,12 @@ class HttpClient {
         // 2. 注入请求唯一 ID
         options.headers['uuid'] = const Uuid().v4();
 
-        print('🌐 [HTTP Request] ${options.method} ${options.baseUrl}${options.path}');
-        if (options.data != null) print('📦 [HTTP Data] ${options.data}');
         return handler.next(options);
       },
       onResponse: (response, handler) {
-        print('✅ [HTTP Response] ${response.statusCode} <- ${response.requestOptions.path}');
         return handler.next(response);
       },
       onError: (error, handler) {
-        print('❌ [HTTP Error] ${error.response?.statusCode} <- ${error.requestOptions.path}');
-        print('⚠️ [HTTP Reason] ${error.message}');
         return handler.next(error);
       },
     ));

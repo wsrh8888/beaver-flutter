@@ -13,6 +13,7 @@ import 'business/message.dart';
 import 'business/notification.dart';
 import 'business/emoji.dart';
 import 'business/media.dart';
+import 'business/call.dart';
 import 'features/auth.dart';
 
 /// 模块注册
@@ -34,4 +35,5 @@ void registerModules(GetIt getIt) {
   configureNotificationBusinessDependencies(getIt);
   configureEmojiBusinessDependencies(getIt);
   configureMediaBusinessDependencies(getIt);
+  configureCallBusinessDependencies(getIt);
 }

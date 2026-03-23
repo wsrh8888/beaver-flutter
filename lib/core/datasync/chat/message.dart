@@ -13,7 +13,6 @@ import 'package:drift/drift.dart';
 class MessageSync {
   /// 检查并同步消息数据
   Future<void> checkAndSync() async {
-    print('[MessageSync] 开始同步消息数据');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -28,7 +27,7 @@ class MessageSync {
       // 获取服务器上变更的消息版本信息
       final response = await datasyncGetSyncChatMessagesApi(IGetSyncChatMessagesReq(since: lastSyncTime));
       if (response.code != 0 || response.result == null) {
-        print('[MessageSync] 获取消息摘要失败: ${response.msg}');
+        // print('[MessageSync] 获取消息摘要失败: ${response.msg}');
         return;
       }
 

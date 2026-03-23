@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:go_router/go_router.dart';
+import 'package:go_router/go_router.dart';
+import 'package:beaver/router/routes.dart';
 import 'package:beaver/features/contact/detail/bloc/bloc.dart';
 import 'package:beaver/features/contact/detail/bloc/event.dart';
 import 'package:beaver/features/contact/detail/bloc/state.dart';
@@ -58,6 +59,12 @@ class _ContactDetailViewState extends State<ContactDetailView> {
           _remarkController.text = state.newRemarkName ?? '';
           _showEditRemarkDialog(context);
         }
+        if (state.navigateToChat && state.conversationIdForChat != null) {
+          context.push(
+            '${AppRoutes.chatDetail}?id=${state.conversationIdForChat}',
+          );
+          context.read<ContactDetailBloc>().add(const ClearNavigationEvent());
+        }
       },
       builder: (context, state) {
         final userInfo = state.userInfo;
@@ -71,7 +78,9 @@ class _ContactDetailViewState extends State<ContactDetailView> {
           backgroundHeight: 90.w, // 180rpx / 2
           rightSlot: isFriend
               ? GestureDetector(
-                  onTap: () => context.read<ContactDetailBloc>().add(const ToggleMoreMenuEvent()),
+                  onTap: () => context.read<ContactDetailBloc>().add(
+                    const ToggleMoreMenuEvent(),
+                  ),
                   child: Container(
                     padding: EdgeInsets.all(6.w),
                     decoration: BoxDecoration(
@@ -123,7 +132,9 @@ class _ContactDetailViewState extends State<ContactDetailView> {
               if (state.showMoreMenu)
                 Positioned.fill(
                   child: GestureDetector(
-                    onTap: () => context.read<ContactDetailBloc>().add(const ToggleMoreMenuEvent()),
+                    onTap: () => context.read<ContactDetailBloc>().add(
+                      const ToggleMoreMenuEvent(),
+                    ),
                     child: Container(color: Colors.transparent),
                   ),
                 ),
@@ -216,7 +227,10 @@ class _ContactDetailViewState extends State<ContactDetailView> {
                   SizedBox(height: 8.w),
                   Container(
                     constraints: BoxConstraints(maxWidth: 240.w), // 480rpx
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 8.w,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF8F9FA),
                       borderRadius: BorderRadius.circular(8.w),
@@ -238,10 +252,7 @@ class _ContactDetailViewState extends State<ContactDetailView> {
             ],
           ),
           SizedBox(height: 20.w),
-          Container(
-            height: 0.5.w,
-            color: const Color(0xFFF0F3F4),
-          ),
+          Container(height: 0.5.w, color: const Color(0xFFF0F3F4)),
           SizedBox(height: 20.w),
           // 信息列表
           _buildInfoList(state),
@@ -269,7 +280,11 @@ class _ContactDetailViewState extends State<ContactDetailView> {
 
     items.add({
       'label': '性别',
-      'value': userInfo.gender == 'male' ? '男' : userInfo.gender == 'female' ? '女' : '未设置'
+      'value': userInfo.gender == 'male'
+          ? '男'
+          : userInfo.gender == 'female'
+          ? '女'
+          : '未设置',
     });
 
     return Column(
@@ -334,26 +349,33 @@ class _ContactDetailViewState extends State<ContactDetailView> {
             flex: 2,
             child: BeaverButton(
               text: '发消息',
-              onPressed: () => context.read<ContactDetailBloc>().add(const SendMessageEvent()),
+              onPressed: () => context.read<ContactDetailBloc>().add(
+                const SendMessageEvent(),
+              ),
               height: 44.w,
             ),
           ),
           SizedBox(width: 12.w),
           _buildActionIconButton(
             icon: 'assets/icons/detail/voice-call-icon.svg',
-            onTap: () => context.read<ContactDetailBloc>().add(const AudioCallEvent()),
+            onTap: () =>
+                context.read<ContactDetailBloc>().add(const AudioCallEvent()),
           ),
           SizedBox(width: 12.w),
           _buildActionIconButton(
             icon: 'assets/icons/detail/video-call-icon.svg',
-            onTap: () => context.read<ContactDetailBloc>().add(const VideoCallEvent()),
+            onTap: () =>
+                context.read<ContactDetailBloc>().add(const VideoCallEvent()),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionIconButton({required String icon, required VoidCallback onTap}) {
+  Widget _buildActionIconButton({
+    required String icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -401,18 +423,28 @@ class _ContactDetailViewState extends State<ContactDetailView> {
                 icon: 'assets/icons/detail/edit-note-icon.svg',
                 text: '编辑备注',
                 onTap: () {
-                  context.read<ContactDetailBloc>().add(const ToggleMoreMenuEvent());
-                  context.read<ContactDetailBloc>().add(const ShowEditNoteDialogEvent());
+                  context.read<ContactDetailBloc>().add(
+                    const ToggleMoreMenuEvent(),
+                  );
+                  context.read<ContactDetailBloc>().add(
+                    const ShowEditNoteDialogEvent(),
+                  );
                 },
               ),
-              Container(height: 0.5.w, color: const Color(0xFFF0F3F4), margin: EdgeInsets.symmetric(horizontal: 12.w)),
+              Container(
+                height: 0.5.w,
+                color: const Color(0xFFF0F3F4),
+                margin: EdgeInsets.symmetric(horizontal: 12.w),
+              ),
               _buildMenuItem(
                 icon: 'assets/icons/detail/delete-icon.svg',
                 text: '删除好友',
                 textColor: const Color(0xFFFF4D4F),
                 onTap: () {
-                   context.read<ContactDetailBloc>().add(const ToggleMoreMenuEvent());
-                   _showDeleteConfirmDialog(context);
+                  context.read<ContactDetailBloc>().add(
+                    const ToggleMoreMenuEvent(),
+                  );
+                  _showDeleteConfirmDialog(context);
                 },
               ),
             ],
@@ -458,7 +490,7 @@ class _ContactDetailViewState extends State<ContactDetailView> {
       'group': '群聊',
       'card': '名片',
       'link': '链接',
-      'other': '其他'
+      'other': '其他',
     };
     return sourceMap[source] ?? source;
   }
@@ -470,23 +502,27 @@ class _ContactDetailViewState extends State<ContactDetailView> {
         title: const Text('编辑备注'),
         content: TextField(
           controller: _remarkController,
-          decoration: const InputDecoration(
-            hintText: '请输入备注名称',
-          ),
+          decoration: const InputDecoration(hintText: '请输入备注名称'),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () {
-              context.read<ContactDetailBloc>().add(const CloseEditNoteDialogEvent());
+              context.read<ContactDetailBloc>().add(
+                const CloseEditNoteDialogEvent(),
+              );
               Navigator.pop(context);
             },
             child: const Text('取消'),
           ),
           TextButton(
             onPressed: () {
-              context.read<ContactDetailBloc>().add(SaveRemarkNameEvent(_remarkController.text));
-              context.read<ContactDetailBloc>().add(const CloseEditNoteDialogEvent());
+              context.read<ContactDetailBloc>().add(
+                SaveRemarkNameEvent(_remarkController.text),
+              );
+              context.read<ContactDetailBloc>().add(
+                const CloseEditNoteDialogEvent(),
+              );
               Navigator.pop(context);
             },
             child: const Text('保存'),
@@ -520,4 +556,3 @@ class _ContactDetailViewState extends State<ContactDetailView> {
     );
   }
 }
-

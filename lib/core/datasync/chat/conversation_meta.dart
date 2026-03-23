@@ -12,7 +12,6 @@ import 'package:drift/drift.dart';
 class ConversationMetaSync {
   /// 检查并同步会话元数据
   Future<void> checkAndSync() async {
-    print('[ConversationMetaSync] 开始同步会话元数据');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -29,7 +28,7 @@ class ConversationMetaSync {
         IGetSyncChatConversationsReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        print('[ConversationMetaSync] 获取会话版本失败: ${response.msg}');
+        // print('[ConversationMetaSync] 获取会话版本失败: ${response.msg}');
         return;
       }
 
@@ -54,9 +53,8 @@ class ConversationMetaSync {
         serverTimestamp,
       );
 
-      print('[ConversationMetaSync] 会话元数据同步完成');
     } catch (error) {
-      print('[ConversationMetaSync] 会话元数据同步失败: $error');
+      // print('[ConversationMetaSync] 会话元数据同步失败: $error');
     }
   }
 

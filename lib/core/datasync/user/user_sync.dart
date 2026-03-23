@@ -12,7 +12,6 @@ class UserSyncModule {
 
   /// 检查并同步用户数据
   Future<void> checkAndSync() async {
-    print('[UserSyncModule] 开始同步用户数据');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -31,7 +30,6 @@ class UserSyncModule {
       );
 
       if (response.code != 0 || response.result == null) {
-        print('[UserSyncModule] 获取用户版本失败: ${response.msg}');
         return;
       }
 
@@ -67,7 +65,6 @@ class UserSyncModule {
       _syncStatus = 'COMPLETED';
     } catch (error) {
       _syncStatus = 'FAILED';
-      print('[UserSyncModule] 用户同步失败: $error');
     }
   }
 

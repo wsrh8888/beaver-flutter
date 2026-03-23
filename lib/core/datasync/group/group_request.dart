@@ -9,7 +9,6 @@ import 'package:beaver/types/api/group.dart';
 class GroupJoinRequestSync {
   /// 检查并同步入群申请数据
   Future<void> checkAndSync() async {
-    print('[GroupJoinRequestSync] 开始同步入群申请数据');
     try {
       final datasyncService = getIt<DatasyncService>();
       final groupJoinRequestService = getIt<GroupJoinRequestService>();
@@ -24,7 +23,7 @@ class GroupJoinRequestSync {
         IGetSyncGroupRequestsReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');
+        // print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');
         return;
       }
 
@@ -50,7 +49,7 @@ class GroupJoinRequestSync {
         response.result!.serverTimestamp,
       );
     } catch (error) {
-      print('[GroupJoinRequestSync] 同步失败: $error');
+      // print('[GroupJoinRequestSync] 同步失败: $error');
     }
   }
 

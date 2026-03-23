@@ -22,7 +22,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       _conversationUpdateController.stream;
 
   void notifyConversationUpdate() {
-    print('[ConversationBusiness] 发送会话列表更新通知');
     _conversationUpdateController.add(null);
   }
 
@@ -30,7 +29,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
   Future<List<ChatModel>> getChatList() async {
     final currentUserId = DatabaseManager.currentUserId ?? '';
     if (currentUserId.isEmpty) {
-      print('[ConversationBusiness] currentUserId is empty');
       return [];
     }
 
@@ -43,7 +41,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         .toList();
 
     if (visibleUserConversations.isEmpty) {
-      print('[ConversationBusiness] no visible user conversations');
       return [];
     }
 
@@ -142,19 +139,12 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       }
     }
 
-    print(
-      '[ConversationBusiness] aggregate: merged=${merged.length}, '
-      'privatePeers=${privatePeerIds.length}, friendDetails=${friendDetailsMap.length}, '
-      'groups=${groupMap.length}',
-    );
-
     // 5) render mapping
     final list = <ChatModel>[];
     for (final item in merged) {
       final conversationId = item.meta.conversationId;
       var avatar = item.meta.avatar ?? '';
       var nickname = item.meta.title ?? '';
-      final notice = '';
 
       if (_isPrivateConversation(conversationId)) {
         final peerId = _parsePrivatePeerId(conversationId, currentUserId);
@@ -198,12 +188,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
           isTop: item.setting.isPinned == 1,
           unreadCount: unreadCount,
         ),
-      );
-
-      print(
-        '[ConversationBusiness][RESULT] id=$conversationId, '
-        'nickname=$nickname, avatar=$avatar, msgPreview=$msgPreview, '
-        'isTop=${item.setting.isPinned == 1}, unread=$unreadCount, notice=$notice',
       );
     }
 
@@ -397,7 +381,6 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         notifyConversationUpdate();
       }
     } catch (e) {
-      print('[ConversationBusiness] syncConversationByVersion failed: $e');
     }
   }
 
@@ -407,6 +390,28 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     String conversationId,
     int version,
   ) async => getIt<UserConversationBusiness>().syncUserConversationByVersion(userId, conversationId, version);
+
+  @override
+  Future<String?> getConversationIdByPeerId(String peerId) async {
+    final currentUserId = DatabaseManager.currentUserId ?? '';
+    if (currentUserId.isEmpty) return null;
+
+    final userConversations = await _userConversationService.getByUserId(currentUserId);
+    for (final uc in userConversations) {
+      if (_isPrivateConversation(uc.conversationId)) {
+        final pId = _parsePrivatePeerId(uc.conversationId, currentUserId);
+        if (pId == peerId) {
+          return uc.conversationId;
+        }
+      }
+    }
+    
+    // Fallback: 按照约定的 private_minId_maxId 格式生成
+    // 注意：这里需要根据服务端和 desktop 端的统一规则生成
+    // 假设规则是 private_ 拼接排序后的两个 ID
+    final ids = [currentUserId, peerId]..sort();
+    return 'private_${ids[0]}_${ids[1]}';
+  }
 }
 
 class _MergedConversation {

@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:beaver/di/injection.dart';
+
 import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/user.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ContactStoreState extends Equatable {
   final Map<String, UserInfo> userMap;
-  final int version; // 用于触发响应式更新
+  final int version;
 
   const ContactStoreState({this.userMap = const {}, this.version = 0});
 
@@ -25,54 +26,50 @@ class ContactStoreState extends Equatable {
 class ContactStore extends Cubit<ContactStoreState> {
   final UserBusiness _userBusiness;
   StreamSubscription? _userBusinessSubscription;
+  Timer? _userUpdateDebounceTimer;
+  final Set<String> _pendingUserIds = <String>{};
 
   ContactStore({UserBusiness? userBusiness})
     : _userBusiness = userBusiness ?? getIt<UserBusiness>(),
       super(const ContactStoreState()) {
-    // 监听业务层流，实现响应式同步 (对标 PC 的 Main-to-Render 通知)
-    _userBusinessSubscription = _userBusiness.userUpdateStream.listen((userIds) {
-      updateContactsByIds(userIds);
+    _userBusinessSubscription = _userBusiness.userUpdateStream.listen((
+      userIds,
+    ) {
+      _pendingUserIds.addAll(userIds.where((id) => id.trim().isNotEmpty));
+      _userUpdateDebounceTimer?.cancel();
+      _userUpdateDebounceTimer = Timer(const Duration(milliseconds: 200), () {
+        final ids = _pendingUserIds.toList(growable: false);
+        _pendingUserIds.clear();
+        updateContactsByIds(ids);
+      });
     });
   }
 
   @override
   Future<void> close() {
     _userBusinessSubscription?.cancel();
+    _userUpdateDebounceTimer?.cancel();
     return super.close();
   }
 
-  /**
-   * @description: 初始化，从数据库加载所有用户基础数据
-   */
   Future<void> init() async {
-    try {
-      final users = await _userBusiness.getAllUsers();
-      final Map<String, UserInfo> newUserMap = {};
-      for (var user in users) {
-        newUserMap[user.userId] = user;
-      }
-      emit(state.copyWith(userMap: newUserMap, version: state.version + 1));
-      print('ContactStore: 初始化完成，用户总数: ${newUserMap.length}');
-    } catch (e) {
-      print('ContactStore: 初始化失败: $e');
-      rethrow;
+    final users = await _userBusiness.getAllUsers();
+    final nextMap = <String, UserInfo>{};
+    for (final user in users) {
+      nextMap[user.userId] = user;
     }
+    emit(state.copyWith(userMap: nextMap, version: state.version + 1));
   }
 
-  /**
-   * @description: 更新或添加单个联系人信息
-   */
   void updateContact(
     String userId,
     UserInfo contactInfo, {
     bool force = false,
   }) {
     final existing = state.userMap[userId];
-    bool updated = false;
 
     if (existing != null) {
-      // 这里的逻辑可以根据版本号进一步优化，目前简单合并
-      final newUser = UserInfo(
+      final merged = UserInfo(
         userId: userId,
         nickname: contactInfo.nickname.isNotEmpty
             ? contactInfo.nickname
@@ -89,40 +86,39 @@ class ContactStore extends Cubit<ContactStoreState> {
         gender: contactInfo.gender != 0 ? contactInfo.gender : existing.gender,
       );
 
-      if (newUser != existing || force) {
-        final newMap = Map<String, UserInfo>.from(state.userMap);
-        newMap[userId] = newUser;
-        emit(state.copyWith(userMap: newMap, version: state.version + 1));
-        updated = true;
+      if (merged != existing || force) {
+        final nextMap = Map<String, UserInfo>.from(state.userMap);
+        nextMap[userId] = merged;
+        emit(state.copyWith(userMap: nextMap, version: state.version + 1));
       }
-    } else {
-      final newMap = Map<String, UserInfo>.from(state.userMap);
-      newMap[userId] = contactInfo;
-      emit(state.copyWith(userMap: newMap, version: state.version + 1));
-      updated = true;
+      return;
     }
 
-    if (updated) {
-      print('ContactStore: 更新用户 $userId 信息');
-    }
+    final nextMap = Map<String, UserInfo>.from(state.userMap);
+    nextMap[userId] = contactInfo;
+    emit(state.copyWith(userMap: nextMap, version: state.version + 1));
   }
 
-  /**
-   * @description: 批量更新用户信息
-   */
   Future<void> updateContactsByIds(List<String> userIds) async {
     if (userIds.isEmpty) return;
-    try {
-      final users = await _userBusiness.getUsersBasicInfo(userIds);
-      for (var user in users) {
-        updateContact(user.userId, user);
+    final users = await _userBusiness.getUsersBasicInfo(userIds);
+    if (users.isEmpty) return;
+
+    final nextMap = Map<String, UserInfo>.from(state.userMap);
+    var changed = false;
+    for (final user in users) {
+      final existing = nextMap[user.userId];
+      if (existing != user) {
+        nextMap[user.userId] = user;
+        changed = true;
       }
-    } catch (e) {
-      print('ContactStore: 批量更新失败: $e');
+    }
+
+    if (changed) {
+      emit(state.copyWith(userMap: nextMap, version: state.version + 1));
     }
   }
 
-  /// 获取单个用户信息 (Getter 对标)
   UserInfo? getContact(String userId) {
     return state.userMap[userId];
   }

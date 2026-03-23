@@ -64,7 +64,6 @@ class ChatStore extends Cubit<ChatStoreState> {
   }
 
   void _debounceInit() {
-    print('[ChatStore] 触发防抖 init...');
     _initDebounceTimer?.cancel();
     _initDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       init();
@@ -90,8 +89,6 @@ class ChatStore extends Cubit<ChatStoreState> {
 
       if (conversationId.startsWith('group_')) {
         final groupInfo = _groupStore.getGroup(conversationId);
-        print("111111111111");
-        print('[ChatStore] _onStoreUpdate: groupInfo=$groupInfo');
         if (groupInfo != null) {
           if (newConv.avatar != groupInfo.avatar ||
               newConv.nickname != groupInfo.title) {
@@ -127,7 +124,6 @@ class ChatStore extends Cubit<ChatStoreState> {
 
     // 只有在数据真正发生变化时才 emit，避免无限循环
     if (updatedConversations != state.conversations) {
-      print('[ChatStore] 监听到关联 Store 变更，已自动重组会话资料');
       emit(state.copyWith(conversations: updatedConversations));
     }
   }
@@ -135,7 +131,6 @@ class ChatStore extends Cubit<ChatStoreState> {
   Future<void> init() async {
     try {
       final conversations = await _conversationBusiness.getChatList();
-      print('[ChatStore] init: businessConversations=${conversations.length}');
 
       var totalUnread = 0;
       for (final conv in conversations) {

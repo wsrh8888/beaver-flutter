@@ -14,7 +14,6 @@ class FriendVerifySyncModule {
 
   /// 检查并同步
   Future<void> checkAndSync() async {
-    print('[FriendVerifySyncModule] 开始同步好友验证数据');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -31,7 +30,7 @@ class FriendVerifySyncModule {
         IGetSyncFriendVerifiesReq(since: lastSyncTime),
       );
       if (serverResponse.code != 0 || serverResponse.result == null) {
-        print('[FriendVerifySyncModule] 获取好友验证版本失败: ${serverResponse.msg}');
+        // print('[FriendVerifySyncModule] 获取好友验证版本失败: ${serverResponse.msg}');
         return;
       }
 
@@ -71,7 +70,7 @@ class FriendVerifySyncModule {
       _syncStatus = 'COMPLETED';
     } catch (error) {
       _syncStatus = 'FAILED';
-      print('[FriendVerifySyncModule] 好友验证数据同步失败: $error');
+      // print('[FriendVerifySyncModule] 好友验证数据同步失败: $error');
     }
   }
 

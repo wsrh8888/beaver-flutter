@@ -34,6 +34,10 @@ class SendMessageEvent extends DetailEvent {
   const SendMessageEvent();
 }
 
+class ClearNavigationEvent extends DetailEvent {
+  const ClearNavigationEvent();
+}
+
 class AudioCallEvent extends DetailEvent {
   const AudioCallEvent();
 }

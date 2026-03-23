@@ -1,5 +1,6 @@
 import 'package:beaver/api/datasync.dart';
 import 'package:beaver/api/friend.dart';
+import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
@@ -12,7 +13,6 @@ class FriendSyncModule {
 
   /// 检查并同步
   Future<void> checkAndSync() async {
-    print('[FriendSyncModule] 开始同步好友数据');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -29,7 +29,7 @@ class FriendSyncModule {
         IGetSyncFriendsReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        print('[FriendSyncModule] 获取好友版本失败: ${response.msg}');
+        // print('[FriendSyncModule] 获取好友版本失败: ${response.msg}');
         return;
       }
 
@@ -45,6 +45,7 @@ class FriendSyncModule {
       if (needUpdateFriendshipIds.isNotEmpty) {
         // 有需要更新的好友数据
         await _syncFriendData(friendService, needUpdateFriendshipIds);
+        getIt<FriendBusiness>().notifyFriendUpdate(needUpdateFriendshipIds);
 
         // 从变更的数据中找到最大的版本号
         int maxVersion = 0;
@@ -65,7 +66,7 @@ class FriendSyncModule {
       _syncStatus = 'COMPLETED';
     } catch (error) {
       _syncStatus = 'FAILED';
-      print('[FriendSyncModule] 好友数据同步失败: $error');
+      // print('[FriendSyncModule] 好友数据同步失败: $error');
     }
   }
 

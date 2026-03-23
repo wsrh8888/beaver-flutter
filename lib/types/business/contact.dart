@@ -1,4 +1,5 @@
 
+import 'package:equatable/equatable.dart';
 import 'package:beaver/types/business/user.dart';
 
 /// 好友仓库接口
@@ -37,7 +38,7 @@ class FriendRequest {
   });
 }
 
-class ContactModel {
+class ContactModel extends Equatable {
   final String userId;
   final String nickname;
   final String? notice;
@@ -51,6 +52,16 @@ class ContactModel {
     this.avatar,
     this.fileName,
   });
+
+  @override
+  List<Object?> get props => [
+    userId,
+    nickname,
+    notice,
+    avatar,
+    fileName,
+  ];
+
 
   ContactModel copyWith({
     String? userId,

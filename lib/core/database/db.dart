@@ -77,11 +77,7 @@ class AppDatabase extends _$AppDatabase {
       },
       beforeOpen: (details) async {
         if (details.wasCreated) {
-          print('[Database] Database created successfully');
         } else if (details.hadUpgrade) {
-          print(
-            '[Database] Database upgraded from ${details.versionBefore} to ${details.versionNow}',
-          );
         }
       },
     );
@@ -131,8 +127,6 @@ class DatabaseManager {
     final file = File(p.join(userFolder.path, 'database.db'));
     _instance = AppDatabase(_openConnection(file));
     _currentUserId = userId;
-
-    print('[Database] Manager init for user: $userId, path: ${file.path}');
 
     // 同步初始化缓存管理 (UserId 同步)
     await mediaManager.init(userId);

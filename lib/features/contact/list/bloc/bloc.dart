@@ -26,9 +26,12 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
 
     // --- 响应式联动 (Reactive Linkage) ---
     // 监听全局 FriendStore，一旦好友列表组装完成或元数据变更，立即重新分组 UI
-    _friendSubscription = _friendStore.stream.listen((friendState) {
-      add(const LoadContactListEvent());
-    });
+    _friendSubscription = _friendStore.stream
+        .map((state) => state.friends)
+        .distinct() // 只有当好友列表确实发生变化（由于 Equatable，这将按内容对比）时才触发
+        .listen((friends) {
+          add(const LoadContactListEvent());
+        });
   }
 
   @override
@@ -45,38 +48,32 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
     final contacts = _friendStore.state.friends;
     final currentUserId = getIt<UserStore>().state.currentUserId;
 
-    try {
-      final groupedContacts = _contactListRepository.groupContactsByLetter(
-        contacts,
-      );
-      final indexList = _contactListRepository.getIndexList(groupedContacts);
+    final groupedContacts = _contactListRepository.groupContactsByLetter(
+      contacts,
+    );
+    final indexList = _contactListRepository.getIndexList(groupedContacts);
 
-      // 获取未读数
-      int friendCount = 0;
-      int groupCount = 0;
-      if (currentUserId.isNotEmpty) {
-        friendCount = await getIt<FriendBusiness>().getUnreadFriendRequestCount(currentUserId);
-        groupCount = await getIt<GroupBusiness>().getUnreadGroupNotificationCount(currentUserId);
-      }
-
-      emit(
-        state.copyWith(
-          status: ContactListStatus.success,
-          contacts: contacts,
-          groupedContacts: groupedContacts,
-          indexList: indexList,
-          friendRequestCount: friendCount,
-          groupNotificationCount: groupCount,
-        ),
+    // 获取未读数
+    int friendCount = 0;
+    int groupCount = 0;
+    if (currentUserId.isNotEmpty) {
+      friendCount = await getIt<FriendBusiness>().getUnreadFriendRequestCount(
+        currentUserId,
       );
-    } catch (e) {
-      emit(
-        state.copyWith(
-          status: ContactListStatus.error,
-          errorMessage: '处理联系人列表失败: $e',
-        ),
-      );
+      groupCount = await getIt<GroupBusiness>()
+          .getUnreadGroupNotificationCount(currentUserId);
     }
+
+    emit(
+      state.copyWith(
+        status: ContactListStatus.success,
+        contacts: contacts,
+        groupedContacts: groupedContacts,
+        indexList: indexList,
+        friendRequestCount: friendCount,
+        groupNotificationCount: groupCount,
+      ),
+    );
   }
 
   void _onUpdateCurrentIndex(

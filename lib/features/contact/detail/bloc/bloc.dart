@@ -17,6 +17,7 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     on<SaveRemarkNameEvent>(_onSaveRemarkName);
     on<DeleteFriendEvent>(_onDeleteFriend);
     on<SendMessageEvent>(_onSendMessage);
+    on<ClearNavigationEvent>(_onClearNavigation);
     on<AudioCallEvent>(_onAudioCall);
     on<VideoCallEvent>(_onVideoCall);
   }
@@ -117,10 +118,22 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     SendMessageEvent event,
     Emitter<DetailState> emit,
   ) async {
-    // 模拟发送消
     if (state.userInfo?.conversationId != null) {
-      // 导航到聊天页
+      emit(state.copyWith(
+        navigateToChat: true,
+        conversationIdForChat: state.userInfo?.conversationId,
+      ));
     }
+  }
+
+  Future<void> _onClearNavigation(
+    ClearNavigationEvent event,
+    Emitter<DetailState> emit,
+  ) async {
+    emit(state.copyWith(
+      navigateToChat: false,
+      conversationIdForChat: null,
+    ));
   }
 
   Future<void> _onAudioCall(

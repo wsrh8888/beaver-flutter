@@ -6,7 +6,12 @@ abstract class ConversationRepositoryInterface {
   Future<void> deleteChat(String conversationId);
   Future<ChatModel?> getConversation(String conversationId);
   Future<void> syncConversationByVersion(String conversationId, int version);
-  Future<void> syncUserConversationByVersion(String userId, String conversationId, int version);
+  Future<void> syncUserConversationByVersion(
+    String userId,
+    String conversationId,
+    int version,
+  );
+  Future<String?> getConversationIdByPeerId(String peerId);
 }
 
 class ChatModel {

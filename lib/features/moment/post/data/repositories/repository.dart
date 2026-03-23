@@ -1,19 +1,20 @@
-import 'package:beaver/di/injection.dart';
-import 'package:beaver/features/moment/post/data/models/post.dart';
-import 'package:beaver/types/business/moment.dart';
+import 'package:beaver/api/moment.dart';
+import 'package:beaver/types/api/moment.dart';
 
 class PostMomentRepository {
-  final MomentRepositoryInterface _momentRepository;
+  PostMomentRepository();
 
-  PostMomentRepository({MomentRepositoryInterface? momentRepository}) 
-    : _momentRepository = momentRepository ?? getIt<MomentRepositoryInterface>();
-
-  Future<bool> createMoment(PostMomentRequest request) async {
-    return _momentRepository.createMoment(request);
+  Future<bool> createMoment(ICreateMomentReq request) async {
+    final response = await createMomentApi(request);
+    return response.isSuccess;
   }
 
   Future<String> uploadImage(String imagePath) async {
-    return _momentRepository.uploadImage(imagePath);
+    final response = await uploadImageApi(imagePath);
+    if (response.isSuccess && response.result != null) {
+      return response.result!;
+    }
+    return '';
   }
 }
 

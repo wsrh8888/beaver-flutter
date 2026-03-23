@@ -2,19 +2,25 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/contact/detail/data/models/user_info.dart' as detail_model;
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/types/business/user.dart';
+import 'package:beaver/types/business/chat.dart';
 
 class DetailRepository {
   final FriendRepositoryInterface _friendRepository;
   final UserRepositoryInterface _userRepository;
+  final ConversationRepositoryInterface _conversationRepository;
 
   DetailRepository({
     FriendRepositoryInterface? friendRepository,
     UserRepositoryInterface? userRepository,
+    ConversationRepositoryInterface? conversationRepository,
   })  : _friendRepository = friendRepository ?? getIt<FriendRepositoryInterface>(),
-        _userRepository = userRepository ?? getIt<UserRepositoryInterface>();
+        _userRepository = userRepository ?? getIt<UserRepositoryInterface>(),
+        _conversationRepository = conversationRepository ?? getIt<ConversationRepositoryInterface>();
 
   Future<detail_model.UserInfo> getUserInfo(String userId) async {
     final user = await _userRepository.getUserProfile(userId);
+    final conversationId = await _conversationRepository.getConversationIdByPeerId(userId);
+
     if (user != null) {
       return detail_model.UserInfo(
           userId: user.userId,
@@ -30,7 +36,7 @@ class DetailRepository {
           education: '',
           hobbies: '',
           photos: [],
-          conversationId: 'conv_$userId',
+          conversationId: conversationId,
           source: 'search',
         );
     }
@@ -48,7 +54,7 @@ class DetailRepository {
       education: '',
       hobbies: '',
       photos: [],
-      conversationId: 'conv_$userId',
+      conversationId: conversationId,
       source: 'search',
     );
   }

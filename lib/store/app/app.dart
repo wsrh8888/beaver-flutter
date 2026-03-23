@@ -70,11 +70,9 @@ class AppStore extends Cubit<AppStoreState> {
     try {
       getIt<AppDatabase>();
     } catch (e) {
-      print('AppStore: 数据库未就绪，跳过业务初始化 (当前可能处于未登录状态)');
       return;
     }
 
-    print('AppStore: 开始应用一键初始化...');
     emit(state.copyWith(status: AppLifecycleStatus.syncing));
 
     try {
@@ -108,12 +106,10 @@ class AppStore extends Cubit<AppStoreState> {
         callStore.init(),
       ]);
 
-      print('AppStore: 所有全局数据初始化完成');
       emit(
         state.copyWith(status: AppLifecycleStatus.ready, isInitComplete: true),
       );
     } catch (e) {
-      print('AppStore: 应用初始化失败: $e');
       emit(
         state.copyWith(
           status: AppLifecycleStatus.error,

@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 /// 聊天同步状态表 (与 PC tables/chat/sync-status.ts 一致)
 class ChatSyncStatus extends Table {
-  IntColumn get id => integer().autoIncrement()();
   TextColumn get conversationId => text().named('conversation_id')();
   TextColumn get module => text().named('module')();
   IntColumn get seq => integer().named('seq').withDefault(const Constant(0))();
@@ -10,5 +9,6 @@ class ChatSyncStatus extends Table {
   IntColumn get updatedAt => integer().named('updated_at').nullable()();
 
   @override
-  List<String> get customConstraints => ['UNIQUE (conversation_id, module)'];
+  Set<Column> get primaryKey => {conversationId, module};
 }
+

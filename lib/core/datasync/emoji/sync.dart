@@ -7,7 +7,6 @@ import 'package:beaver/types/api/datasync.dart';
 
 class EmojiSync {
   Future<void> checkAndSync() async {
-    print('[EmojiSync] 开始同步表情数据');
     try {
       // 1. 同步表情详情
       await EmojiDetailSync().sync();
@@ -15,7 +14,6 @@ class EmojiSync {
       // 2. 同步收藏与关联数据
       await _syncEmojiCollects();
 
-      print('[EmojiSync] 表情同步完成');
     } catch (e) {
       print('[EmojiSync] 同步过程中发生错误: $e');
     }

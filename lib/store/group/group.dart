@@ -1,13 +1,14 @@
-import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
-import 'package:beaver/di/injection.dart';
+﻿import 'dart:async';
+
 import 'package:beaver/core/business/group/group.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GroupStoreState extends Equatable {
   final Map<String, GroupInfo> groupMap;
-  final int version; // 用于触发响应式更新
+  final int version;
 
   const GroupStoreState({
     this.groupMap = const {},
@@ -31,69 +32,70 @@ class GroupStoreState extends Equatable {
 class GroupStore extends Cubit<GroupStoreState> {
   final GroupBusiness _groupBusiness;
   StreamSubscription? _groupBusinessSubscription;
-  
-  GroupStore({GroupBusiness? groupBusiness}) 
-    : _groupBusiness = groupBusiness ?? getIt<GroupBusiness>(),
-      super(const GroupStoreState()) {
-    // 监听业务层流，实现响应式同步 (对标 PC 的 Main-to-Render 通知)
-    _groupBusinessSubscription = _groupBusiness.groupUpdateStream.listen((groupIds) {
-      updateGroupsByIds(groupIds);
+  Timer? _groupUpdateDebounceTimer;
+  final Set<String> _pendingGroupIds = <String>{};
+
+  GroupStore({GroupBusiness? groupBusiness})
+      : _groupBusiness = groupBusiness ?? getIt<GroupBusiness>(),
+        super(const GroupStoreState()) {
+    _groupBusinessSubscription = _groupBusiness.groupUpdateStream.listen((ids) {
+      _pendingGroupIds.addAll(ids.where((id) => id.trim().isNotEmpty));
+      _groupUpdateDebounceTimer?.cancel();
+      _groupUpdateDebounceTimer = Timer(const Duration(milliseconds: 200), () {
+        final pending = _pendingGroupIds.toList(growable: false);
+        _pendingGroupIds.clear();
+        updateGroupsByIds(pending);
+      });
     });
   }
 
   @override
   Future<void> close() {
     _groupBusinessSubscription?.cancel();
+    _groupUpdateDebounceTimer?.cancel();
     return super.close();
   }
 
   Future<void> init() async {
     try {
       final groups = await _groupBusiness.getGroupList();
-      final Map<String, GroupInfo> newGroupMap = {};
+      final nextMap = <String, GroupInfo>{};
       if (groups != null) {
-        for (var group in groups) {
-          newGroupMap[group.conversationId] = group;
+        for (final group in groups) {
+          nextMap[group.conversationId] = group;
         }
       }
-      emit(state.copyWith(
-        groupMap: newGroupMap,
-        version: state.version + 1,
-      ));
+      emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
     } catch (e) {
-      print('GroupStore: 初始化失败: $e');
+      print('GroupStore: init failed: $e');
     }
   }
 
-  /**
-   * @description: 更新或添加单个群组信息
-   */
-  void updateGroup(String groupId, GroupInfo groupInfo) {
-    final newMap = Map<String, GroupInfo>.from(state.groupMap);
-    newMap[groupId] = groupInfo;
-    emit(state.copyWith(groupMap: newMap, version: state.version + 1));
-    print('GroupStore: 更新群组 $groupId 信息');
-  }
-
-  /**
-   * @description: 批量更新群组信息
-   */
   Future<void> updateGroupsByIds(List<String> groupIds) async {
     if (groupIds.isEmpty) return;
     try {
-      // 从业务层获取最新详细信息
       final groups = await _groupBusiness.getGroupsByIds(groupIds);
-      if (groups != null) {
-        for (var group in groups) {
-          updateGroup(group.conversationId, group);
+      if (groups == null || groups.isEmpty) return;
+
+      final nextMap = Map<String, GroupInfo>.from(state.groupMap);
+      var changed = false;
+      for (final group in groups) {
+        final key = group.conversationId;
+        final existing = nextMap[key];
+        if (existing != group) {
+          nextMap[key] = group;
+          changed = true;
         }
       }
+
+      if (changed) {
+        emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
+      }
     } catch (e) {
-      print('GroupStore: 批量更新失败: $e');
+      print('GroupStore: updateGroupsByIds failed: $e');
     }
   }
 
-  /// 获取单个群组信息 (Getter 对标)
   GroupInfo? getGroup(String groupId) {
     return state.groupMap[groupId];
   }

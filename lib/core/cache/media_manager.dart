@@ -44,13 +44,11 @@ class MediaManager {
     _cacheFile.clear();
     _downloadingFiles.clear();
     _initialized = true;
-    print('[MediaFlow] [MediaManager] init: userId=$userId, root=$_cacheRoot');
   }
 
   /// 确保已初始化 (懒加载保护)
   Future<void> _ensureInitialized() async {
     if (!_initialized || _cacheRoot == null) {
-      print('[MediaFlow] [MediaManager] auto-initializing...');
       await init(_userId);
     }
   }
@@ -64,7 +62,6 @@ class MediaManager {
 
     // 如果已经在下载中，等待之前的 Future
     if (_downloadFutures.containsKey(fileKey)) {
-      print('[MediaFlow] [MediaManager] already downloading, waiting for future: $fileKey');
       return _downloadFutures[fileKey];
     }
 
@@ -80,7 +77,6 @@ class MediaManager {
 
   Future<String?> _doAdd(CacheType type, String fileKey) async {
     final fileUrl = previewOnlineFileApi(fileKey);
-    print('[MediaFlow] [MediaManager] _doAdd start: fileKey=$fileKey, url=$fileUrl');
 
     try {
       final subPath = CachePathConfig.getRelativePath(type, _userId ?? 'public');
@@ -89,7 +85,6 @@ class MediaManager {
 
       final file = File(outputPath);
       if (await file.exists()) {
-        print('[MediaFlow] [MediaManager] file already exists, updating DB index...');
         await _mediaService.batchCreate({
           'mediaList': [
             {
@@ -107,12 +102,9 @@ class MediaManager {
       await Directory(p.dirname(outputPath)).create(recursive: true);
 
       // 下载文件 (这里已经绕过了证书限制)
-      print('[MediaFlow] [MediaManager] dio downloading: $fileUrl -> $outputPath');
       await _dio.download(fileUrl, outputPath);
-      print('[MediaFlow] [MediaManager] download success: $fileKey');
 
       // 保存到数据库
-      print('[MediaFlow] [MediaManager] saving to DB...');
       await _mediaService.batchCreate({
         'mediaList': [
           {
@@ -123,7 +115,6 @@ class MediaManager {
           },
         ],
       });
-      print('[MediaFlow] [MediaManager] DB record created: $fileKey');
 
       return outputPath;
     } catch (e) {
@@ -141,7 +132,6 @@ class MediaManager {
     await _ensureInitialized();
     
     final fileUrl = previewOnlineFileApi(fileKey);
-    print('[MediaFlow] [MediaManager] get start: fileKey=$fileKey');
 
     if (_cacheFile.containsKey(fileKey)) {
       print('[MediaFlow] [MediaManager] memory cache hit: $fileKey');
@@ -149,12 +139,10 @@ class MediaManager {
     }
 
     // 先查数据库
-    print('[MediaFlow] [MediaManager] DB query start: $fileKey');
     final cacheInfo = await _mediaService.getMediaByFileKey({'fileKey': fileKey});
     
     if (cacheInfo != null && cacheInfo['isDeleted'] == 0) {
       final path = cacheInfo['path'] as String;
-      print('[MediaFlow] [MediaManager] DB record found: $path');
       if (await File(path).exists()) {
         _cacheFile[fileKey] = 'file://$path';
         return 'file://$path';
@@ -166,9 +154,7 @@ class MediaManager {
     }
 
     // 没有缓存，异步下载
-    print('[MediaFlow] [MediaManager] fallback to online URL, triggering async download');
     add(type, fileKey).catchError((e) {
-      print('[MediaFlow] [MediaManager] async add error: $e');
     });
 
     return fileUrl;

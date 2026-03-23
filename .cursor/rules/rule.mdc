@@ -242,6 +242,63 @@ lib/di/
 └── injection.dart           # 主入口文件
 ```
 
+### 推送与 UI 一致性规范 (WS / Sync / Store / UI)
+
+为对标企业级 IM，推送链路统一采用以下标准，禁止各模块各自实现不一致逻辑。
+
+#### 1. 单一数据真相
+- **本地数据库是唯一真相源**（Source of Truth）。
+- **WS 推送只表示“有变更”**，不允许 UI 直接消费 WS payload 作为最终展示数据。
+- UI 只能订阅 Store；Store 只能订阅 Business 的 Stream；Business 负责落库与通知。
+
+#### 2. 统一链路（必须）
+1. WS Receiver 解析消息（只做路由与参数提取）
+2. Business 按 `id + version` 拉取增量（必要时调用 API）
+3. Service 落库（insertOrReplace / upsert）
+4. Business 发模块级通知（Stream）
+5. Store 收到通知后重载/重组
+6. UI 被动响应 Store 变化
+
+#### 3. 去重与乱序处理（必须）
+- 业务层必须维护去重键：`module + table + entityId + version`。
+- 同一实体收到 `version <= lastVersion` 必须直接丢弃。
+- WS 允许重复与乱序，业务层必须幂等。
+- 严禁在 Store/UI 层做版本比较与去重。
+
+#### 4. 合并刷新策略（必须）
+- Store 监听 Business Stream 时必须增加防抖窗口（建议 `100~300ms`）。
+- 同一批次多条推送（如 friend_verify + friends）只触发一次重载。
+- 重载优先走“按 ID 局部更新”，无法局部更新时才全量 `init()`。
+
+#### 5. 模块推送边界（必须）
+- `friend_verify` 变更：只更新好友申请、红点计数。
+- `friends` 变更：更新好友关系和好友列表。
+- `users` 变更：只更新资料映射（昵称/头像），由 Store 重组展示。
+- `chat/message/conversation`：按会话维度更新，避免全局刷新。
+- `notification`：按 inbox/read_cursor/event 各自更新，不互相串扰。
+
+#### 6. 首次连接与全量同步
+- `onWsConnect -> autoSync` 期间，MessageManager 必须入队业务消息，待同步完成后按序回放。
+- `autoSync` 每个模块完成落库后，最多发一次模块级“已更新”通知（可携带 changedIds）。
+- 禁止在同步中直接触发 UI 逻辑。
+
+#### 7. Store 设计约束
+- Store 内禁止直接调用 datasync、直接处理 WS payload。
+- Store 只能消费 Business Stream + 读取本地聚合结果。
+- Store 对外状态必须可比较（Equatable），避免无效重绘。
+
+#### 8. DI 约束（必须）
+- 同一个 Business 在 DI 中只能有一个单例实例。
+- `Interface -> Implementation` 必须指向同一实例（`getIt<Impl>()`），禁止重复 `new` 导致通知流分裂。
+
+#### 9. 错误处理与降级
+- 增量拉取失败时不清空 Store 现有数据，仅记录日志并等待下一次推送/同步重试。
+- 禁止因为单条推送失败导致整个模块状态回退到空。
+
+#### 10. 可观测性（建议）
+- 关键日志字段统一：`module`, `table`, `entityId`, `version`, `action(sync/upsert/notify)`, `costMs`。
+- 对“重复推送命中去重”的日志使用 debug 级别，避免污染正常日志。
+
 ### 切记
 - 严格遵循文件命名和路径规范。
 - 保持代码结构清晰，职责分离。

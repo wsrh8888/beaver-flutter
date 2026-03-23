@@ -12,7 +12,6 @@ import 'package:drift/drift.dart';
 class UserConversationSync {
   /// 检查并同步用户会话设置
   Future<void> checkAndSync() async {
-    print('[UserConversationSync] 开始同步用户会话设置');
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) return;
 
@@ -29,7 +28,7 @@ class UserConversationSync {
         IGetSyncChatUserConversationsReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        print('[UserConversationSync] 获取会话设置版本失败: ${response.msg}');
+        // print('[UserConversationSync] 获取会话设置版本失败: ${response.msg}');
         return;
       }
 
@@ -52,7 +51,7 @@ class UserConversationSync {
         response.result!.serverTimestamp,
       );
     } catch (error) {
-      print('[UserConversationSync] 用户会话设置同步失败: $error');
+      // print('[UserConversationSync] 用户会话设置同步失败: $error');
     }
   }
 

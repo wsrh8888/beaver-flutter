@@ -10,6 +10,8 @@ class DetailState {
   final bool showEditNoteDialog;
   final bool showMoreMenu;
   final String? errorMessage;
+  final bool navigateToChat;
+  final String? conversationIdForChat;
 
   const DetailState({
     this.status = DetailStatus.initial,
@@ -19,6 +21,8 @@ class DetailState {
     this.showEditNoteDialog = false,
     this.showMoreMenu = false,
     this.errorMessage,
+    this.navigateToChat = false,
+    this.conversationIdForChat,
   });
 
   DetailState copyWith({
@@ -29,6 +33,8 @@ class DetailState {
     bool? showEditNoteDialog,
     bool? showMoreMenu,
     String? errorMessage,
+    bool? navigateToChat,
+    String? conversationIdForChat,
   }) {
     return DetailState(
       status: status ?? this.status,
@@ -38,6 +44,8 @@ class DetailState {
       showEditNoteDialog: showEditNoteDialog ?? this.showEditNoteDialog,
       showMoreMenu: showMoreMenu ?? this.showMoreMenu,
       errorMessage: errorMessage ?? this.errorMessage,
+      navigateToChat: navigateToChat ?? this.navigateToChat,
+      conversationIdForChat: conversationIdForChat ?? this.conversationIdForChat,
     );
   }
 }

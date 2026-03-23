@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/moment/post/bloc/event.dart';
 import 'package:beaver/features/moment/post/bloc/state.dart';
 import 'package:beaver/features/moment/post/data/repositories/repository.dart';
-import 'package:beaver/features/moment/post/data/models/post.dart';
+import 'package:beaver/types/api/moment.dart';
 
 class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
   final PostMomentRepository _postMomentRepository;
@@ -77,9 +77,9 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     emit(state.copyWith(status: PostMomentStatus.loading));
 
     try {
-      final request = PostMomentRequest(
+      final request = ICreateMomentReq(
         content: state.content,
-        files: state.mediaList.map((url) => PostMomentFile(url)).toList(),
+        files: state.mediaList.map((url) => IMomentFileModel(fileKey: url, type: 2)).toList(), // 2=IMAGE
       );
       await _postMomentRepository.createMoment(request);
       emit(state.copyWith(

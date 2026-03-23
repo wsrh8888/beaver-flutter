@@ -61,9 +61,6 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
           _isLoading = false;
         });
       }
-      print(
-        '[MediaFlow1] [BeaverCachedImage] _resolvedUrl: $key, fileKey: ${widget.fileKey}',
-      );
       return;
     }
 
@@ -78,9 +75,6 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
         _resolvedUrl = path;
         _isLoading = false;
       });
-      print(
-        '[MediaFlow1] [BeaverCachedImage] _resolvedUrl: $path, fileKey: ${widget.fileKey}',
-      );
     }
   }
 

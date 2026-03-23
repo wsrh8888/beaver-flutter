@@ -12,6 +12,4 @@ Future<void> configureDependencies() async {
   
   // 数据同步层
   getIt.registerLazySingleton<DataSyncManager>(() => syncManager);
-
-  print('[DI] 依赖注入配置完成');
 }
