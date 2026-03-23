@@ -36,9 +36,7 @@ class GroupJoinRequestBusiness {
   }
 
   Future<List<GroupNotification>> getGroupNotifications() async {
-    final requests = await (_joinRequestService.db.select(
-      _joinRequestService.db.groupJoinRequests,
-    )).get();
+    final requests = await _joinRequestService.getAllRequests();
     if (requests.isEmpty) return [];
 
     final groupIds = requests.map((r) => r.groupId).toSet().toList();

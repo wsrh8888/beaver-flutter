@@ -3,8 +3,7 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/api/group.dart';
 import 'package:beaver/types/api/group.dart';
-import 'package:beaver/core/database/db.dart';
-import 'package:drift/drift.dart';
+import 'package:beaver/types/business/group.dart';
 
 /// 群成员业务逻辑 (对标 PC business/group/group-member.ts)
 class GroupMemberBusiness {
@@ -24,20 +23,7 @@ class GroupMemberBusiness {
       if (response.code == 0 &&
           response.result != null &&
           response.result!.groupMembers.isNotEmpty) {
-        final companions = response.result!.groupMembers
-            .map(
-              (member) => GroupMembersCompanion(
-                groupId: Value(member.groupId),
-                userId: Value(member.userId),
-                role: Value(member.role),
-                status: Value(member.status),
-                joinTime: Value(member.joinTime ~/ 1000),
-                version: Value(member.version),
-              ),
-            )
-            .toList();
-
-        await _groupMemberService.batchCreate(companions);
+        await _groupMemberService.batchCreateFromApi(response.result!.groupMembers);
         print(
           '[GroupMemberBusiness] 群成员同步成功: count=${response.result!.groupMembers.length}',
         );
@@ -56,6 +42,14 @@ class GroupMemberBusiness {
   }
 
   Future<List<GroupMember>> getGroupMembers(String groupId) async {
-    return await _groupMemberService.getGroupMembers(groupId);
+    final dbMembers = await _groupMemberService.getGroupMembers(groupId);
+    return dbMembers.map((dbMember) => GroupMember(
+      groupId: dbMember.groupId,
+      userId: dbMember.userId,
+      role: dbMember.role,
+      status: dbMember.status,
+      joinTime: dbMember.joinTime ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      version: dbMember.version,
+    )).toList();
   }
 }

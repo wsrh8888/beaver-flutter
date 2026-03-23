@@ -177,25 +177,33 @@ class BaseResponse<T> {
 1.  **UI 层 (features/)**:
     *   职责：页面渲染与交互。
     *   状态管理：使用 BLoC 处理局部 UI 逻辑，或监听全局 Store。
-    *   限制：禁止直接调用 `AppDatabase`、`api` 或 `datasync`。**必须通过 `business` 层或 `store` 层获取数据。**
+    *   限制：禁止直接调用 `AppDatabase`、`datasync`
+    *   允许：允许直接调用 `api`、`store`、`business`
 
 2.  **全局 Store 层 (store/)**:
-    *   职责：充当响应式数据枢纽，对标 Pinia。存储 User、Contact、Chat 等全局共享状态。
-    *   **同步逻辑**：通过监听 `Business` 层的 `Stream` 实现全应用实时同步。
+    *   职责：负责存储和管理全局状态，如用户信息、好友列表、聊天记录等。
+    *   限制：禁止直接调用 `AppDatabase`、 `datasync`
+    *   允许：允许直接调用 `api`、`store`、`business`
 
 3.  **业务门面层 (core/business/)**:
     *   职责：作为 UI/Store 的唯一入口。聚合多个 `services` 和 `datasync` 逻辑。
     *   功能：负责读写分离、缓存优先策略、离线发送逻辑等。
-    *   **依赖**：依赖 `core/database/services`、`core/datasync` 和 `api`。
+    *   限制：禁止直接调用 `AppDatabase`、`datasync`，禁止直接执行 SQL 查询
+    *   允许：允许调用 `services`、`datasync`（通过业务层触发）
 
-4.  **持久化层 (core/database/services/)**:
+4.  **消息层 (core/message/)**:
+    *   职责：负责消息的解析、组装、加密解密、消息类型处理等。
+    *   限制：禁止直接调用 `AppDatabase`、`datasync`
+    *   允许：允许调用 `services`、`business`
+
+5.  **持久化层 (core/database/services/)**:
     *   职责：底层的 CRUD 操作。
-    *   **限制**：仅由 `business` 或 `datasync` 调用。
+    *   限制：仅由 `business` 或 `datasync` 调用。
 
-5.  **数据同步层 (core/datasync/)**:
+6.  **数据同步层 (core/datasync/)**:
     *   职责：负责与后端进行数据版本比对、增量拉取。
-    *   **限制**：仅由 `business` 层触发增量同步。
-
+    *   限制：仅由 `business` 层触发增量同步。
+。
 ### 数据流说明
 
 #### 1. 读操作 (Read Flow)
@@ -233,30 +241,6 @@ lib/di/
 ├── modules.dart             # 模块注册
 └── injection.dart           # 主入口文件
 ```
-
-#### 注册规则
-- **核心层**：网络、数据库、服务等基础设施使用 `registerLazySingleton` 注册
-- **业务层**：Business类和接口使用 `registerLazySingleton` 注册
-- **懒加载机制**：所有注册都使用懒加载，只有在第一次被请求时才初始化
-
-#### 需要注册的组件
-1. **网络层**：`HttpClient`、`WsConnectionManager`
-2. **数据库层**：`AppDatabase`
-3. **服务层**：所有 `Service` 类（如 `UserService`、`FriendService` 等）
-4. **业务层**：所有 `Business` 类（如 `UserBusiness`、`FriendBusiness` 等）
-5. **接口实现**：业务接口与实现的绑定（如 `UserRepositoryInterface` → `UserBusiness`）
-
-#### 不需要注册的组件
-1. **页面Widget**：纯展示性组件
-2. **BLoC**：由页面创建或通过 `BlocProvider` 提供
-3. **Repository**：由BLoC创建或通过构造函数注入
-4. **数据模型**：纯数据类
-5. **工具类**：无状态工具函数
-
-#### 性能优化
-- 使用懒加载避免启动时的性能问题
-- 服务只在需要时初始化，不会占用额外内存
-- 避免循环依赖，确保依赖关系清晰
 
 ### 切记
 - 严格遵循文件命名和路径规范。

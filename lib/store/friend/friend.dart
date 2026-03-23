@@ -9,25 +9,21 @@ import 'package:beaver/types/business/contact.dart';
 // 好友列表存储状态
 class FriendStoreState extends Equatable {
   final List<ContactModel> friends;
-  final List<dynamic> friendRequests;
 
   const FriendStoreState({
     this.friends = const [],
-    this.friendRequests = const [],
   });
 
   FriendStoreState copyWith({
     List<ContactModel>? friends,
-    List<dynamic>? friendRequests,
   }) {
     return FriendStoreState(
       friends: friends ?? this.friends,
-      friendRequests: friendRequests ?? this.friendRequests,
     );
   }
 
   @override
-  List<Object?> get props => [friends, friendRequests];
+  List<Object?> get props => [friends];
 }
 
 class FriendStore extends Cubit<FriendStoreState> {

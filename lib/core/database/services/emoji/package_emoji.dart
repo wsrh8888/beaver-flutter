@@ -18,4 +18,17 @@ class EmojiPackageEmojiService {
       ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
     return await query.get();
   }
+
+  Future<List<Emoji>> getEmojisByPackageId(String packageId) async {
+    final query = _db.select(_db.emojis).join([
+      innerJoin(
+        _db.emojiPackageEmojiTable,
+        _db.emojiPackageEmojiTable.emojiId.equalsExp(_db.emojis.emojiId),
+      ),
+    ]);
+    query.where(_db.emojiPackageEmojiTable.packageId.equals(packageId));
+    
+    final rows = await query.get();
+    return rows.map((row) => row.readTable(_db.emojis)).toList();
+  }
 }

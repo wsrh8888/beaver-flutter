@@ -38,4 +38,9 @@ class GroupJoinRequestService extends BaseService {
     final result = await query.map((row) => row.read<int>(db.groupJoinRequests.id.count())).getSingle();
     return result ?? 0;
   }
+
+  /// 获取所有入群申请
+  Future<List<GroupJoinRequest>> getAllRequests() async {
+    return await db.select(db.groupJoinRequests).get();
+  }
 }

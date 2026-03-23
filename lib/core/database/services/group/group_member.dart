@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/types/api/group.dart';
 
 class GroupMemberService extends BaseService {
   GroupMemberService(super.db);
@@ -28,6 +29,26 @@ class GroupMemberService extends BaseService {
         );
       }
     });
+  }
+
+  /// 批量创建群成员（从API数据创建）
+  Future<void> batchCreateFromApi(List<IGroupMemberSyncItem> members) async {
+    if (members.isEmpty) {
+      return;
+    }
+
+    final companions = members.map(
+      (member) => GroupMembersCompanion(
+        groupId: Value(member.groupId),
+        userId: Value(member.userId),
+        role: Value(member.role),
+        status: Value(member.status),
+        joinTime: Value(member.joinTime ~/ 1000),
+        version: Value(member.version),
+      ),
+    ).toList();
+
+    await batchCreate(companions);
   }
 
   /// 获取群成员列表（纯数据库查询，不含业务逻辑）

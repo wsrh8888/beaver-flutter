@@ -21,4 +21,10 @@ class EmojiPackageService {
   Future<List<EmojiPackageTableData>> getAll() async {
     return await _db.select(_db.emojiPackageTable).get();
   }
+
+  Future<List<EmojiPackageTableData>> getPackages({int page = 1, int size = 200}) async {
+    final query = _db.select(_db.emojiPackageTable)
+      ..limit(size, offset: (page - 1) * size);
+    return await query.get();
+  }
 }

@@ -21,4 +21,11 @@ class EmojiCollectService {
   Future<List<EmojiCollectTableData>> getAll() async {
     return await _db.select(_db.emojiCollectTable).get();
   }
+
+  Future<List<EmojiCollectTableData>> getUserCollects({int page = 1, int size = 500}) async {
+    final query = _db.select(_db.emojiCollectTable)
+      ..where((t) => t.isDeleted.equals(0))
+      ..limit(size, offset: (page - 1) * size);
+    return await query.get();
+  }
 }

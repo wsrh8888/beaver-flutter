@@ -68,4 +68,23 @@ class GroupNotification {
     required this.status,
     required this.createdAt,
   });
+}
+
+/// 群成员业务模型
+class GroupMember {
+  final String groupId;
+  final String userId;
+  final int role;
+  final int status;
+  final int joinTime;
+  final int version;
+
+  const GroupMember({
+    required this.groupId,
+    required this.userId,
+    required this.role,
+    required this.status,
+    required this.joinTime,
+    required this.version,
+  });
 }
