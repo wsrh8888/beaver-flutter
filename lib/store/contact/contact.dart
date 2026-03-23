@@ -1,0 +1,125 @@
+import 'dart:async';
+
+import 'package:beaver/core/business/user/user.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/types/business/user.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class ContactStoreState extends Equatable {
+  final Map<String, UserInfo> userMap;
+  final int version;
+
+  const ContactStoreState({this.userMap = const {}, this.version = 0});
+
+  ContactStoreState copyWith({Map<String, UserInfo>? userMap, int? version}) {
+    return ContactStoreState(
+      userMap: userMap ?? this.userMap,
+      version: version ?? this.version,
+    );
+  }
+
+  @override
+  List<Object?> get props => [userMap, version];
+}
+
+class ContactStore extends Cubit<ContactStoreState> {
+  final UserBusiness _userBusiness;
+  StreamSubscription? _userBusinessSubscription;
+  Timer? _userUpdateDebounceTimer;
+  final Set<String> _pendingUserIds = <String>{};
+
+  ContactStore({UserBusiness? userBusiness})
+    : _userBusiness = userBusiness ?? getIt<UserBusiness>(),
+      super(const ContactStoreState()) {
+    _userBusinessSubscription = _userBusiness.userUpdateStream.listen((
+      userIds,
+    ) {
+      _pendingUserIds.addAll(userIds.where((id) => id.trim().isNotEmpty));
+      _userUpdateDebounceTimer?.cancel();
+      _userUpdateDebounceTimer = Timer(const Duration(milliseconds: 200), () {
+        final ids = _pendingUserIds.toList(growable: false);
+        _pendingUserIds.clear();
+        updateContactsByIds(ids);
+      });
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _userBusinessSubscription?.cancel();
+    _userUpdateDebounceTimer?.cancel();
+    return super.close();
+  }
+
+  Future<void> init() async {
+    final users = await _userBusiness.getAllUsers();
+    final nextMap = <String, UserInfo>{};
+    for (final user in users) {
+      nextMap[user.userId] = user;
+    }
+    emit(state.copyWith(userMap: nextMap, version: state.version + 1));
+  }
+
+  void updateContact(
+    String userId,
+    UserInfo contactInfo, {
+    bool force = false,
+  }) {
+    final existing = state.userMap[userId];
+
+    if (existing != null) {
+      final merged = UserInfo(
+        userId: userId,
+        nickname: contactInfo.nickname.isNotEmpty
+            ? contactInfo.nickname
+            : existing.nickname,
+        avatar: (contactInfo.avatar?.isNotEmpty ?? false)
+            ? contactInfo.avatar
+            : existing.avatar,
+        abstract: (contactInfo.abstract?.isNotEmpty ?? false)
+            ? contactInfo.abstract
+            : existing.abstract,
+        email: (contactInfo.email?.isNotEmpty ?? false)
+            ? contactInfo.email
+            : existing.email,
+        gender: contactInfo.gender != 0 ? contactInfo.gender : existing.gender,
+      );
+
+      if (merged != existing || force) {
+        final nextMap = Map<String, UserInfo>.from(state.userMap);
+        nextMap[userId] = merged;
+        emit(state.copyWith(userMap: nextMap, version: state.version + 1));
+      }
+      return;
+    }
+
+    final nextMap = Map<String, UserInfo>.from(state.userMap);
+    nextMap[userId] = contactInfo;
+    emit(state.copyWith(userMap: nextMap, version: state.version + 1));
+  }
+
+  Future<void> updateContactsByIds(List<String> userIds) async {
+    if (userIds.isEmpty) return;
+    final users = await _userBusiness.getUsersBasicInfo(userIds);
+    if (users.isEmpty) return;
+
+    final nextMap = Map<String, UserInfo>.from(state.userMap);
+    var changed = false;
+    for (final user in users) {
+      final existing = nextMap[user.userId];
+      if (existing != user) {
+        nextMap[user.userId] = user;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      emit(state.copyWith(userMap: nextMap, version: state.version + 1));
+    }
+  }
+
+  UserInfo? getContact(String userId) {
+    return state.userMap[userId];
+  }
+}

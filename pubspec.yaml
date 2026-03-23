@@ -1,0 +1,98 @@
+name: beaver
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+# 应用运行必需（打包进 release）
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 状态与路由
+  flutter_bloc: ^9.1.1
+  go_router: ^17.1.0
+
+  # 网络与实时通信
+  dio: ^5.9.2
+  web_socket_channel: ^3.0.3
+  livekit_client: ^2.6.5
+  crypto: ^3.0.6
+
+  # 本地数据与路径
+  drift: ^2.32.0
+  sqlite3: ^3.1.7
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.4
+  drift_db_viewer: ^2.1.0
+
+
+  # 依赖注入与模型
+  get_it: ^9.2.1
+  equatable: ^2.0.8
+  uuid: ^4.5.3
+
+  # 国际化与格式化
+  intl: ^0.20.2
+
+  # 设备与权限
+  device_info_plus: ^12.3.0
+  permission_handler: ^12.0.1
+
+  # UI 组件与资源
+  flutter_screenutil: ^5.9.3
+  flutter_svg: ^2.0.10+1
+  shimmer: ^3.0.0
+  cached_network_image: ^3.4.1
+
+  # 缓存（与 cached_network_image / 业务缓存配合）
+  flutter_cache_manager: ^3.4.1
+
+  # 系统能力
+  url_launcher: ^6.3.1
+  qr_flutter: ^4.1.0
+  image_gallery_saver_plus: ^4.0.1
+  video_player: ^2.11.1
+  flutter_slidable: ^3.1.2
+
+# 仅开发/构建时使用，不进入 release 产物逻辑依赖
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # Drift 代码生成
+  build_runner: ^2.13.0
+  drift_dev: ^2.32.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/images/common/
+    - assets/images/chat/
+    - assets/images/detail/
+    - assets/images/friend/
+    - assets/images/group/
+    - assets/images/home/
+    - assets/images/login/
+    - assets/images/mine/
+    - assets/images/moment/
+    - assets/images/setting/
+    - assets/images/update/
+    - assets/images/emoji/
+    - assets/icons/
+    - assets/icons/common/
+    - assets/icons/new-friend/
+    - assets/icons/group/
+    - assets/icons/detail/
+    - assets/icons/chat/
+    - assets/icons/logo/
+    - assets/icons/tabbar/
+    - assets/icons/friend/
