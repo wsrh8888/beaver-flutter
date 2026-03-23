@@ -49,8 +49,9 @@
 | Project | Repository | Description |
 |---------|------------|-------------|
 | **beaver-server** | [GitHub](https://github.com/wsrh8888/beaver-server) / [Gitee](https://gitee.com/dawwdadfrf/beaver-server) | Backend Service |
-| **beaver-mobile** | [GitHub](https://github.com/wsrh8888/beaver-mobile) / [Gitee](https://gitee.com/dawwdadfrf/beaver-mobile) | Mobile App |
+| **beaver-flutter** | [GitHub](https://github.com/wsrh8888/beaver-flutter) | Mobile App (Flutter - Recommended) |
 | **beaver-desktop** | [GitHub](https://github.com/wsrh8888/beaver-desktop) / [Gitee](https://gitee.com/dawwdadfrf/beaver-desktop) | Desktop App |
+| **beaver-mobile** | [GitHub](https://github.com/wsrh8888/beaver-mobile) | Mobile App (Uniapp - Deprecated) |
 
 ## 📚 Documentation & Help
 
