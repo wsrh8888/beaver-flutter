@@ -5,7 +5,7 @@ import 'package:beaver/features/calls/history/bloc/bloc.dart';
 import 'package:beaver/features/calls/history/bloc/event.dart';
 import 'package:beaver/features/calls/history/bloc/state.dart';
 
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';

@@ -5,21 +5,22 @@ import 'package:beaver/features/calls/incoming/bloc/bloc.dart';
 import 'package:beaver/features/calls/incoming/bloc/event.dart';
 import 'package:beaver/features/calls/incoming/bloc/state.dart';
 import 'package:beaver/features/calls/incoming/data/repositories/repository.dart';
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/features/calls/call/call_page.dart';
+import 'package:beaver/types/call.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
-class CallIncomingPage extends StatefulWidget {
+class CallInvitationPage extends StatefulWidget {
   final String conversationId;
 
-  const CallIncomingPage({super.key, required this.conversationId});
+  const CallInvitationPage({super.key, required this.conversationId});
 
   @override
-  State<CallIncomingPage> createState() => _CallIncomingPageState();
+  State<CallInvitationPage> createState() => _CallInvitationPageState();
 }
 
-class _CallIncomingPageState extends State<CallIncomingPage> {
+class _CallInvitationPageState extends State<CallInvitationPage> {
   late CallIncomingBloc _callIncomingBloc;
   int _countdown = 30;
   bool _isCountdownRunning = true;
@@ -41,9 +42,11 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
   void _startCountdown() {
     Future.delayed(const Duration(seconds: 1), () {
       if (_isCountdownRunning && _countdown > 0) {
-        setState(() {
-          _countdown--;
-        });
+        if (mounted) {
+          setState(() {
+            _countdown--;
+          });
+        }
         _startCountdown();
       } else if (_countdown == 0) {
         _handleReject();
@@ -83,6 +86,9 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
           }
         },
         builder: (context, state) {
+          final isIncoming = state.callInfo?.isIncoming ?? true;
+          final callInfo = state.callInfo;
+
           return BeaverLayout(
             showHeader: false,
             showBackground: false,
@@ -90,20 +96,24 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
             child: Container(
               width: double.infinity,
               height: double.infinity,
-              color: Colors.black,
+              color: const Color(0xFF1C1C1E),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 通话类型
-                  if (state.callInfo?.callType == CallType.video)
-                    const Icon(Icons.video_call, size: 48, color: Colors.white)
-                  else
-                    const Icon(Icons.call, size: 48, color: Colors.white),
-                  SizedBox(height: 32.w),
+                   // 通话提示
+                  Text(
+                    isIncoming ? '邀请你进行视频通话' : '正在申请通话...',
+                    style: TextStyle(
+                      fontSize: 16.w, 
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 48.w),
 
-                  // 来电者头像
+                  // 头像
                   BeaverCachedImage(
-                    fileKey: state.callInfo?.callerAvatar,
+                    fileKey: callInfo?.callerAvatar,
                     type: CacheType.avatar,
                     width: 120.w,
                     height: 120.w,
@@ -111,11 +121,11 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                   ),
                   SizedBox(height: 24.w),
 
-                  // 来电者姓名
+                  // 姓名
                   Text(
-                    state.callInfo?.callerName ?? '未知来电',
+                    callInfo?.callerName ?? '未知用户',
                     style: TextStyle(
-                      fontSize: 28.w,
+                      fontSize: 32.w,
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
@@ -125,11 +135,11 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                   // 通话状态
                   Text(
                     state.status == CallStatus.ringing
-                        ? '正在呼叫...'
+                        ? (isIncoming ? '等待接通...' : '正在呼叫对方...')
                         : state.status == CallStatus.loading
                         ? '处理中...'
                         : '',
-                    style: TextStyle(fontSize: 16.w, color: Colors.white70),
+                    style: TextStyle(fontSize: 16.w, color: Colors.white54),
                   ),
                   SizedBox(height: 8.w),
 
@@ -137,53 +147,39 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
                   if (state.status == CallStatus.ringing)
                     Text(
                       '${_countdown}s',
-                      style: TextStyle(fontSize: 14.w, color: Colors.white54),
+                      style: TextStyle(fontSize: 14.w, color: Colors.white38),
                     ),
-                  SizedBox(height: 120.w),
+                  
+                  const Spacer(),
 
                   // 控制按钮
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // 拒绝按钮
-                      GestureDetector(
-                        onTap: _handleReject,
-                        child: Container(
-                          width: 80.w,
-                          height: 80.w,
-                          margin: EdgeInsets.only(right: 60.w),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(40.w),
-                          ),
-                          child: Icon(
-                            Icons.call_end,
-                            size: 32.w,
-                            color: Colors.white,
-                          ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 80.w),
+                    child: isIncoming 
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildActionButton(
+                              onTap: _handleReject,
+                              icon: Icons.call_end,
+                              label: '拒绝',
+                              color: Colors.redAccent,
+                            ),
+                            _buildActionButton(
+                              onTap: _handleAccept,
+                              icon: callInfo?.callType == CallType.video 
+                                ? Icons.videocam : Icons.call,
+                              label: '接听',
+                              color: Colors.greenAccent[400]!,
+                            ),
+                          ],
+                        )
+                      : _buildActionButton(
+                          onTap: _handleReject,
+                          icon: Icons.call_end,
+                          label: '取消',
+                          color: Colors.redAccent,
                         ),
-                      ),
-
-                      // 接听按钮
-                      GestureDetector(
-                        onTap: _handleAccept,
-                        child: Container(
-                          width: 80.w,
-                          height: 80.w,
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(40.w),
-                          ),
-                          child: Icon(
-                            state.callInfo?.callType == CallType.video
-                                ? Icons.video_call
-                                : Icons.call,
-                            size: 32.w,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -193,23 +189,41 @@ class _CallIncomingPageState extends State<CallIncomingPage> {
       ),
     );
   }
-}
 
-// 通话中页面（临时引用，实际应该在call_page.dart中实现）
-class CallPage extends StatelessWidget {
-  final String conversationId;
-  final String roomToken;
-  final String liveKitUrl;
-
-  const CallPage({
-    super.key,
-    required this.conversationId,
-    required this.roomToken,
-    required this.liveKitUrl,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('通话中页面')));
+  Widget _buildActionButton({
+    required VoidCallback onTap,
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 72.w,
+            height: 72.w,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: Icon(icon, size: 32.w, color: Colors.white),
+          ),
+        ),
+        SizedBox(height: 12.w),
+        Text(
+          label,
+          style: TextStyle(fontSize: 14.w, color: Colors.white),
+        ),
+      ],
+    );
   }
 }

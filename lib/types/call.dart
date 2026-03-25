@@ -1,4 +1,29 @@
 import 'package:equatable/equatable.dart';
+import 'package:livekit_client/livekit_client.dart';
+
+// 通话状态
+enum CallStatus {
+  initial,
+  loading,
+  calling,
+  ringing,
+  connected,
+  ended,
+  error,
+}
+
+// 通话参与者状态
+enum CallParticipantStatus {
+  joined,
+  left,
+  pending,
+}
+
+// 通话类型
+enum CallType {
+  audio,
+  video,
+}
 
 // 通话信息模型
 class CallInfo extends Equatable {
@@ -70,21 +95,66 @@ class CallInfo extends Equatable {
   }
 }
 
-// 通话类型
-enum CallType {
-  audio,
-  video,
-}
+// 通话参与者模型
+class CallParticipant extends Equatable {
+  final String userId;
+  final String name;
+  final bool isMuted;
+  final bool isCameraOff;
+  final CallParticipantStatus status;
+  final String? avatarUrl;
+  final VideoTrack? videoTrack;
+  final AudioTrack? audioTrack;
+  final String? sid;
 
-// 通话状态
-enum CallStatus {
-  initial,
-  loading,
-  calling,
-  ringing,
-  connected,
-  ended,
-  error,
+  const CallParticipant({
+    required this.userId,
+    required this.name,
+    this.isMuted = false,
+    this.isCameraOff = false,
+    this.status = CallParticipantStatus.pending,
+    this.avatarUrl,
+    this.videoTrack,
+    this.audioTrack,
+    this.sid,
+  });
+
+  @override
+  List<Object?> get props => [
+    userId,
+    name,
+    isMuted,
+    isCameraOff,
+    status,
+    avatarUrl,
+    videoTrack,
+    audioTrack,
+    sid,
+  ];
+
+  CallParticipant copyWith({
+    String? userId,
+    String? name,
+    bool? isMuted,
+    bool? isCameraOff,
+    CallParticipantStatus? status,
+    String? avatarUrl,
+    VideoTrack? videoTrack,
+    AudioTrack? audioTrack,
+    String? sid,
+  }) {
+    return CallParticipant(
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      isMuted: isMuted ?? this.isMuted,
+      isCameraOff: isCameraOff ?? this.isCameraOff,
+      status: status ?? this.status,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      videoTrack: videoTrack ?? this.videoTrack,
+      audioTrack: audioTrack ?? this.audioTrack,
+      sid: sid ?? this.sid,
+    );
+  }
 }
 
 // 通话历史记录模型

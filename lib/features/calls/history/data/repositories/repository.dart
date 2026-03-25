@@ -1,6 +1,6 @@
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/call.dart';
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 
 class CallHistoryRepository {
   final CallRepositoryInterface _callRepository;

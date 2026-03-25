@@ -1,4 +1,4 @@
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 
 class CallIncomingRepository {
   Future<CallInfo> getCallInfo(String conversationId) async {
