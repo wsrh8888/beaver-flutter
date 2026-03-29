@@ -45,7 +45,7 @@ class BeaverToast {
       },
     );
 
-    overlay?.insert(entry);
+    overlay.insert(entry);
 
     Future.delayed(duration, () {
       entry.remove();
@@ -61,7 +61,6 @@ class BeaverToast {
       case ToastType.warning:
         return Colors.yellow;
       case ToastType.info:
-      default:
         return Colors.grey;
     }
   }

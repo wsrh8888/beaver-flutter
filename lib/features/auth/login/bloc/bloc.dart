@@ -26,8 +26,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         // 重要：登录成功后，必须立即初始化数据库和 AppStore
         await appStore.initUserDatabase(response.result!.userId);
 
+        // 同步连接 WebSocket
+        getIt<WsConnectionManager>().connectWithToken(response.result!.token);
+
         // 触发 AppStore 初始化全局数据 (对标 desktop.initApp)
-        await getIt<AppStore>().initApp();
+        await appStore.initApp();
 
         emit(state.copyWith(status: LoginStatus.success));
       } else {

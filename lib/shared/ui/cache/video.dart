@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:beaver/types/cache.dart';
-import 'package:beaver/core/business/index.dart';
-import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 
 /// 业务层缓存视频组件 (对标 BeaverVideo.vue)

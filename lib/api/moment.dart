@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/moment.dart';
 
@@ -81,11 +80,3 @@ Future<BaseResponse<IGetMomentLikesRes>> getMomentLikesApi(IGetMomentLikesReq da
   );
 }
 
-/// 上传图片
-Future<BaseResponse<String>> uploadImageApi(String imagePath) async {
-  const url = '/api/common/upload';
-  final formData = FormData.fromMap({
-    'file': await MultipartFile.fromFile(imagePath),
-  });
-  return httpClient.post<String>(url, data: formData);
-}

@@ -66,5 +66,13 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>我们需要使用您的相机进行拍摄和视频通话</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>我们需要使用您的麦克风进行录像和通话</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>我们需要访问您的相册以发送图片和视频</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>我们需要将拍摄的照片保存到您的相册</string>
 </dict>
 </plist>
