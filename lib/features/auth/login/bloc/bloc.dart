@@ -23,16 +23,20 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final response = await authRepository.login(event.email, event.password);
       if (response.code == 0 && response.result != null) {
         final appStore = getIt<AppStore>();
-        // 重要：登录成功后，必须立即初始化数据库和 AppStore
+        // 重要：登录成功后，必须立即初始化数据库，以便首页能读取到本地数据
         await appStore.initUserDatabase(response.result!.userId);
 
-        // 同步连接 WebSocket
-        getIt<WsConnectionManager>().connectWithToken(response.result!.token);
-
-        // 触发 AppStore 初始化全局数据 (对标 desktop.initApp)
-        await appStore.initApp();
-
+        // 1. 先跳转到首页 (通过 emit success 状态)
         emit(state.copyWith(status: LoginStatus.success));
+
+        // 2. 异步连接 WebSocket (不再阻塞 UI 跳转)
+        // 使用 Future.microtask 或直接调用，因为它已经是一个异步过程的开始
+        Future.microtask(() {
+          getIt<WsConnectionManager>().connectWithToken(response.result!.token);
+        });
+
+        // 3. 用户认为 AppStore.initApp 不需要在此调用 (对标 desktop.initApp)
+        // await appStore.initApp();
       } else {
         emit(
           state.copyWith(

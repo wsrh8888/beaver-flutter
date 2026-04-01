@@ -14,6 +14,7 @@ import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/core/datasync/emoji/sync.dart';
+import 'package:beaver/core/datasync/manager.dart' show syncManager;
 
 enum AppLifecycleStatus { connecting, syncing, ready, error }
 
@@ -45,7 +46,27 @@ class AppStoreState extends Equatable {
 }
 
 class AppStore extends Cubit<AppStoreState> {
-  AppStore() : super(const AppStoreState());
+  StreamSubscription? _syncSubscription;
+
+  AppStore() : super(const AppStoreState()) {
+    // 监听同步管理器的状态
+    _syncSubscription = syncManager.statusStream.listen((status) {
+      if (status == 'ready') {
+        // 全量同步完成，触发 AppStore 重新加载业务数据到内存
+        initApp();
+      } else if (status == 'syncing') {
+        updateStatus(AppLifecycleStatus.syncing);
+      } else if (status == 'error') {
+        updateStatus(AppLifecycleStatus.error);
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _syncSubscription?.cancel();
+    return super.close();
+  }
 
   /// Get the current local database instance (for debug tools like DriftDbViewer)
   AppDatabase get localDatabase => DatabaseManager.instance;
