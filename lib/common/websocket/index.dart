@@ -118,4 +118,22 @@ class WsClient {
     _reconnectTimer?.cancel();
     _channel?.sink.close();
   }
+
+  /// 唤醒时检查连接并重新激活
+  void resume() {
+    if (_channel == null) {
+      connect();
+    } else {
+      // 尝试发送立即心跳，如果连接已断开但系统还未上报，报错会触发重连逻辑
+      try {
+        send({
+          'command': 'HEARTBEAT',
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+          'action': 'RESUME'
+        });
+      } catch (_) {
+        _onDisconnected();
+      }
+    }
+  }
 }
