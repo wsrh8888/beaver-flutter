@@ -96,6 +96,5 @@ flutter:
     - assets/icons/group/
     - assets/icons/detail/
     - assets/icons/chat/
-    - assets/icons/logo/
     - assets/icons/tabbar/
     - assets/icons/friend/

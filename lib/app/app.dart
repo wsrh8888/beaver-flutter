@@ -49,7 +49,7 @@ class BeaverApp extends StatelessWidget {
             BlocProvider<CallStore>(create: (_) => getIt<CallStore>()),
           ],
           child: MaterialApp.router(
-            title: 'Beaver IM',
+            title: '海狸',
             debugShowCheckedModeBanner: false,
             routerConfig: appRouter,
             theme: ThemeData(

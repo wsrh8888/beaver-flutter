@@ -34,9 +34,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         Future.microtask(() {
           getIt<WsConnectionManager>().connectWithToken(response.result!.token);
         });
-
-        // 3. 用户认为 AppStore.initApp 不需要在此调用 (对标 desktop.initApp)
-        // await appStore.initApp();
       } else {
         emit(
           state.copyWith(
