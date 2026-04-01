@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:beaver/core/datasync/index.dart';
 
 /// 数据同步管理器
@@ -10,6 +11,9 @@ class DataSyncManager {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
 
+  final _statusController = StreamController<String>.broadcast();
+  Stream<String> get statusStream => _statusController.stream;
+
   /// 获取当前同步状态
   String getStatus() {
     return _isSyncing ? 'syncing' : 'idle';
@@ -19,7 +23,7 @@ class DataSyncManager {
   Future<void> autoSync() async {
     try {
       _isSyncing = true;
-      // TODO: 发送状态变更通知
+      _statusController.add('syncing');
 
       // 1. 同步用户资料
       await userDatasync.checkAndSync();
@@ -35,10 +39,10 @@ class DataSyncManager {
       await notificationSync.checkAndSync();
 
       _isSyncing = false;
-      // TODO: 发送状态变更通知 (ready)
+      _statusController.add('ready');
     } catch (e) {
       _isSyncing = false;
-      // TODO: 发送状态变更通知 (sync_error)
+      _statusController.add('error');
     }
   }
 }

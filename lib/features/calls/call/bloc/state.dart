@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:beaver/features/calls/core/call_manager.dart';
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 
 class CallPageState extends Equatable {
   final CallStatus status;

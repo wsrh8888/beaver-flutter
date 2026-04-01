@@ -1,4 +1,4 @@
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 
 /// 通话仓库接口
 abstract class CallRepositoryInterface {

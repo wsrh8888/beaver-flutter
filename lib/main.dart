@@ -1,8 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:beaver/app/app.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/app/app.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:beaver/common/config/config.dart';
 
@@ -26,6 +27,8 @@ void main() async {
     if (token != null && token.isNotEmpty) {
       getIt<WsConnectionManager>().connectWithToken(token);
     }
+    // 自动初始化全局 Store 数据 (对标 desktop.initApp)
+    getIt<AppStore>().initApp();
   }
 
   runApp(const BeaverApp());

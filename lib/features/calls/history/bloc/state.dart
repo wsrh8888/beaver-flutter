@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:beaver/features/calls/data/models/call.dart';
+import 'package:beaver/types/call.dart';
 
 class CallHistoryState extends Equatable {
   final bool isLoading;

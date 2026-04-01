@@ -10,11 +10,12 @@ class LoginRepository {
     String email,
     String password,
   ) async {
+    final deviceId = await StorageUtil.getDeviceId();
     final req = EmailPasswordLoginReq(
       email: email,
       // 使用 MD5 加密密码
       password: md5.convert(utf8.encode(password)).toString(),
-      deviceId: 'device_id_placeholder', // TODO: 从设备信息获取
+      deviceId: deviceId,
     );
     final response = await emailPasswordLoginApi(req);
 

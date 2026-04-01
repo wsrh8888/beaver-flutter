@@ -1,3 +1,4 @@
+import 'package:beaver/api/file.dart';
 import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
 
@@ -10,9 +11,9 @@ class PostMomentRepository {
   }
 
   Future<String> uploadImage(String imagePath) async {
-    final response = await uploadImageApi(imagePath);
+    final response = await uploadFileApi(imagePath);
     if (response.isSuccess && response.result != null) {
-      return response.result!;
+      return response.result!.fileKey;
     }
     return '';
   }

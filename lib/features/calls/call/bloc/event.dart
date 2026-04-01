@@ -7,15 +7,19 @@ abstract class CallPageEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class StartCallEvent extends CallPageEvent {
+class InitializeCallEvent extends CallPageEvent {
   final String conversationId;
   final String roomToken;
   final String liveKitUrl;
   
-  const StartCallEvent(this.conversationId, this.roomToken, this.liveKitUrl);
+  const InitializeCallEvent(this.conversationId, this.roomToken, this.liveKitUrl);
   
   @override
   List<Object?> get props => [conversationId, roomToken, liveKitUrl];
+}
+
+class StartCallEvent extends CallPageEvent {
+  const StartCallEvent();
 }
 
 class EndCallEvent extends CallPageEvent {

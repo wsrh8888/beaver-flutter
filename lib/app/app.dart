@@ -17,8 +17,39 @@ import 'package:beaver/store/call/call.dart';
 import 'package:beaver/store/app/app.dart';
 import 'package:beaver/di/injection.dart';
 
-class BeaverApp extends StatelessWidget {
+import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/core/datasync/manager.dart';
+
+class BeaverApp extends StatefulWidget {
   const BeaverApp({super.key});
+
+  @override
+  State<BeaverApp> createState() => _BeaverAppState();
+}
+
+class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 移动端核心：锁屏或切回前台（resumed）时，主动检查 WS 并触发全量同步
+    if (state == AppLifecycleState.resumed) {
+      // 1. 尝试唤醒 WS 连接 (如果已断开则重连，如果存活则发心跳确认状态)
+      getIt<WsConnectionManager>().onAppResume();
+      // 2. 主动触发一次全量同步 (拉取离线期间的所有变更)
+      syncManager.autoSync();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +80,7 @@ class BeaverApp extends StatelessWidget {
             BlocProvider<CallStore>(create: (_) => getIt<CallStore>()),
           ],
           child: MaterialApp.router(
-            title: 'Beaver IM',
+            title: '海狸',
             debugShowCheckedModeBanner: false,
             routerConfig: appRouter,
             theme: ThemeData(
