@@ -14,6 +14,7 @@ import 'package:beaver/router/modules/setting.dart';
 import 'package:beaver/router/modules/guide.dart';
 import 'package:beaver/router/modules/user.dart';
 import 'package:beaver/router/modules/emoji.dart';
+import 'package:beaver/router/modules/common.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -51,6 +52,8 @@ final GoRouter appRouter = GoRouter(
     ...userRoutes(),
     // 表情模块路由
     ...emojiRoutes(),
+    // 通用模块路由
+    ...commonRoutes(),
     // 深度链接支持
     GoRoute(
       path: '/share/:type/:id',

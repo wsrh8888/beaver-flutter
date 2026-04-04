@@ -61,6 +61,8 @@ dependencies:
   image_picker: ^1.2.1
   wechat_assets_picker: ^10.1.1
   record: ^6.2.0
+  mobile_scanner: ^6.0.4
+  webview_flutter: ^4.10.1
 
 # 仅开发/构建时使用，不进入 release 产物逻辑依赖
 dev_dependencies:

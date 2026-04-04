@@ -59,4 +59,8 @@ class AppRoutes {
   // 表情模块
   static const String emojiShop = '/emoji/shop';
   static const String emojiDetail = '/emoji/detail';
+
+  // 通用模块
+  static const String webview = '/common/webview';
+  static const String scan = '/common/scan';
 }
