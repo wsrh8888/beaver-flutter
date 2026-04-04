@@ -20,7 +20,7 @@ class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
     emit(state.copyWith(status: CallStatus.loading));
     
     try {
-      final callInfo = await _repository.getCallInfo(event.conversationId);
+      final callInfo = await _repository.getCallInfo(event.conversationId, event.roomId);
       emit(state.copyWith(
         status: CallStatus.ringing,
         callInfo: callInfo,
@@ -40,7 +40,7 @@ class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
     emit(state.copyWith(status: CallStatus.loading));
     
     try {
-      await _repository.acceptCall(state.callInfo!.conversationId);
+      await _repository.acceptCall(state.callInfo!.roomId);
       emit(state.copyWith(status: CallStatus.connected));
     } catch (e) {
       emit(state.copyWith(
@@ -57,7 +57,7 @@ class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
     emit(state.copyWith(status: CallStatus.loading));
     
     try {
-      await _repository.rejectCall(state.callInfo!.conversationId);
+      await _repository.rejectCall(state.callInfo!.roomId);
       emit(state.copyWith(status: CallStatus.ended));
     } catch (e) {
       emit(state.copyWith(

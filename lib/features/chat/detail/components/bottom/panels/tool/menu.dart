@@ -12,10 +12,55 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+
+import 'package:beaver/core/business/call/call.dart';
+import 'package:beaver/router/routes.dart';
+import 'package:go_router/go_router.dart';
 
 class ToolMenu extends StatelessWidget {
   const ToolMenu({super.key});
+
+  Future<void> _handleCall(BuildContext context, String mode) async {
+    // 权限检查
+    final micStatus = await Permission.microphone.request();
+    if (!micStatus.isGranted) {
+      if (context.mounted) BeaverToast.show(context, '请先开启麦克风权限');
+      return;
+    }
+    
+    if (mode == 'video') {
+      final cameraStatus = await Permission.camera.request();
+      if (!cameraStatus.isGranted) {
+        if (context.mounted) BeaverToast.show(context, '请先开启摄像头权限');
+        return;
+      }
+    }
+
+    final chatBloc = context.read<ChatBloc>();
+    final conversationId = chatBloc.state.conversationId;
+    if (conversationId == null) return;
+
+    // 根据前缀判断会话类型 (1-私聊, 2-群聊)
+    final int callType = conversationId.startsWith('g_') ? 2 : 1;
+    // 初始通话模式 (1-语音, 2-视频)
+    final int callMode = mode == 'video' ? 2 : 1;
+
+    final callBusiness = getIt<CallBusiness>();
+    final callInfo = await callBusiness.makeCall(conversationId, callType, callMode);
+
+    if (callInfo != null && context.mounted) {
+      context.push(AppRoutes.call, extra: {
+        'conversationId': conversationId,
+        'roomToken': callInfo.roomToken,
+        'liveKitUrl': callInfo.liveKitUrl,
+        'callType': mode, // 'audio' or 'video' for UI
+      });
+    } else if (context.mounted) {
+      BeaverToast.show(context, '发起通话失败');
+    }
+  }
 
   Future<void> _handleAlbum(BuildContext context) async {
     final mediaBusiness = getIt<MediaBusiness>();
@@ -67,71 +112,46 @@ class ToolMenu extends StatelessWidget {
   }
 
   Future<void> _handleCamera(BuildContext context) async {
-    final mediaBusiness = getIt<MediaBusiness>();
     final chatBloc = context.read<ChatBloc>();
+    final mediaBusiness = getIt<MediaBusiness>();
 
-    final type = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('拍照'),
-              onTap: () => Navigator.pop(context, 'photo'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('录像'),
-              onTap: () => Navigator.pop(context, 'video'),
-            ),
-          ],
-        ),
-      ),
-    );
+    // 调起统一拍摄界面
+    final AssetEntity? entity = await media_util.takeMedia(context);
+    if (entity == null) return;
 
-    if (type == null) return;
+    final File? file = await entity.file;
+    if (file == null) return;
 
-    XFile? xFile;
-    if (type == 'photo') {
-      xFile = await media_util.takePhoto(context);
-    } else {
-      xFile = await media_util.takeVideo(context);
-    }
-
-    if (xFile == null) return;
-
-    final IFileUploadResult? uploadResult = await mediaBusiness.uploadFile(xFile.path);
+    final IFileUploadResult? uploadResult = await mediaBusiness.uploadFile(file.path);
     if (uploadResult == null) {
       if (context.mounted) BeaverToast.show(context, '上传失败');
       return;
     }
 
-    if (type == 'photo') {
+    if (entity.type == AssetType.image) {
       chatBloc.add(
         SendMessageEvent(
           MessageContentModel(
             type: MessageType.image,
             imageMsg: ImageMsg(
               fileKey: uploadResult.fileKey,
-              width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? 0,
-              height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? 0,
-              size: await xFile.length(),
+              width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? entity.width.toDouble(),
+              height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? entity.height.toDouble(),
+              size: await file.length(),
             ),
           ),
         ),
       );
-    } else {
+    } else if (entity.type == AssetType.video) {
       chatBloc.add(
         SendMessageEvent(
           MessageContentModel(
             type: MessageType.video,
             videoMsg: VideoMsg(
               fileKey: uploadResult.fileKey,
-              width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? 0,
-              height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? 0,
-              duration: uploadResult.fileInfo?.videoFile?.duration ?? 0,
+              width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? entity.width.toDouble(),
+              height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? entity.height.toDouble(),
+              duration: uploadResult.fileInfo?.videoFile?.duration ?? entity.duration,
             ),
           ),
         ),
@@ -168,6 +188,10 @@ class ToolMenu extends StatelessWidget {
               _handleAlbum(context);
             } else if (item['label'] == '拍摄') {
               _handleCamera(context);
+            } else if (item['label'] == '语音通话') {
+              _handleCall(context, 'audio');
+            } else if (item['label'] == '视频通话') {
+              _handleCall(context, 'video');
             }
           },
         );

@@ -42,7 +42,7 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   }
 
   Future<void> _onInitialize(InitializeCallEvent event, Emitter<CallPageState> emit) async {
-    emit(state.copyWith(status: CallStatus.loading));
+    emit(state.copyWith(status: CallStatus.loading, callType: event.callType));
     try {
       await _callBusiness.initialize(event.roomToken, event.liveKitUrl);
       emit(state.copyWith(status: CallStatus.connected));

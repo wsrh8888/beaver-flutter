@@ -3,6 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/types/call.dart';
+import 'package:beaver/api/call.dart';
+import 'package:beaver/types/api/call.dart' as api;
+import 'package:flutter/material.dart' hide ConnectionState;
 
 abstract class CallRepositoryInterface {
 }
@@ -15,6 +18,20 @@ class CallBusiness implements CallRepositoryInterface {
   
   CallBusiness() {
     _setupRoomListeners();
+  }
+
+  // 发起通话
+  Future<api.CallInfoRes?> makeCall(String conversationId, int callType, int callMode) async {
+    final response = await startCallApi(api.StartCallReq(
+      conversationId: conversationId,
+      callType: callType,
+      callMode: callMode,
+    ));
+    
+    if (response.code == 0 && response.result != null) {
+      return response.result;
+    }
+    return null;
   }
   
   // 初始化LiveKit房间

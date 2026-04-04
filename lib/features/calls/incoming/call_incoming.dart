@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,8 +14,13 @@ import 'package:beaver/shared/ui/layout/layout.dart';
 
 class CallInvitationPage extends StatefulWidget {
   final String conversationId;
+  final String roomId;
 
-  const CallInvitationPage({super.key, required this.conversationId});
+  const CallInvitationPage({
+    super.key, 
+    required this.conversationId, 
+    required this.roomId,
+  });
 
   @override
   State<CallInvitationPage> createState() => _CallInvitationPageState();
@@ -29,7 +35,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
   void initState() {
     super.initState();
     _callIncomingBloc = CallIncomingBloc(CallIncomingRepository())
-      ..add(LoadCallInfoEvent(widget.conversationId));
+      ..add(LoadCallInfoEvent(widget.conversationId, widget.roomId));
     _startCountdown();
   }
 
@@ -71,13 +77,13 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
       child: BlocConsumer<CallIncomingBloc, CallIncomingState>(
         listener: (context, state) {
           if (state.status == CallStatus.connected) {
-            // 跳转到通话中页面
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (context) => CallPage(
                   conversationId: widget.conversationId,
                   roomToken: state.callInfo!.roomToken,
                   liveKitUrl: state.callInfo!.liveKitUrl,
+                  callType: state.callInfo?.callType ?? CallType.audio,
                 ),
               ),
             );
@@ -86,8 +92,8 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
           }
         },
         builder: (context, state) {
-          final isIncoming = state.callInfo?.isIncoming ?? true;
           final callInfo = state.callInfo;
+          final isIncoming = callInfo?.isIncoming ?? true;
 
           return BeaverLayout(
             showHeader: false,
@@ -96,90 +102,120 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
             child: Container(
               width: double.infinity,
               height: double.infinity,
-              color: const Color(0xFF1C1C1E),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              color: Colors.black,
+              child: Stack(
                 children: [
-                   // 通话提示
-                  Text(
-                    isIncoming ? '邀请你进行视频通话' : '正在申请通话...',
-                    style: TextStyle(
-                      fontSize: 16.w, 
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
+                  // 模糊背景
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        image: (callInfo?.callerAvatar != null)
+                            ? DecorationImage(
+                                image: NetworkImage(callInfo!.callerAvatar), // TODO: 使用缓存层
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        color: const Color(0xFF1C1C1E),
+                      ),
+                      child: BackdropFilter(
+                        filter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
+                        child: Container(color: Colors.transparent),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 48.w),
-
-                  // 头像
-                  BeaverCachedImage(
-                    fileKey: callInfo?.callerAvatar,
-                    type: CacheType.avatar,
-                    width: 120.w,
-                    height: 120.w,
-                    borderRadius: 60.w,
-                  ),
-                  SizedBox(height: 24.w),
-
-                  // 姓名
-                  Text(
-                    callInfo?.callerName ?? '未知用户',
-                    style: TextStyle(
-                      fontSize: 32.w,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 12.w),
-
-                  // 通话状态
-                  Text(
-                    state.status == CallStatus.ringing
-                        ? (isIncoming ? '等待接通...' : '正在呼叫对方...')
-                        : state.status == CallStatus.loading
-                        ? '处理中...'
-                        : '',
-                    style: TextStyle(fontSize: 16.w, color: Colors.white54),
-                  ),
-                  SizedBox(height: 8.w),
-
-                  // 倒计时
-                  if (state.status == CallStatus.ringing)
-                    Text(
-                      '${_countdown}s',
-                      style: TextStyle(fontSize: 14.w, color: Colors.white38),
-                    ),
                   
-                  const Spacer(),
-
-                  // 控制按钮
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 80.w),
-                    child: isIncoming 
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 60.w),
+                        // 顶部提示
+                        Text(
+                          isIncoming 
+                            ? '邀请你进行${callInfo?.callType == CallType.video ? "视频" : "语音"}通话' 
+                            : '正在发送通话请求...',
+                          style: TextStyle(
+                            fontSize: 18.sp, 
+                            color: Colors.white, 
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        
+                        const Spacer(),
+                        
+                        // 用户信息
+                        Column(
                           children: [
-                            _buildActionButton(
-                              onTap: _handleReject,
-                              icon: Icons.call_end,
-                              label: '拒绝',
-                              color: Colors.redAccent,
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white12, width: 2.w),
+                              ),
+                              child: BeaverCachedImage(
+                                fileKey: callInfo?.callerAvatar,
+                                type: CacheType.avatar,
+                                width: 120.w,
+                                height: 120.w,
+                                borderRadius: 60.w,
+                              ),
                             ),
-                            _buildActionButton(
-                              onTap: _handleAccept,
-                              icon: callInfo?.callType == CallType.video 
-                                ? Icons.videocam : Icons.call,
-                              label: '接听',
-                              color: Colors.greenAccent[400]!,
+                            SizedBox(height: 24.w),
+                            Text(
+                              callInfo?.callerName ?? '未知用户',
+                              style: TextStyle(
+                                fontSize: 32.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
-                        )
-                      : _buildActionButton(
-                          onTap: _handleReject,
-                          icon: Icons.call_end,
-                          label: '取消',
-                          color: Colors.redAccent,
                         ),
+                        
+                        const Spacer(flex: 2),
+                        
+                        // 通话状态提示
+                        if (state.status == CallStatus.ringing)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 20.w),
+                            child: Text(
+                              isIncoming ? '等待接通...' : '等待对方接听...',
+                              style: TextStyle(fontSize: 14.sp, color: Colors.white60),
+                            ),
+                          ),
+                          
+                        // 控制按钮
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 60.w, left: 30.w, right: 30.w),
+                          child: isIncoming 
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildActionButton(
+                                    onTap: _handleReject,
+                                    icon: Icons.call_end,
+                                    label: '拒绝',
+                                    color: Colors.redAccent,
+                                  ),
+                                  _buildActionButton(
+                                    onTap: _handleAccept,
+                                    icon: callInfo?.callType == CallType.video 
+                                      ? Icons.videocam : Icons.call,
+                                    label: '接听',
+                                    color: Colors.greenAccent[700]!,
+                                  ),
+                                ],
+                              )
+                            : Center(
+                                child: _buildActionButton(
+                                  onTap: _handleReject,
+                                  icon: Icons.call_end,
+                                  label: '取消',
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

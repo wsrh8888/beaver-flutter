@@ -1,28 +1,37 @@
 import 'package:beaver/types/call.dart';
+import 'package:beaver/api/call.dart';
+import 'package:beaver/types/api/call.dart' as api;
 
 class CallIncomingRepository {
-  Future<CallInfo> getCallInfo(String conversationId) async {
-    // 模拟获取通话信息
-    await Future.delayed(const Duration(seconds: 1));
-    return CallInfo(
-      conversationId: conversationId,
-      callerName: '张三',
-      callerAvatar: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=professional%20avatar%20portrait&size=512x512',
-      isIncoming: true,
-      callType: CallType.video,
-      roomId: 'room_${DateTime.now().millisecondsSinceEpoch}',
-      roomToken: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
-      liveKitUrl: 'wss://example.livekit.io',
-    );
+  Future<CallInfo> getCallInfo(String conversationId, String roomId) async {
+    final response = await getCallInfoApi(roomId);
+    if (response.code == 0 && response.result != null) {
+      final res = response.result!;
+      return CallInfo(
+        conversationId: conversationId, // 补充会话ID
+        callerName: res.callerName,
+        callerAvatar: res.callerAvatar,
+        isIncoming: res.isIncoming,
+        callType: res.callType == 'video' ? CallType.video : CallType.audio,
+        roomId: res.roomId.isNotEmpty ? res.roomId : roomId,
+        roomToken: res.roomToken,
+        liveKitUrl: res.liveKitUrl,
+      );
+    }
+    throw Exception(response.msg);
   }
   
-  Future<void> acceptCall(String conversationId) async {
-    // 模拟接受通话
-    await Future.delayed(const Duration(seconds: 1));
+  Future<void> acceptCall(String roomId) async {
+    final response = await acceptCallApi(api.AcceptCallReq(roomId: roomId));
+    if (response.code != 0) {
+      throw Exception(response.msg);
+    }
   }
   
-  Future<void> rejectCall(String conversationId) async {
-    // 模拟拒绝通话
-    await Future.delayed(const Duration(seconds: 1));
+  Future<void> rejectCall(String roomId) async {
+    final response = await rejectCallApi(api.RejectCallReq(roomId: roomId));
+    if (response.code != 0) {
+      throw Exception(response.msg);
+    }
   }
 }

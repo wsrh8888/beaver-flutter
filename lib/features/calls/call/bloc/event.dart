@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:beaver/types/call.dart';
 
 abstract class CallPageEvent extends Equatable {
   const CallPageEvent();
@@ -11,11 +12,12 @@ class InitializeCallEvent extends CallPageEvent {
   final String conversationId;
   final String roomToken;
   final String liveKitUrl;
+  final CallType callType;
   
-  const InitializeCallEvent(this.conversationId, this.roomToken, this.liveKitUrl);
+  const InitializeCallEvent(this.conversationId, this.roomToken, this.liveKitUrl, this.callType);
   
   @override
-  List<Object?> get props => [conversationId, roomToken, liveKitUrl];
+  List<Object?> get props => [conversationId, roomToken, liveKitUrl, callType];
 }
 
 class StartCallEvent extends CallPageEvent {

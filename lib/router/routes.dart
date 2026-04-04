@@ -33,6 +33,8 @@ class AppRoutes {
   
   // 通话模块
   static const String callsPage = '/calls';
+  static const String call = '/call';
+  static const String callIncoming = '/call/incoming';
   
   // 发现模块
   static const String discoverMain = '/discover';

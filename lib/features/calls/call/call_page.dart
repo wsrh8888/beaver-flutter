@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,8 +17,15 @@ class CallPage extends StatefulWidget {
   final String conversationId;
   final String roomToken;
   final String liveKitUrl;
+  final CallType callType;
 
-  const CallPage({super.key, required this.conversationId, required this.roomToken, required this.liveKitUrl});
+  const CallPage({
+    super.key, 
+    required this.conversationId, 
+    required this.roomToken, 
+    required this.liveKitUrl,
+    required this.callType,
+  });
 
   @override
   State<CallPage> createState() => _CallPageState();
@@ -44,7 +52,7 @@ class _CallPageState extends State<CallPage> {
         });
       }
     });
-    _callPageBloc.add(InitializeCallEvent(widget.conversationId, widget.roomToken, widget.liveKitUrl));
+    _callPageBloc.add(InitializeCallEvent(widget.conversationId, widget.roomToken, widget.liveKitUrl, widget.callType));
     _startCallDuration();
   }
 
@@ -138,21 +146,9 @@ class _CallPageState extends State<CallPage> {
               width: double.infinity,
               height: double.infinity,
               color: Colors.black,
-              child: Stack(
-                children: [
-                   // 远程视频/等待视图
-                  _buildMainContentView(state),
-                  
-                  // 本地视频预览
-                  _buildLocalPreview(state),
-                  
-                  // 通话时长信息
-                  _buildCallDurationInfo(),
-                  
-                  // 底部控制按钮
-                  _buildControls(state),
-                ],
-              ),
+              child: state.callType == CallType.video
+                  ? _buildVideoCallView(state)
+                  : _buildAudioCallView(state),
             ),
           );
         },
@@ -160,238 +156,289 @@ class _CallPageState extends State<CallPage> {
     );
   }
 
-  Widget _buildMainContentView(CallPageState state) {
-    return Positioned.fill(
-      child: Visibility(
-        visible: !_isLocalVideoFullScreen && state.participants.length > 1,
-        child: Container(
-          color: Colors.grey[900],
-          child: state.participants.length > 1
-              ? GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: state.participants.length <= 2 ? 1 : 2,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemCount: state.participants.length - 1,
-                  itemBuilder: (context, index) {
-                    final participant = state.participants[index + 1];
-                    return _buildParticipantView(participant);
-                  },
-                )
-              : _buildWaitingView(),
-        ),
-      ),
-    );
-  }
+  Widget _buildAudioCallView(CallPageState state) {
+    final participants = state.participants;
+    final remoteParticipants = participants.where((p) => p.userId != (_callPageBloc.localParticipant?.userId ?? 'me')).toList();
+    
+    // 如果是群聊且有多个人，使用网格布局
+    if (participants.length > 2) {
+      return _buildMultiAudioView(state);
+    }
 
-  Widget _buildWaitingView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100.w,
-            height: 100.w,
+    final otherParticipant = remoteParticipants.isNotEmpty ? remoteParticipants[0] : const CallParticipant(userId: '', name: '未知');
+
+    return Stack(
+      children: [
+        // 模糊背景
+        Positioned.fill(
+          child: Container(
             decoration: BoxDecoration(
-              color: Colors.white10,
-              shape: BoxShape.circle,
+              image: otherParticipant.avatarUrl != null
+                  ? DecorationImage(
+                      image: NetworkImage(otherParticipant.avatarUrl!), 
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+              color: const Color(0xFF1C1C1E),
             ),
-            child: Icon(Icons.person, color: Colors.white30, size: 50.w),
-          ),
-          SizedBox(height: 24.w),
-          Text(
-            '正在等待对方加入...',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16.w,
-              fontWeight: FontWeight.w400,
+            child: BackdropFilter(
+              filter: ColorFilter.mode(Colors.black.withOpacity(0.6), BlendMode.darken),
+              child: Container(color: Colors.transparent),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocalPreview(CallPageState state) {
-     if (_isLocalVideoFullScreen) {
-        return Positioned.fill(child: _buildLocalVideoView(state));
-     }
-
-     return Positioned(
-      top: 40.w,
-      right: 20.w,
-      width: 120.w,
-      height: 180.w,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12.w),
-          border: Border.all(color: Colors.white24, width: 1.w),
-          boxShadow: [
-            BoxShadow(color: Colors.black54, blurRadius: 10, spreadRadius: 0),
-          ]
         ),
-        clipBehavior: Clip.antiAlias,
-        child: GestureDetector(
-          onTap: _handleSwitchVideoView,
-          child: _buildLocalVideoView(state),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCallDurationInfo() {
-    return Positioned(
-      top: 60.w,
-      left: 0,
-      right: 0,
-      child: Column(
-        children: [
-          Text(
-            '通话进行中',
-            style: TextStyle(fontSize: 14.w, color: Colors.white60),
-          ),
-          SizedBox(height: 4.w),
-          Text(
-            _formatDuration(_callDuration),
-            style: TextStyle(
-              fontSize: 20.w, 
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControls(CallPageState state) {
-    return Positioned(
-      bottom: 50.w,
-      left: 0,
-      right: 0,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        
+        SafeArea(
+          child: Column(
             children: [
-              _buildSecondaryButton(
-                onTap: _handleToggleSpeaker,
-                icon: state.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                label: '扬声器',
-                isActive: state.isSpeakerOn,
+              SizedBox(height: 60.w),
+              // 昵称
+              Text(
+                otherParticipant.name,
+                style: TextStyle(fontSize: 28.sp, color: Colors.white, fontWeight: FontWeight.bold),
               ),
-              SizedBox(width: 24.w),
-              _buildSecondaryButton(
-                onTap: _handleTogglePiP,
-                icon: _isInPiPMode ? Icons.fullscreen : Icons.picture_in_picture,
-                label: '画中画',
-                isActive: _isInPiPMode,
+              SizedBox(height: 12.w),
+              _buildCallDurationInfo(),
+              
+              const Spacer(),
+              
+              // 中间大头像
+              Container(
+                width: 140.w,
+                height: 140.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12, width: 2.w),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black26, blurRadius: 20, spreadRadius: 5),
+                  ]
+                ),
+                child: BeaverCachedImage(
+                  fileKey: otherParticipant.avatarUrl,
+                  width: 140.w,
+                  height: 140.w,
+                  borderRadius: 70.w,
+                  type: CacheType.avatar,
+                ),
               ),
+              
+              const Spacer(flex: 2),
+              
+              _buildAudioControls(state),
             ],
           ),
-          SizedBox(height: 40.w),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiAudioView(CallPageState state) {
+    final participants = state.participants;
+    
+    return Stack(
+      children: [
+        // 背景色
+        Positioned.fill(child: Container(color: const Color(0xFF1C1C1E))),
+        
+        SafeArea(
+          child: Column(
             children: [
-              _buildMainButton(
-                onTap: _handleToggleMute,
-                icon: state.isMuted ? Icons.mic_off : Icons.mic,
-                label: '静音',
-                color: state.isMuted ? Colors.white24 : Colors.grey[800]!,
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.w),
+                child: _buildCallDurationInfo(),
               ),
-              _buildMainButton(
-                onTap: _handleEndCall,
-                icon: Icons.call_end,
-                label: '结束',
-                color: Colors.redAccent,
+              Expanded(
+                child: GridView.builder(
+                  padding: EdgeInsets.all(20.w),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 30.w,
+                    crossAxisSpacing: 20.w,
+                    childAspectRatio: 0.8,
+                  ),
+                  itemCount: participants.length,
+                  itemBuilder: (context, index) {
+                    final p = participants[index];
+                    return Column(
+                      children: [
+                        BeaverCachedImage(
+                          fileKey: p.avatarUrl,
+                          width: 80.w,
+                          height: 80.w,
+                          borderRadius: 12.w,
+                          type: CacheType.avatar,
+                        ),
+                        SizedBox(height: 8.w),
+                        Text(
+                          p.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
-              _buildMainButton(
-                onTap: _handleToggleCamera,
-                icon: state.isCameraOff ? Icons.videocam_off : Icons.videocam,
-                label: '摄像头',
-                color: state.isCameraOff ? Colors.white24 : Colors.grey[800]!,
-              ),
+              _buildAudioControls(state),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAudioControls(CallPageState state) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 50.w),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildCallButton(
+            onTap: _handleToggleMute,
+            icon: state.isMuted ? Icons.mic_off : Icons.mic,
+            label: '静音',
+            isActive: state.isMuted,
+          ),
+          _buildCallButton(
+            onTap: _handleEndCall,
+            icon: Icons.call_end,
+            label: '',
+            color: Colors.redAccent,
+            size: 72.w,
+          ),
+          _buildCallButton(
+            onTap: _handleToggleSpeaker,
+            icon: state.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+            label: '扬声器',
+            isActive: state.isSpeakerOn,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSecondaryButton({required VoidCallback onTap, required IconData icon, required String label, bool isActive = false}) {
-     return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 50.w,
-          height: 50.w,
-          decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.white10,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: isActive ? Colors.black : Colors.white, size: 22.w),
+  Widget _buildVideoCallView(CallPageState state) {
+    final participants = state.participants;
+    final remoteParticipants = participants.where((p) => p.userId != (_callPageBloc.localParticipant?.userId ?? 'me')).toList();
+
+    // 如果是群聊且有多个人，使用网格布局
+    if (participants.length > 2) {
+      return _buildMultiVideoView(state);
+    }
+
+    final remoteParticipant = remoteParticipants.isNotEmpty ? remoteParticipants[0] : null;
+
+    return Stack(
+      children: [
+        // 远程视频
+        Positioned.fill(
+          child: remoteParticipant?.videoTrack != null && !remoteParticipant!.isCameraOff
+              ? VideoTrackRenderer(remoteParticipant.videoTrack!, fit: VideoViewFit.cover)
+              : Container(
+                  color: const Color(0xFF1C1C1E),
+                  child: Center(
+                    child: BeaverCachedImage(
+                      fileKey: remoteParticipant?.avatarUrl, 
+                      width: 100.w, 
+                      height: 100.w,
+                      borderRadius: 50.w,
+                      type: CacheType.avatar,
+                    ),
+                  ),
+                ),
         ),
-     );
+        
+        // 本地视频 (小窗口)
+        if (state.isLocalVideoSmall)
+          Positioned(
+            top: 50.w,
+            right: 20.w,
+            child: GestureDetector(
+              onTap: _handleSwitchVideoView,
+              child: Container(
+                width: 110.w,
+                height: 160.w,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.w),
+                  border: Border.all(color: Colors.white24, width: 1.w),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black54, blurRadius: 10),
+                  ]
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _buildLocalVideoView(state),
+              ),
+            ),
+          ),
+          
+        _buildControlsOverlay(state),
+      ],
+    );
   }
 
-  Widget _buildMainButton({required VoidCallback onTap, required IconData icon, required String label, required Color color}) {
-     return Column(
-       children: [
-         GestureDetector(
-           onTap: onTap,
-           child: Container(
-             width: 70.w,
-             height: 70.w,
-             decoration: BoxDecoration(
-               color: color,
-               shape: BoxShape.circle,
-             ),
-             child: Icon(icon, color: Colors.white, size: 30.w),
-           ),
-         ),
-         SizedBox(height: 8.w),
-         Text(label, style: TextStyle(color: Colors.white70, fontSize: 12.sp)),
-       ],
-     );
+  Widget _buildMultiVideoView(CallPageState state) {
+    final participants = state.participants;
+    int crossAxisCount = 2;
+    if (participants.length > 4) crossAxisCount = 3;
+
+    return Stack(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: 80.w, bottom: 200.w),
+          child: GridView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 2.w),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 2.w,
+              crossAxisSpacing: 2.w,
+              childAspectRatio: 0.75,
+            ),
+            itemCount: participants.length,
+            itemBuilder: (context, index) {
+              return _buildParticipantGridItem(participants[index], state);
+            },
+          ),
+        ),
+        _buildControlsOverlay(state),
+      ],
+    );
   }
 
-  Widget _buildParticipantView(CallParticipant participant) {
+  Widget _buildParticipantGridItem(CallParticipant p, CallPageState state) {
+    final isLocal = p.userId == (_callPageBloc.localParticipant?.userId ?? 'me');
+    final isCameraOff = isLocal ? state.isCameraOff : p.isCameraOff;
+    final videoTrack = p.videoTrack;
+
     return Container(
-      margin: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(12.w),
+        color: const Color(0xFF2C2C2E),
+        borderRadius: BorderRadius.circular(4.w),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          if (participant.videoTrack != null && !participant.isCameraOff)
-            VideoTrackRenderer(
-              participant.videoTrack!,
-              fit: VideoViewFit.cover,
-            )
+          if (videoTrack != null && !isCameraOff)
+             VideoTrackRenderer(videoTrack, fit: VideoViewFit.cover)
           else
             Center(
               child: BeaverCachedImage(
-                fileKey: participant.avatarUrl,
+                fileKey: p.avatarUrl,
+                width: 60.w,
+                height: 60.w,
+                borderRadius: 30.w,
                 type: CacheType.avatar,
-                width: 80.w,
-                height: 80.w,
-                borderRadius: 40.w,
               ),
             ),
           Positioned(
             bottom: 8.w,
             left: 8.w,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.w),
-              decoration: BoxDecoration(
-                color: Colors.black38,
-                borderRadius: BorderRadius.circular(4.w),
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.w),
+              color: Colors.black54,
               child: Text(
-                participant.name,
-                style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                p.name + (isLocal ? ' (我)' : ''),
+                style: TextStyle(color: Colors.white, fontSize: 10.sp),
               ),
             ),
           ),
@@ -399,6 +446,122 @@ class _CallPageState extends State<CallPage> {
       ),
     );
   }
+
+  Widget _buildControlsOverlay(CallPageState state) {
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 32.w),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                _buildCallDurationInfo(),
+                _buildCallButton(
+                  onTap: _handleTogglePiP,
+                  icon: Icons.picture_in_picture,
+                  label: '',
+                  size: 40.w,
+                  color: Colors.white10,
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: EdgeInsets.only(bottom: 40.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildCallButton(
+                  onTap: _handleToggleSpeaker,
+                  icon: state.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                  label: '扬声器',
+                  color: Colors.white10,
+                  size: 56.w,
+                ),
+                _buildCallButton(
+                  onTap: _handleToggleMute,
+                  icon: state.isMuted ? Icons.mic_off : Icons.mic,
+                  label: '静音',
+                  color: Colors.white10,
+                  size: 56.w,
+                  isActive: state.isMuted,
+                ),
+                _buildCallButton(
+                  onTap: _handleToggleCamera,
+                  icon: Icons.repeat,
+                  label: '翻转',
+                  color: Colors.white10,
+                  size: 56.w,
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: 40.w),
+            child: _buildCallButton(
+              onTap: _handleEndCall,
+              icon: Icons.call_end,
+              label: '',
+              color: Colors.redAccent,
+              size: 72.w,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCallDurationInfo() {
+    return Text(
+      _formatDuration(_callDuration),
+      style: TextStyle(
+        fontSize: 16.sp, 
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
+        fontFamily: 'monospace',
+      ),
+    );
+  }
+
+  Widget _buildCallButton({
+    required VoidCallback onTap,
+    required IconData icon,
+    required String label,
+    Color? color,
+    double? size,
+    bool isActive = false,
+  }) {
+    final buttonSize = size ?? 64.w;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: buttonSize,
+            height: buttonSize,
+            decoration: BoxDecoration(
+              color: color ?? (isActive ? Colors.white : Colors.white10),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isActive && color == null ? Colors.black : Colors.white, size: (buttonSize * 0.45)),
+          ),
+        ),
+        if (label.isNotEmpty) ...[
+          SizedBox(height: 8.w),
+          Text(label, style: TextStyle(color: Colors.white, fontSize: 13.sp)),
+        ],
+      ],
+    );
+  }
+
+  
 
   Widget _buildLocalVideoView(CallPageState state) {
     final localParticipant = _callPageBloc.localParticipant;
