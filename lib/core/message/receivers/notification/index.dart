@@ -12,7 +12,16 @@ class NotificationMessageRouter {
    * 处理通知消息
    * @param wsMessage WebSocket 消息内容
    */
-  Future<void> processNotificationMessage(Map<String, dynamic> data) async {
+  Future<void> processNotificationMessage(
+    Map<String, dynamic> wsMessage,
+  ) async {
+    final data = wsMessage['data'] as Map<String, dynamic>?;
+
+    if (data == null) {
+      print('[NotificationMessageRouter] 收到通知消息, 但缺少 data 字段: $wsMessage');
+      return;
+    }
+
     final type = data['type'] as String?;
     final body = data['body'] as Map<String, dynamic>?;
 

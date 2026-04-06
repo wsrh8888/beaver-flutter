@@ -84,6 +84,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
                   roomToken: state.callInfo!.roomToken,
                   liveKitUrl: state.callInfo!.liveKitUrl,
                   callType: state.callInfo?.callType ?? CallType.audio,
+                  isGroup: state.callInfo?.isGroup ?? widget.conversationId.startsWith('g_'),
                 ),
               ),
             );

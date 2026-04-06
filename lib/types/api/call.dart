@@ -42,6 +42,21 @@ class RejectCallReq {
   }
 }
 
+/// 邀请参与者请求
+class InviteParticipantsReq {
+  final String roomId;
+  final List<String> userIds;
+
+  InviteParticipantsReq({required this.roomId, required this.userIds});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'roomId': roomId,
+      'userIds': userIds,
+    };
+  }
+}
+
 /// 结束通话请求
 class EndCallReq {
   final String conversationId;

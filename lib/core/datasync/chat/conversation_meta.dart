@@ -19,9 +19,9 @@ class ConversationMetaSync {
       final datasyncService = getIt<DatasyncService>();
       final syncStatusService = getIt<ChatSyncStatusService>();
 
-      // 获取本地最后同步时间
+      // 获取本地最后同步时间 (时间戳游标)
       final localCursor = await datasyncService.get('chat_conversations');
-      final lastSyncTime = localCursor?.version ?? 0;
+      final lastSyncTime = localCursor?.updatedAt ?? 0;
 
       // 获取服务器变更的会话版本信息
       final response = await datasyncGetSyncChatConversationsApi(
@@ -52,7 +52,6 @@ class ConversationMetaSync {
         -1, // 使用时间戳而不是版本号
         serverTimestamp,
       );
-
     } catch (error) {
       // print('[ConversationMetaSync] 会话元数据同步失败: $error');
     }

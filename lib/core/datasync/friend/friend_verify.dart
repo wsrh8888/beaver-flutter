@@ -15,7 +15,7 @@ class FriendVerifySync {
 
     // 1. 获取本地同步最后游标
     final cursor = await datasyncService.get('friend_verifies');
-    final lastSyncTime = cursor?.version ?? 0;
+    final lastSyncTime = cursor?.updatedAt ?? 0;
 
     // 2. 获取服务器上变更的好友验证列表 (摘要)
     final response = await datasyncGetSyncFriendVerifiesApi(
@@ -91,9 +91,10 @@ class FriendVerifySync {
         IGetFriendVerifiesListByIdsReq(verifyIds: batchIds),
       );
       if (response.code == 0 && response.result != null) {
-        await friendService.batchCreateVerifies(
-          response.result!.friendVerifies,
-        );
+        final companions = response.result!.friendVerifies
+            .map((e) => e.toCompanion())
+            .toList();
+        await friendService.batchCreateVerifies(companions);
       }
     }
   }

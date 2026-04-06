@@ -13,14 +13,23 @@ class ChatMessageRouter {
 
   /**
    * 处理聊天消息
-   * @param data WebSocket 消息内容中的 data 字段
+   * @param wsMessage WebSocket 消息内容
    */
-  Future<void> processChatMessage(Map<String, dynamic> data) async {
+  Future<void> processChatMessage(Map<String, dynamic> wsMessage) async {
+    final data = wsMessage['data'] as Map<String, dynamic>?;
+
+    if (data == null) {
+      print('[ChatMessageRouter] 收到路由消息, 但缺少 data 字段: $wsMessage');
+      return;
+    }
+
     final type = data['type'] as String?;
     final body = data['body'] as Map<String, dynamic>?;
     final conversationId = data['conversationId'] as String?;
 
-    print('[ChatMessageRouter] 收到路由消息: type=$type, convId=$conversationId, hasBody=${body != null}');
+    print(
+      '[ChatMessageRouter] 收到路由消息: type=$type, convId=$conversationId, hasBody=${body != null}',
+    );
 
     if (type == null || body == null) return;
 

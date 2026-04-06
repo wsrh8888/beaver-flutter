@@ -22,6 +22,12 @@ Future<BaseResponse<bool>> rejectCallApi(RejectCallReq data) {
   return httpClient.post<bool>(url, data: data.toJson(), fromJsonT: (json) => true);
 }
 
+/// 邀请参与者
+Future<BaseResponse<bool>> inviteParticipantsApi(InviteParticipantsReq data) {
+  const url = 'api/call/v1/invite';
+  return httpClient.post<bool>(url, data: data.toJson(), fromJsonT: (json) => true);
+}
+
 /// 开始通话
 Future<BaseResponse<CallInfoRes>> startCallApi(StartCallReq data) {
   const url = 'api/call/v1/start';

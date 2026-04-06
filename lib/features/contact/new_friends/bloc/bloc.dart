@@ -20,18 +20,13 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
 
-    try {
-      final friendRequests = await _repository.getFriendRequests();
-      emit(state.copyWith(
+    final friendRequests = await _repository.getFriendRequests();
+    emit(
+      state.copyWith(
         status: NewFriendsStatus.success,
         friendRequests: friendRequests,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: NewFriendsStatus.error,
-        errorMessage: '加载好友申请失败: $e',
-      ));
-    }
+      ),
+    );
   }
 
   Future<void> _onSwitchTab(
@@ -47,8 +42,9 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
 
-    try {
-      await _repository.updateRequestStatus(event.id, 1);
+    final response = await _repository.updateRequestStatus(event.id, 1);
+
+    if (response.code == 0) {
       final updatedRequests = state.friendRequests.map((request) {
         if (request.id == event.id) {
           return FriendRequest(
@@ -64,15 +60,19 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
         }
         return request;
       }).toList();
-      emit(state.copyWith(
-        status: NewFriendsStatus.success,
-        friendRequests: updatedRequests,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: NewFriendsStatus.error,
-        errorMessage: '接受好友申请失败: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: NewFriendsStatus.success,
+          friendRequests: updatedRequests,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          status: NewFriendsStatus.error,
+          errorMessage: response.msg,
+        ),
+      );
     }
   }
 
@@ -82,8 +82,9 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
 
-    try {
-      await _repository.updateRequestStatus(event.id, 2);
+    final response = await _repository.updateRequestStatus(event.id, 2);
+
+    if (response.code == 0) {
       final updatedRequests = state.friendRequests.map((request) {
         if (request.id == event.id) {
           return FriendRequest(
@@ -99,16 +100,19 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
         }
         return request;
       }).toList();
-      emit(state.copyWith(
-        status: NewFriendsStatus.success,
-        friendRequests: updatedRequests,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: NewFriendsStatus.error,
-        errorMessage: '拒绝好友申请失败: $e',
-      ));
+      emit(
+        state.copyWith(
+          status: NewFriendsStatus.success,
+          friendRequests: updatedRequests,
+        ),
+      );
+    } else {
+      emit(
+        state.copyWith(
+          status: NewFriendsStatus.error,
+          errorMessage: response.msg,
+        ),
+      );
     }
   }
 }
-

@@ -6,13 +6,26 @@ class EmojiPackageEmojiService {
 
   EmojiPackageEmojiService(this._db);
 
-  Future<void> batchCreate(List<EmojiPackageEmojiTableCompanion> entries) async {
+  Future<void> batchCreate(
+    List<EmojiPackageEmojiTableCompanion> entries,
+  ) async {
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.emojiPackageEmojiTable, entries);
+      for (final entry in entries) {
+        batch.insert(
+          _db.emojiPackageEmojiTable,
+          entry,
+          onConflict: DoUpdate(
+            (old) => entry,
+            target: [_db.emojiPackageEmojiTable.relationId],
+          ),
+        );
+      }
     });
   }
 
-  Future<List<EmojiPackageEmojiTableData>> getByPackageId(String packageId) async {
+  Future<List<EmojiPackageEmojiTableData>> getByPackageId(
+    String packageId,
+  ) async {
     final query = _db.select(_db.emojiPackageEmojiTable)
       ..where((t) => t.packageId.equals(packageId))
       ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
@@ -27,7 +40,7 @@ class EmojiPackageEmojiService {
       ),
     ]);
     query.where(_db.emojiPackageEmojiTable.packageId.equals(packageId));
-    
+
     final rows = await query.get();
     return rows.map((row) => row.readTable(_db.emojis)).toList();
   }

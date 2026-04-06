@@ -31,6 +31,7 @@ class CallInfo extends Equatable {
   final String callerName;
   final String callerAvatar;
   final bool isIncoming;
+  final bool isGroup;
   final CallType callType;
   final String roomId;
   final String roomToken;
@@ -41,6 +42,7 @@ class CallInfo extends Equatable {
     required this.callerName,
     required this.callerAvatar,
     required this.isIncoming,
+    this.isGroup = false,
     this.callType = CallType.video,
     this.roomId = '',
     this.roomToken = '',
@@ -53,6 +55,7 @@ class CallInfo extends Equatable {
     callerName,
     callerAvatar,
     isIncoming,
+    isGroup,
     callType,
     roomId,
     roomToken,
@@ -64,6 +67,7 @@ class CallInfo extends Equatable {
     String? callerName,
     String? callerAvatar,
     bool? isIncoming,
+    bool? isGroup,
     CallType? callType,
     String? roomId,
     String? roomToken,
@@ -74,6 +78,7 @@ class CallInfo extends Equatable {
       callerName: callerName ?? this.callerName,
       callerAvatar: callerAvatar ?? this.callerAvatar,
       isIncoming: isIncoming ?? this.isIncoming,
+      isGroup: isGroup ?? this.isGroup,
       callType: callType ?? this.callType,
       roomId: roomId ?? this.roomId,
       roomToken: roomToken ?? this.roomToken,
@@ -87,6 +92,7 @@ class CallInfo extends Equatable {
       callerName: json['callerName'] ?? '',
       callerAvatar: json['callerAvatar'] ?? '',
       isIncoming: json['isIncoming'] ?? false,
+      isGroup: json['isGroup'] ?? false,
       callType: json['callType'] == 'video' ? CallType.video : CallType.audio,
       roomId: json['roomId'] ?? '',
       roomToken: json['roomToken'] ?? '',

@@ -27,7 +27,7 @@ class BeaverCachedImage extends StatefulWidget {
     this.placeholder,
     this.errorWidget,
     this.borderRadius,
-    this.enableFullscreen = true,
+    this.enableFullscreen = false,
   });
 
   @override

@@ -23,7 +23,7 @@ class FriendVerifySyncModule {
 
       // 获取本地同步时间戳
       final localCursor = await datasyncService.get('friend_verifies');
-      final lastSyncTime = localCursor?.version ?? 0;
+      final lastSyncTime = localCursor?.updatedAt ?? 0;
 
       // 获取服务器上变更的好友验证版本信息
       final serverResponse = await datasyncGetSyncFriendVerifiesApi(
@@ -62,7 +62,7 @@ class FriendVerifySyncModule {
         // 没有需要更新的数据，直接更新时间戳
         await _updateFriendVerifiesCursor(
           datasyncService,
-          null,
+          localCursor?.version ?? 0, // 保持原有最高版本号
           serverTimestamp,
         );
       }

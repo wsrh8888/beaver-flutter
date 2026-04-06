@@ -1,13 +1,15 @@
-﻿import 'package:beaver/core/datasync/manager.dart' show syncManager;
+import 'package:beaver/core/datasync/manager.dart' show syncManager;
 import 'package:beaver/core/message/receivers/call/call.dart';
 import 'package:beaver/core/message/receivers/chat/index.dart';
 import 'package:beaver/core/message/receivers/friend/index.dart';
 import 'package:beaver/core/message/receivers/group/index.dart';
 import 'package:beaver/core/message/receivers/notification/index.dart';
 import 'package:beaver/core/message/receivers/user/index.dart';
+import 'package:beaver/common/logger/index.dart';
 
 /// Message manager: ensures sync-first and ordered message dispatch.
 class MessageManager {
+  final logger = Logger('message');
   bool _isDataSyncing = false;
   final List<Map<String, dynamic>> _messageQueue = [];
   bool _isQueueDraining = false;
@@ -15,7 +17,8 @@ class MessageManager {
   final ChatMessageRouter _chatRouter = chatMessageRouter;
   final FriendMessageRouter _friendRouter = friendMessageRouter;
   final GroupMessageRouter _groupRouter = groupMessageRouter;
-  final NotificationMessageRouter _notificationRouter = notificationMessageRouter;
+  final NotificationMessageRouter _notificationRouter =
+      notificationMessageRouter;
   final UserMessageRouter _userRouter = userMessageRouter;
   final CallMessageReceiver _callReceiver = CallMessageReceiver();
 
@@ -34,6 +37,7 @@ class MessageManager {
   void onWsError(dynamic error) {}
 
   void handleMessage(Map<String, dynamic> data) {
+    logger.info({'text': '收到了ws消息', 'data': data});
     _messageQueue.add(data);
     if (_isDataSyncing) return;
     _startDrainQueue();
@@ -63,29 +67,27 @@ class MessageManager {
 
   Future<void> _processMessage(Map<String, dynamic> wsMessage) async {
     final command = wsMessage['command'] as String?;
-    final content = wsMessage['content'];
-    final map = content is Map
-        ? Map<String, dynamic>.from(content)
-        : <String, dynamic>{};
+    final content = wsMessage['content'] as Map<String, dynamic>?;
+    if (content == null) return;
 
     switch (command) {
       case 'CHAT_MESSAGE':
-        await _chatRouter.processChatMessage(map);
+        await _chatRouter.processChatMessage(content);
         break;
       case 'FRIEND_OPERATION':
-        await _friendRouter.processFriendMessage(map);
+        await _friendRouter.processFriendMessage(content);
         break;
       case 'GROUP_OPERATION':
-        await _groupRouter.processGroupMessage(map);
+        await _groupRouter.processGroupMessage(content);
         break;
       case 'NOTIFICATION':
-        await _notificationRouter.processNotificationMessage(map);
+        await _notificationRouter.processNotificationMessage(content);
         break;
       case 'USER_PROFILE':
-        await _userRouter.processUserMessage(map);
+        await _userRouter.processUserMessage(content);
         break;
       case 'CALL_OPERATION':
-        _callReceiver.processCallMessage(map);
+        _callReceiver.processCallMessage(content);
         break;
       case 'SYSTEM_MESSAGE':
       case 'HEARTBEAT':

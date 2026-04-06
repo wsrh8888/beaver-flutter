@@ -32,6 +32,44 @@
 
 ---
 
+## 📱 Screenshots
+
+### 💬 Chat Features
+<div align="center">
+  <img src="./assets/screenshots/messages.jpg" width="200" alt="Message List"/>
+  <img src="./assets/screenshots/chat_content.jpg" width="200" alt="Chat Content"/>
+  <img src="./assets/screenshots/chat_settings.jpg" width="200" alt="Chat Settings"/>
+  <img src="./assets/screenshots/favorite_emojis.jpg" width="200" alt="Favorite Emojis"/>
+  <img src="./assets/screenshots/default_emojis.jpg" width="200" alt="Default Emojis"/>
+</div>
+
+### 👥 Social Features
+<div align="center">
+  <img src="./assets/screenshots/friend_list.jpg" width="200" alt="Friend List"/>
+  <img src="./assets/screenshots/friend_profile.jpg" width="200" alt="Friend Profile"/>
+  <img src="./assets/screenshots/new_friend_received.jpg" width="200" alt="Friend Request Received"/>
+  <img src="./assets/screenshots/new_friend_sent.jpg" width="200" alt="Friend Request Sent"/>
+</div>
+
+### 👥 Group Features
+<div align="center">
+  <img src="./assets/screenshots/create_group.jpg" width="200" alt="Create Group"/>
+  <img src="./assets/screenshots/my_groups.jpg" width="200" alt="My Groups"/>
+</div>
+
+### ⚙️ System Features
+<div align="center">
+  <img src="./assets/screenshots/my_profile.jpg" width="200" alt="Profile Page"/>
+  <img src="./assets/screenshots/general_settings.jpg" width="200" alt="General Settings"/>
+  <img src="./assets/screenshots/feedback.jpg" width="200" alt="Feedback"/>
+  <img src="./assets/screenshots/camera.jpg" width="200" alt="Camera"/>
+  <img src="./assets/screenshots/database.jpg" width="200" alt="Database Sync"/>
+</div>
+
+---
+
+---
+
 ## 🚀 Quick Start
 
 ### System Requirements

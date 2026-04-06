@@ -5,7 +5,7 @@ import 'package:beaver/features/group/create/bloc/bloc.dart';
 import 'package:beaver/features/group/create/bloc/event.dart';
 import 'package:beaver/features/group/create/bloc/state.dart';
 
-import 'package:beaver/types/business/group.dart';
+import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
@@ -25,7 +25,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
   @override
   void initState() {
     super.initState();
-    _createGroupBloc = CreateGroupBloc()..add(LoadContactsEvent());
+    _createGroupBloc = CreateGroupBloc()..add(const LoadContactsEvent());
     _searchController.addListener(() {
       _createGroupBloc.add(SearchContactsEvent(_searchController.text));
     });
@@ -53,8 +53,10 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
         },
         child: BlocBuilder<CreateGroupBloc, CreateGroupState>(
           builder: (context, state) {
-            final filteredContacts = state.contacts.where((c) => 
-              c.nickname.toLowerCase().contains(state.searchQuery.toLowerCase())).toList();
+            final filteredContacts = state.contacts.where((c) {
+              final name = c.notice?.isNotEmpty == true ? c.notice! : c.nickname;
+              return name.toLowerCase().contains(state.searchQuery.toLowerCase());
+            }).toList();
 
             return BeaverLayout(
               title: '发起群聊',
@@ -120,8 +122,16 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     );
   }
 
-  Widget _buildContactList(List<Contact> contacts, CreateGroupState state) {
+  Widget _buildContactList(List<ContactModel> contacts, CreateGroupState state) {
     if (contacts.isEmpty) {
+      if (_searchController.text.isNotEmpty) {
+        return Center(
+          child: Text(
+            '未搜索到联系人',
+            style: TextStyle(fontSize: 14.sp, color: const Color(0xFFB2BEC3)),
+          ),
+        );
+      }
       return Center(
         child: Text(
           '无联系人',
@@ -139,6 +149,8 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
       itemBuilder: (context, index) {
         final contact = contacts[index];
         final isSelected = state.selectedContacts.any((c) => c.userId == contact.userId);
+        final displayName = contact.notice?.isNotEmpty == true ? contact.notice! : contact.nickname;
+
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => _createGroupBloc.add(SelectContactEvent(contact)),
@@ -163,7 +175,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 ),
                 SizedBox(width: 16.w),
                 BeaverCachedImage(
-                  fileKey: contact.fileName,
+                  fileKey: contact.avatar ?? contact.fileName ?? '',
                   type: CacheType.avatar,
                   width: 44.w,
                   height: 44.w,
@@ -172,7 +184,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Text(
-                    contact.nickname,
+                    displayName,
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500,
@@ -214,7 +226,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
               ),
             ),
             GestureDetector(
-              onTap: hasSelection ? () => _createGroupBloc.add(CreateGroupSubmitEvent()) : null,
+              onTap: hasSelection ? () => _createGroupBloc.add(const CreateGroupSubmitEvent()) : null,
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.w),
                 decoration: BoxDecoration(
@@ -237,4 +249,3 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
     );
   }
 }
-

@@ -13,13 +13,13 @@ class SwitchTabEvent extends NewFriendsEvent {
 }
 
 class AcceptRequestEvent extends NewFriendsEvent {
-  final int id;
+  final String id;
 
   const AcceptRequestEvent(this.id);
 }
 
 class RejectRequestEvent extends NewFriendsEvent {
-  final int id;
+  final String id;
 
   const RejectRequestEvent(this.id);
 }

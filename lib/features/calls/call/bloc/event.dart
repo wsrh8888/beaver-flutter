@@ -13,11 +13,12 @@ class InitializeCallEvent extends CallPageEvent {
   final String roomToken;
   final String liveKitUrl;
   final CallType callType;
+  final bool isGroup;
   
-  const InitializeCallEvent(this.conversationId, this.roomToken, this.liveKitUrl, this.callType);
+  const InitializeCallEvent(this.conversationId, this.roomToken, this.liveKitUrl, this.callType, {this.isGroup = false});
   
   @override
-  List<Object?> get props => [conversationId, roomToken, liveKitUrl, callType];
+  List<Object?> get props => [conversationId, roomToken, liveKitUrl, callType, isGroup];
 }
 
 class StartCallEvent extends CallPageEvent {
@@ -38,4 +39,12 @@ class ToggleCameraEvent extends CallPageEvent {
 
 class ToggleSpeakerEvent extends CallPageEvent {
   const ToggleSpeakerEvent();
+}
+
+class InviteParticipantsEvent extends CallPageEvent {
+  final List<String> userIds;
+  const InviteParticipantsEvent(this.userIds);
+  
+  @override
+  List<Object?> get props => [userIds];
 }

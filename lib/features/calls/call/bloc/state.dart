@@ -9,6 +9,7 @@ class CallPageState extends Equatable {
   final bool isSpeakerOn;
   final String? errorMessage;
   final CallType callType;
+  final bool isGroup;
   final bool isLocalVideoSmall;
   
   const CallPageState({
@@ -19,6 +20,7 @@ class CallPageState extends Equatable {
     this.isSpeakerOn = true,
     this.errorMessage,
     this.callType = CallType.audio,
+    this.isGroup = false,
     this.isLocalVideoSmall = true,
   });
   
@@ -31,6 +33,7 @@ class CallPageState extends Equatable {
     isSpeakerOn,
     errorMessage,
     callType,
+    isGroup,
     isLocalVideoSmall,
   ];
   
@@ -42,6 +45,7 @@ class CallPageState extends Equatable {
     bool? isSpeakerOn,
     String? errorMessage,
     CallType? callType,
+    bool? isGroup,
     bool? isLocalVideoSmall,
   }) {
     return CallPageState(
@@ -52,6 +56,7 @@ class CallPageState extends Equatable {
       isSpeakerOn: isSpeakerOn ?? this.isSpeakerOn,
       errorMessage: errorMessage ?? this.errorMessage,
       callType: callType ?? this.callType,
+      isGroup: isGroup ?? this.isGroup,
       isLocalVideoSmall: isLocalVideoSmall ?? this.isLocalVideoSmall,
     );
   }

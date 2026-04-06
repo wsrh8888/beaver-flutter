@@ -21,16 +21,20 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
       if (user != null) {
         emit(state.copyWith(status: SearchContactStatus.success, user: user));
       } else {
-        emit(state.copyWith(
-          status: SearchContactStatus.error,
-          errorMessage: '未找到相关用户',
-        ));
+        emit(
+          state.copyWith(
+            status: SearchContactStatus.error,
+            errorMessage: '未找到相关用户',
+          ),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(
-        status: SearchContactStatus.error,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: SearchContactStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -39,23 +43,29 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
     Emitter<SearchContactState> emit,
   ) async {
     try {
-      final success = await _repository.addFriend(event.userId);
-      if (success) {
-        emit(state.copyWith(
-          status: SearchContactStatus.success,
-          errorMessage: '好友请求发送成功',
-        ));
+      final response = await _repository.addFriend(event.userId);
+      if (response.code == 0) {
+        emit(
+          state.copyWith(
+            status: SearchContactStatus.success,
+            errorMessage: '好友请求发送成功',
+          ),
+        );
       } else {
-        emit(state.copyWith(
-          status: SearchContactStatus.error,
-          errorMessage: '发送失败，请稍后再试',
-        ));
+        emit(
+          state.copyWith(
+            status: SearchContactStatus.error,
+            errorMessage: response.msg,
+          ),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(
-        status: SearchContactStatus.error,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: SearchContactStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }

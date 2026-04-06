@@ -20,12 +20,14 @@ class MessageSync {
       final datasyncService = getIt<DatasyncService>();
       final syncStatusService = getIt<ChatSyncStatusService>();
 
-      // 获取本地最后同步时间
+      // 获取本地最后同步时间 (时间戳游标)
       final localCursor = await datasyncService.get('chat_messages');
-      final lastSyncTime = localCursor?.version ?? 0;
+      final lastSyncTime = localCursor?.updatedAt ?? 0;
 
       // 获取服务器上变更的消息版本信息
-      final response = await datasyncGetSyncChatMessagesApi(IGetSyncChatMessagesReq(since: lastSyncTime));
+      final response = await datasyncGetSyncChatMessagesApi(
+        IGetSyncChatMessagesReq(since: lastSyncTime),
+      );
       if (response.code != 0 || response.result == null) {
         // print('[MessageSync] 获取消息摘要失败: ${response.msg}');
         return;
@@ -71,14 +73,21 @@ class MessageSync {
 
     final conversationIds = serverConversationMap.keys.toList();
     // 批量查询本地消息同步状态
-    final localVersions = await syncStatusService.getModuleVersions('message', conversationIds);
-    final localVersionMap = {for (var v in localVersions) v.conversationId: v.seq};
+    final localVersions = await syncStatusService.getModuleVersions(
+      'message',
+      conversationIds,
+    );
+    final localVersionMap = {
+      for (var v in localVersions) v.conversationId: v.seq,
+    };
 
     final List<_ConversationSeqItem> needSyncConversations = [];
     serverConversationMap.forEach((conversationId, serverSeq) {
       final localSeq = localVersionMap[conversationId] ?? 0;
       if (serverSeq > localSeq) {
-        needSyncConversations.add(_ConversationSeqItem(conversationId, serverSeq));
+        needSyncConversations.add(
+          _ConversationSeqItem(conversationId, serverSeq),
+        );
       }
     });
 
@@ -86,12 +95,17 @@ class MessageSync {
   }
 
   /// 同步指定会话的消息数据
-  Future<void> _syncMessagesForConversations(List<_ConversationSeqItem> conversationsWithSeq) async {
+  Future<void> _syncMessagesForConversations(
+    List<_ConversationSeqItem> conversationsWithSeq,
+  ) async {
     final syncStatusService = getIt<ChatSyncStatusService>();
 
     for (final item in conversationsWithSeq) {
       // 获取本地消息同步状态
-      final localSyncStatus = await syncStatusService.getSyncStatus('message', item.conversationId);
+      final localSyncStatus = await syncStatusService.getSyncStatus(
+        'message',
+        item.conversationId,
+      );
       final localSeq = localSyncStatus?.seq ?? 0;
 
       // 同步该会话的消息（从本地seq+1开始到服务器seq）
@@ -113,7 +127,11 @@ class MessageSync {
   }
 
   /// 同步单个会话的消息
-  Future<void> syncConversationMessages(String conversationId, int fromSeq, int toSeq) async {
+  Future<void> syncConversationMessages(
+    String conversationId,
+    int fromSeq,
+    int toSeq,
+  ) async {
     try {
       await _doSyncConversationMessages(conversationId, fromSeq, toSeq);
     } catch (error) {
@@ -122,34 +140,46 @@ class MessageSync {
   }
 
   /// 执行单个会话的消息同步
-  Future<void> _doSyncConversationMessages(String conversationId, int fromSeq, int toSeq) async {
+  Future<void> _doSyncConversationMessages(
+    String conversationId,
+    int fromSeq,
+    int toSeq,
+  ) async {
     final chatService = getIt<ChatMessageService>();
     final messageBusiness = getIt<MessageBusiness>();
     int currentSeq = fromSeq;
 
     while (currentSeq <= toSeq) {
-      final response = await chatSyncApi(IChatSyncReq(
-        conversationId: conversationId,
-        fromSeq: currentSeq,
-        toSeq: (currentSeq + 99 < toSeq) ? currentSeq + 99 : toSeq,
-        limit: 100,
-      ));
+      final response = await chatSyncApi(
+        IChatSyncReq(
+          conversationId: conversationId,
+          fromSeq: currentSeq,
+          toSeq: (currentSeq + 99 < toSeq) ? currentSeq + 99 : toSeq,
+          limit: 100,
+        ),
+      );
 
-      if (response.code == 0 && response.result != null && response.result!.messages.isNotEmpty) {
-        final messages = response.result!.messages.map((msg) => ChatsCompanion(
-          messageId: Value(msg.messageId),
-          conversationId: Value(msg.conversationId),
-          conversationType: Value(msg.conversationType),
-          sendUserId: Value(msg.sendUserId),
-          msgType: Value(msg.msgType),
-          targetMessageId: Value(msg.targetMessageId),
-          msgPreview: Value(msg.msgPreview),
-          msg: Value(msg.msg),
-          seq: Value(msg.seq),
-          sendStatus: const Value(1), // 已发送
-          createdAt: Value(msg.createdAt),
-          updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-        )).toList();
+      if (response.code == 0 &&
+          response.result != null &&
+          response.result!.messages.isNotEmpty) {
+        final messages = response.result!.messages
+            .map(
+              (msg) => ChatsCompanion(
+                messageId: Value(msg.messageId),
+                conversationId: Value(msg.conversationId),
+                conversationType: Value(msg.conversationType),
+                sendUserId: Value(msg.sendUserId),
+                msgType: Value(msg.msgType),
+                targetMessageId: Value(msg.targetMessageId),
+                msgPreview: Value(msg.msgPreview),
+                msg: Value(msg.msg),
+                seq: Value(msg.seq),
+                sendStatus: const Value(1), // 已发送
+                createdAt: Value(msg.createdAt),
+                updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+              ),
+            )
+            .toList();
 
         await chatService.batchCreate(messages);
 

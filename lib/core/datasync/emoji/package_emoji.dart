@@ -27,6 +27,8 @@ class EmojiPackageEmojiSync {
             emojiId: Value(item.emojiId),
             sortOrder: Value(item.sortOrder),
             version: Value(item.version),
+            createdAt: Value(item.createdAt),
+            updatedAt: Value(item.updatedAt),
           );
         }).toList();
         await service.batchCreate(companions);

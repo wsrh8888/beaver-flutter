@@ -10,6 +10,8 @@ class EmojiPackageSync {
     final emojiPackageService = getIt<EmojiPackageService>();
     final ids = versions.map((v) => v.packageId).toList();
 
+    print("开始同步表情包：${ids.length}");
+
     const batchSize = 50;
     for (var i = 0; i < ids.length; i += batchSize) {
       final batchIds = ids.sublist(
@@ -28,6 +30,8 @@ class EmojiPackageSync {
             type: Value(item.type),
             status: Value(item.status),
             version: Value(item.version),
+            createdAt: Value(item.createdAt),
+            updatedAt: Value(item.updatedAt),
           );
         }).toList();
         await emojiPackageService.batchCreate(companions);

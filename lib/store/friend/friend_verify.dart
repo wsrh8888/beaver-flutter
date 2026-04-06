@@ -38,21 +38,11 @@ class FriendVerifyStore extends Cubit<FriendVerifyStoreState> {
     try {
       final requests = await _friendBusiness.getFriendRequests();
       final unreadCount = await _friendBusiness.getUnreadFriendRequestCount('');
-      emit(state.copyWith(
-        friendVerifyList: requests,
-        unreadCount: unreadCount,
-      ));
+      emit(
+        state.copyWith(friendVerifyList: requests, unreadCount: unreadCount),
+      );
     } catch (e) {
       print('FriendVerifyStore: 初始化失败: $e');
-    }
-  }
-
-  Future<void> handleFriendVerify(int requestId, int status) async {
-    try {
-      await _friendBusiness.updateFriendRequestStatus(requestId, status);
-      await refresh();
-    } catch (e) {
-      print('FriendVerifyStore: 处理好友验证失败: $e');
     }
   }
 

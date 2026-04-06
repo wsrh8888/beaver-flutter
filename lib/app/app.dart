@@ -9,6 +9,8 @@ import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/store/group/group.dart';
+import 'package:beaver/store/group/group_member.dart';
+import 'package:beaver/store/group/group_join_request.dart';
 import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
@@ -71,6 +73,12 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
             BlocProvider<ChatStore>(create: (_) => getIt<ChatStore>()),
             BlocProvider<FriendStore>(create: (_) => getIt<FriendStore>()),
             BlocProvider<GroupStore>(create: (_) => getIt<GroupStore>()),
+            BlocProvider<GroupMemberStore>(
+              create: (_) => getIt<GroupMemberStore>(),
+            ),
+            BlocProvider<GroupJoinRequestStore>(
+              create: (_) => getIt<GroupJoinRequestStore>(),
+            ),
             BlocProvider<NotificationStore>(
               create: (_) => getIt<NotificationStore>(),
             ),

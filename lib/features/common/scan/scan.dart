@@ -102,16 +102,18 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildActionButton(
+                icon: Icons.photo_library, // 相册
+                onPressed: () {
+                  // TODO: 从相册选取二维码
+                },
+              ),
+              SizedBox(width: 40.w),
+              _buildActionButton(
                 icon: state.isTorchOn ? Icons.flash_on : Icons.flash_off,
                 onPressed: () {
                   _controller.toggleTorch();
                   _bloc.add(ToggleTorchEvent());
                 },
-              ),
-              SizedBox(width: 40.w),
-              _buildActionButton(
-                icon: Icons.flip_camera_ios,
-                onPressed: () => _controller.switchCamera(),
               ),
             ],
           ),

@@ -77,8 +77,7 @@ class AppDatabase extends _$AppDatabase {
       },
       beforeOpen: (details) async {
         if (details.wasCreated) {
-        } else if (details.hadUpgrade) {
-        }
+        } else if (details.hadUpgrade) {}
       },
     );
   }

@@ -1,11 +1,11 @@
-import 'package:beaver/types/business/group.dart';
+import 'package:beaver/types/business/contact.dart';
 
 enum CreateGroupStatus { initial, loading, success, error }
 
 class CreateGroupState {
   final CreateGroupStatus status;
-  final List<Contact> contacts;
-  final List<Contact> selectedContacts;
+  final List<ContactModel> contacts;
+  final List<ContactModel> selectedContacts;
   final String searchQuery;
   final String? groupId;
   final String? errorMessage;
@@ -21,8 +21,8 @@ class CreateGroupState {
 
   CreateGroupState copyWith({
     CreateGroupStatus? status,
-    List<Contact>? contacts,
-    List<Contact>? selectedContacts,
+    List<ContactModel>? contacts,
+    List<ContactModel>? selectedContacts,
     String? searchQuery,
     String? groupId,
     String? errorMessage,

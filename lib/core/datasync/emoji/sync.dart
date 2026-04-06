@@ -13,7 +13,6 @@ class EmojiSync {
 
       // 2. 同步收藏与关联数据
       await _syncEmojiCollects();
-
     } catch (e) {
       print('[EmojiSync] 同步过程中发生错误: $e');
     }
@@ -23,7 +22,7 @@ class EmojiSync {
     final datasyncService = getIt<DatasyncService>();
 
     final cursor = await datasyncService.get('emoji_collects');
-    final lastSyncTime = cursor?.version ?? 0;
+    final lastSyncTime = cursor?.updatedAt ?? 0;
 
     final response = await datasyncGetSyncEmojiCollectsApi(
       IGetSyncEmojiCollectsReq(since: lastSyncTime),
@@ -32,27 +31,43 @@ class EmojiSync {
 
     final result = response.result!;
 
-    // 1. 同步表情收藏详情 (Collects)
+    // 对标 PC：并行执行所有表情包相关表的同步
+    final syncTasks = <Future<void>>[];
+
+    // 1. 同步单个表情收藏详情 (Collects)
     if (result.emojiCollectVersions.isNotEmpty) {
-      await EmojiCollectSync().sync(result.emojiCollectVersions);
+      print('同步表情收藏详情');
+      syncTasks.add(EmojiCollectSync().sync(result.emojiCollectVersions));
     }
 
     // 2. 同步表情包元数据 (Packages)
     if (result.emojiPackageVersions.isNotEmpty) {
-      await EmojiPackageSync().sync(result.emojiPackageVersions);
+      print('同步表情包元数据');
+      syncTasks.add(EmojiPackageSync().sync(result.emojiPackageVersions));
     }
 
     // 3. 同步表情包订阅记录 (PackageCollects)
     if (result.emojiPackageCollectVersions.isNotEmpty) {
-      await EmojiPackageCollectSync().sync(result.emojiPackageCollectVersions);
+      print('同步表情包订阅记录');
+      syncTasks.add(
+        EmojiPackageCollectSync().sync(result.emojiPackageCollectVersions),
+      );
     }
 
     // 4. 同步表情包内容详情 (PackageContents)
     if (result.emojiPackageContentVersions.isNotEmpty) {
-      await EmojiPackageEmojiSync().sync(result.emojiPackageContentVersions);
+      print('同步表情包内容详情');
+      syncTasks.add(
+        EmojiPackageEmojiSync().sync(result.emojiPackageContentVersions),
+      );
     }
 
-    // 更新游标 (使用 serverTimestamp 作为版本号实现真正的增量同步)
+    // 并行处理并等待完成
+    if (syncTasks.isNotEmpty) {
+      await Future.wait(syncTasks);
+    }
+
+    // 更新游标 (使用 serverTimestamp 实现增量同步)
     await datasyncService.upsert(
       'emoji_collects',
       result.serverTimestamp,
@@ -65,10 +80,10 @@ class EmojiSync {
 Future<void> clearEmojiSyncState() async {
   final datasyncService = getIt<DatasyncService>();
   final db = DatabaseManager.instance;
-  
+
   await datasyncService.upsert('emoji_collects', 0, 0);
   await datasyncService.upsert('emojis', 0, 0);
-  
+
   await db.batch((batch) {
     batch.deleteAll(db.emojiCollectTable);
     batch.deleteAll(db.emojiPackageTable);
@@ -76,7 +91,7 @@ Future<void> clearEmojiSyncState() async {
     batch.deleteAll(db.emojiPackageEmojiTable);
     batch.deleteAll(db.emojis);
   });
-  
+
   print('[EmojiSync] 表情同步状态与本地数据已清空');
 }
 

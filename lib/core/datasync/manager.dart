@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/datasync/index.dart';
 
 /// 数据同步管理器
-/// 
+///
 /// 职责：协调全局数据同步
 /// - 管理同步状态
 /// - 按顺序执行各模块同步
@@ -10,6 +11,8 @@ import 'package:beaver/core/datasync/index.dart';
 class DataSyncManager {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
+
+  final _logger = Logger('dataSyncManager');
 
   final _statusController = StreamController<String>.broadcast();
   Stream<String> get statusStream => _statusController.stream;
@@ -21,7 +24,11 @@ class DataSyncManager {
 
   /// 自动开始全量同步流程
   Future<void> autoSync() async {
+    if (_isSyncing) return;
     try {
+      // 打印logger
+
+      _logger.info({"text": "开始全量同步"});
       _isSyncing = true;
       _statusController.add('syncing');
 

@@ -25,7 +25,9 @@ class EmojiCollectSync {
             emojiId: Value(item.emojiId),
             packageId: Value(item.packageId),
             version: Value(item.version),
-            isDeleted: Value(item.status == 0 ? 1 : 0),
+            isDeleted: Value(item.isDeleted ? 1 : 0),
+            createdAt: Value(item.createdAt),
+            updatedAt: Value(item.updatedAt),
           );
         }).toList();
         await emojiCollectService.batchCreate(companions);

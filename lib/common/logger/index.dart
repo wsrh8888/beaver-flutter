@@ -1,25 +1,46 @@
+import 'dart:convert';
+
 /// 日志服务
-/// 
-/// 职责：提供应用级日志能力
-/// - 日志记录
-/// - 日志级别控制
-/// - 日志上报
-class LoggerService {
-  void info(String message) {
-    print('[INFO] $message');
+class Logger {
+  final String moduleName;
+
+  Logger([this.moduleName = '']);
+
+  void info(Map<String, dynamic> msg) {
+    _log('info', msg);
   }
 
-  void debug(String message) {
-    print('[DEBUG] $message');
+  void warn(Map<String, dynamic> msg) {
+    _log('warn', msg);
   }
 
-  void warn(String message) {
-    print('[WARN] $message');
+  void error(Map<String, dynamic> msg) {
+    _log('error', msg);
   }
 
-  void error(String message, [dynamic error]) {
-    print('[ERROR] $message ${error ?? ''}');
+  /// 格式化日志结构
+  Map<String, dynamic> formatLog(String level, String msg) {
+    return {
+      "source": "beaver_flutter",
+      'level': level,
+      "moduleName": moduleName,
+      'message': msg,
+      'time': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  void _log(String level, Map<String, dynamic> msg) {
+    // 业务数据直接转换为 JSON 字符串作为 message 字段
+    final String jsonMessage = jsonEncode(msg);
+
+    // 调用 formatLog 生成包含元数据的完整日志条目
+    // final Map<String, dynamic> logEntry = formatLog(level, jsonMessage);
+
+    // 最终控制台输出完整的 JSON 结构
+    // ignore: avoid_print
+    print(jsonMessage);
   }
 }
 
-final logger = LoggerService();
+// 默认全局 logger
+final logger = Logger();

@@ -20,9 +20,9 @@ class UserSyncModule {
       final userService = getIt<UserService>();
       final userSyncStatusService = getIt<UserSyncStatusService>();
 
-      // 获取本地最后同步时间
+      // 获取本地最后同步时间 (游标)
       final cursor = await datasyncService.get('users');
-      final lastSyncTime = cursor?.version ?? 0;
+      final lastSyncTime = cursor?.updatedAt ?? 0;
 
       // 获取变更的用户版本摘要
       final response = await datasyncGetSyncAllUsersApi(

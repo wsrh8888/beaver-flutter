@@ -1,4 +1,5 @@
 import 'package:beaver/core/database/db.dart';
+import 'package:drift/drift.dart';
 
 class EmojiCollectService {
   final AppDatabase _db;
@@ -7,11 +8,22 @@ class EmojiCollectService {
 
   Future<void> batchCreate(List<EmojiCollectTableCompanion> entries) async {
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.emojiCollectTable, entries);
+      for (final entry in entries) {
+        batch.insert(
+          _db.emojiCollectTable,
+          entry,
+          onConflict: DoUpdate(
+            (old) => entry,
+            target: [_db.emojiCollectTable.emojiCollectId],
+          ),
+        );
+      }
     });
   }
 
-  Future<Map<String, EmojiCollectTableData>> getCollectsByIds(List<String> ids) async {
+  Future<Map<String, EmojiCollectTableData>> getCollectsByIds(
+    List<String> ids,
+  ) async {
     final query = _db.select(_db.emojiCollectTable)
       ..where((t) => t.emojiCollectId.isIn(ids));
     final result = await query.get();
@@ -22,7 +34,10 @@ class EmojiCollectService {
     return await _db.select(_db.emojiCollectTable).get();
   }
 
-  Future<List<EmojiCollectTableData>> getUserCollects({int page = 1, int size = 500}) async {
+  Future<List<EmojiCollectTableData>> getUserCollects({
+    int page = 1,
+    int size = 500,
+  }) async {
     final query = _db.select(_db.emojiCollectTable)
       ..where((t) => t.isDeleted.equals(0))
       ..limit(size, offset: (page - 1) * size);
