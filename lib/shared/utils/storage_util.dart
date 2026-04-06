@@ -22,6 +22,10 @@ class StorageUtil {
     return _prefs.remove(key);
   }
 
+  static Future<bool> clear() async {
+    return _prefs.clear();
+  }
+
   /// 获取设备唯一 ID (对标 desktop.deviceId)
   static Future<String> getDeviceId() async {
     final deviceInfo = DeviceInfoPlugin();

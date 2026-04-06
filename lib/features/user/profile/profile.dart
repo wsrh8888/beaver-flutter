@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/user/profile/bloc/bloc.dart';
@@ -39,8 +40,17 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.of(context).pop();
   }
 
-  void _chooseAvatar() {
-    _profileBloc.add(UpdateAvatarEvent());
+  Future<void> _chooseAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (pickedFile != null) {
+      _profileBloc.add(UpdateAvatarEvent(pickedFile.path));
+    }
   }
 
   void _openModal(String type) {

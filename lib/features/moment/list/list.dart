@@ -173,7 +173,14 @@ class _MomentListViewState extends State<MomentListView> {
             right: 16.w,
             bottom: 30.w,
             child: GestureDetector(
-              onTap: () => context.push('/moment/post'),
+              onTap: () async {
+                final result = await context.push('/moment/post');
+                if (result == true && mounted) {
+                  context.read<MomentListBloc>().add(
+                        const LoadMomentListEvent(refresh: true),
+                      );
+                }
+              },
               child: Container(
                 width: 48.w,
                 height: 48.w,

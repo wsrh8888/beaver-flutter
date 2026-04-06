@@ -60,7 +60,7 @@ class _PostMomentPageState extends State<PostMomentPage> {
           } else if (state.status == PostMomentStatus.success) {
             BeaverToast.show(context, '发布成功');
             Future.delayed(const Duration(seconds: 1), () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             });
           }
         },

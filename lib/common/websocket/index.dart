@@ -27,6 +27,7 @@ class WsClient {
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   bool _isConnecting = false;
+  bool _isDisposed = false;
 
   WsClient({
     required this.wsUrl,
@@ -109,6 +110,7 @@ class WsClient {
     _channel = null;
     _stopHeartbeat();
     _reconnectTimer?.cancel();
+    if (_isDisposed) return;
     _logger.info({'text': '5秒后尝试重连'});
     _reconnectTimer = Timer(const Duration(seconds: 5), () => connect());
   }
@@ -139,6 +141,7 @@ class WsClient {
   }
 
   void dispose() {
+    _isDisposed = true;
     _stopHeartbeat();
     _reconnectTimer?.cancel();
     _channel?.sink.close();

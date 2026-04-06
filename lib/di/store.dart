@@ -27,7 +27,7 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<NotificationStore>(() => NotificationStore());
   getIt.registerLazySingleton<MessageStore>(() => MessageStore());
   getIt.registerLazySingleton<EmojiStore>(() => EmojiStore());
-  getIt.registerLazySingleton<UpdateStore>(() => UpdateStore());
+  getIt.registerLazySingleton<UpdateStore>(() => UpdateStore(getIt<UserStore>()));
   getIt.registerLazySingleton<CallStore>(() => CallStore());
   getIt.registerLazySingleton<GroupMemberStore>(() => GroupMemberStore());
   getIt.registerLazySingleton<GroupJoinRequestStore>(

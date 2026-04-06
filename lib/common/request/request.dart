@@ -72,6 +72,12 @@ class HttpClient {
           final data = response.data;
           final int code = (data is Map) ? (data['code'] ?? 0) : 0;
 
+          // 处理 FormData 避免日志 jsonEncode 失败
+          final requestData = response.requestOptions.data;
+          final logRequestData = (requestData is FormData)
+              ? "[FormData]"
+              : requestData;
+
           if (code == 0) {
             _logger.info({
               'text': '接口成功',
@@ -79,7 +85,7 @@ class HttpClient {
               'method': response.requestOptions.method,
               'status': response.statusCode,
               'requestParameters': response.requestOptions.queryParameters,
-              'requestData': response.requestOptions.data,
+              'requestData': logRequestData,
               'headers': response.requestOptions.headers,
               'data': response.data,
             });
@@ -91,7 +97,7 @@ class HttpClient {
               'status': response.statusCode,
               'code': code,
               'requestParameters': response.requestOptions.queryParameters,
-              'requestData': response.requestOptions.data,
+              'requestData': logRequestData,
               'headers': response.requestOptions.headers,
               'data': response.data,
             });
@@ -99,13 +105,18 @@ class HttpClient {
           return handler.next(response);
         },
         onError: (error, handler) {
+          final requestData = error.requestOptions.data;
+          final logRequestData = (requestData is FormData)
+              ? "[FormData]"
+              : requestData;
+
           _logger.error({
             'text': '接口异常',
             'url': error.requestOptions.path,
             'method': error.requestOptions.method,
             'error': error.message,
             'requestParameters': error.requestOptions.queryParameters,
-            'requestData': error.requestOptions.data,
+            'requestData': logRequestData,
             'headers': error.requestOptions.headers,
             'responseData': error.response?.data,
           });
@@ -128,12 +139,14 @@ class HttpClient {
     dynamic data,
     T Function(dynamic)? fromJsonT,
     Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
   }) async {
     try {
       final response = await _dio.post(
         url,
         data: data,
         queryParameters: queryParameters,
+        options: Options(headers: headers),
       );
       return BaseResponse.fromJson(response.data, fromJsonT);
     } catch (e) {
@@ -145,9 +158,14 @@ class HttpClient {
     String url, {
     T Function(dynamic)? fromJsonT,
     Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
   }) async {
     try {
-      final response = await _dio.get(url, queryParameters: queryParameters);
+      final response = await _dio.get(
+        url,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
       return BaseResponse.fromJson(response.data, fromJsonT);
     } catch (e) {
       return BaseResponse<T>(code: 500, msg: '网络请求失败: $e', result: null);

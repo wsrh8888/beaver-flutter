@@ -44,12 +44,12 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // 移动端核心：锁屏或切回前台（resumed）时，主动检查 WS 并触发全量同步
     if (state == AppLifecycleState.resumed) {
-      // 1. 尝试唤醒 WS 连接 (如果已断开则重连，如果存活则发心跳确认状态)
+      // 1. 尝试唤醒 WS 连接
       getIt<WsConnectionManager>().onAppResume();
-      // 2. 主动触发一次全量同步 (拉取离线期间的所有变更)
-      syncManager.autoSync();
+      // 2. 触发后台增量同步
+      // 对标大厂策略：采用后台静默同步，避免阻塞用户 UI 体验
+      syncManager.autoSync(isBackground: true);
     }
   }
 

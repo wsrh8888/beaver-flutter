@@ -11,6 +11,7 @@ import 'package:beaver/core/datasync/index.dart';
 class DataSyncManager {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
+  int _lastSyncTime = 0;
 
   final _logger = Logger('dataSyncManager');
 
@@ -23,14 +24,24 @@ class DataSyncManager {
   }
 
   /// 自动开始全量同步流程
-  Future<void> autoSync() async {
+  /// [isBackground] 是否为后台同步，后台同步不会触发全量加载的 UI 状态
+  Future<void> autoSync({bool isBackground = false}) async {
     if (_isSyncing) return;
-    try {
-      // 打印logger
 
-      _logger.info({"text": "开始全量同步"});
+    // 如果最近 60 秒内同步过，且是后台触发，则跳过
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (isBackground && (now - _lastSyncTime < 60000)) {
+      return;
+    }
+
+    try {
+      _logger.info({"text": "开始全量同步", "isBackground": isBackground});
       _isSyncing = true;
-      _statusController.add('syncing');
+      
+      // 只有非后台同步才发送 syncing 状态（触发 UI 遮罩或加载条）
+      if (!isBackground) {
+        _statusController.add('syncing');
+      }
 
       // 1. 同步用户资料
       await userDatasync.checkAndSync();
@@ -46,10 +57,17 @@ class DataSyncManager {
       await notificationSync.checkAndSync();
 
       _isSyncing = false;
-      _statusController.add('ready');
+      _lastSyncTime = DateTime.now().millisecondsSinceEpoch;
+      
+      // 只有非后台同步才发送 ready 状态（触发 initApp 重新加载内存）
+      if (!isBackground) {
+        _statusController.add('ready');
+      }
     } catch (e) {
       _isSyncing = false;
-      _statusController.add('error');
+      if (!isBackground) {
+        _statusController.add('error');
+      }
     }
   }
 }

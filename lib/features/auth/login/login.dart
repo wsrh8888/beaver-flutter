@@ -12,7 +12,6 @@ import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
-
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
@@ -33,8 +32,8 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _emailController = TextEditingController(text: '751135385@qq.com');
-  final _passwordController = TextEditingController(text: '15383645663.rH');
+  final _emailController = TextEditingController(text: '');
+  final _passwordController = TextEditingController(text: '');
   bool _obscurePassword = true;
   bool _emailTouched = false;
   bool _passwordTouched = false;
@@ -88,28 +87,11 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Widget _buildLogo() {
-    return Container(
-      width: 56.w,
-      height: 56.w,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFF7D45), Color(0xFFE86835)],
-        ),
-        borderRadius: BorderRadius.circular(16.w),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF7D45).withOpacity(0.2),
-            offset: Offset(0, 4.w),
-            blurRadius: 12.w,
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Center(
-        child: Image.asset('assets/images/logo.png', width: 36.w, height: 36.w, fit: BoxFit.contain),
-      ),
+    return Image.asset(
+      'assets/images/logo.png',
+      width: 80.w,
+      height: 80.w,
+      fit: BoxFit.contain,
     );
   }
 
@@ -158,9 +140,16 @@ class _LoginViewState extends State<LoginView> {
         SizedBox(height: 10.w),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            '忘记密码?',
-            style: TextStyle(color: const Color(0xFFFF7D45), fontSize: 12.w, fontWeight: FontWeight.w500),
+          child: GestureDetector(
+            onTap: () => context.push(AppRoutes.forgotPassword),
+            child: Text(
+              '忘记密码?',
+              style: TextStyle(
+                color: const Color(0xFFFF7D45),
+                fontSize: 12.w,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
         SizedBox(height: 24.w),
@@ -186,7 +175,13 @@ class _LoginViewState extends State<LoginView> {
           decoration: BoxDecoration(
             color: const Color(0xFFF9FAFB),
             borderRadius: BorderRadius.circular(14.w),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), offset: Offset(0, 2.w), blurRadius: 6.w)],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                offset: Offset(0, 2.w),
+                blurRadius: 6.w,
+              ),
+            ],
           ),
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           alignment: Alignment.center,
@@ -197,11 +192,17 @@ class _LoginViewState extends State<LoginView> {
                   controller: controller,
                   onChanged: onChanged,
                   obscureText: obscureText,
-                  style: TextStyle(fontSize: 15.w, color: const Color(0xFF2D3436)),
+                  style: TextStyle(
+                    fontSize: 15.w,
+                    color: const Color(0xFF2D3436),
+                  ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: hint,
-                    hintStyle: TextStyle(color: const Color(0xFFB2BEC3), fontSize: 15.w),
+                    hintStyle: TextStyle(
+                      color: const Color(0xFFB2BEC3),
+                      fontSize: 15.w,
+                    ),
                     isDense: true,
                   ),
                 ),
@@ -209,23 +210,42 @@ class _LoginViewState extends State<LoginView> {
               if (isPassword)
                 GestureDetector(
                   onTap: onToggle,
-                  child: Icon(obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20.w, color: const Color(0xFFB2BEC3)),
+                  child: Icon(
+                    obscureText
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    size: 20.w,
+                    color: const Color(0xFFB2BEC3),
+                  ),
                 ),
             ],
           ),
         ),
         if (errorText != null)
-          Positioned(bottom: -16.w, left: 16.w, child: Text(errorText, style: TextStyle(color: const Color(0xFFFF7D45), fontSize: 12.w))),
+          Positioned(
+            bottom: -16.w,
+            left: 16.w,
+            child: Text(
+              errorText,
+              style: TextStyle(color: const Color(0xFFFF7D45), fontSize: 12.w),
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildLoginBtn() {
-    final isLoading = context.watch<LoginBloc>().state.status == LoginStatus.loading;
+    final isLoading =
+        context.watch<LoginBloc>().state.status == LoginStatus.loading;
     final enabled = _isFormValid && !isLoading;
     return GestureDetector(
       onTap: enabled
-          ? () => context.read<LoginBloc>().add(LoginSubmitEvent(email: _emailController.text, password: _passwordController.text))
+          ? () => context.read<LoginBloc>().add(
+              LoginSubmitEvent(
+                email: _emailController.text,
+                password: _passwordController.text,
+              ),
+            )
           : null,
       child: Container(
         width: double.infinity,
@@ -234,12 +254,34 @@ class _LoginViewState extends State<LoginView> {
           gradient: enabled ? AppColors.primaryGradient : null,
           color: enabled ? null : Colors.grey[300],
           borderRadius: BorderRadius.circular(14.w),
-          boxShadow: enabled ? [BoxShadow(color: const Color(0xFFFF7D45).withOpacity(0.2), offset: Offset(0, 4.w), blurRadius: 10.w)] : null,
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFFF7D45).withOpacity(0.2),
+                    offset: Offset(0, 4.w),
+                    blurRadius: 10.w,
+                  ),
+                ]
+              : null,
         ),
         alignment: Alignment.center,
         child: isLoading
-            ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : Text('登录', style: TextStyle(color: Colors.white, fontSize: 16.w, fontWeight: FontWeight.bold)),
+            ? SizedBox(
+                width: 20.w,
+                height: 20.w,
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                '登录',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.w,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
@@ -248,10 +290,20 @@ class _LoginViewState extends State<LoginView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('还没有账号? ', style: TextStyle(color: const Color(0xFF636E72), fontSize: 14.w)),
+        Text(
+          '还没有账号? ',
+          style: TextStyle(color: const Color(0xFF636E72), fontSize: 14.w),
+        ),
         GestureDetector(
           onTap: () => context.push(AppRoutes.register),
-          child: Text('立即注册', style: TextStyle(color: const Color(0xFFFF7D45), fontWeight: FontWeight.bold, fontSize: 14.w)),
+          child: Text(
+            '立即注册',
+            style: TextStyle(
+              color: const Color(0xFFFF7D45),
+              fontWeight: FontWeight.bold,
+              fontSize: 14.w,
+            ),
+          ),
         ),
       ],
     );

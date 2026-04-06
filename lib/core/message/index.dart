@@ -1,4 +1,6 @@
 import 'package:beaver/core/datasync/manager.dart' show syncManager;
+import 'package:beaver/store/app/app.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/message/receivers/call/call.dart';
 import 'package:beaver/core/message/receivers/chat/index.dart';
 import 'package:beaver/core/message/receivers/friend/index.dart';
@@ -25,7 +27,9 @@ class MessageManager {
   Future<void> onWsConnect() async {
     try {
       _isDataSyncing = true;
-      await syncManager.autoSync();
+      // 如果应用已经初始化完成（非冷启动），则使用后台静默同步，避免阻塞用户 UI
+      final isBackground = getIt<AppStore>().state.isInitComplete;
+      await syncManager.autoSync(isBackground: isBackground);
     } finally {
       _isDataSyncing = false;
       _startDrainQueue();

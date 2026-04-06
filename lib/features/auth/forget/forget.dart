@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:beaver/api/auth.dart';
+import 'package:beaver/types/api/auth.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/ui/button/button.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/ui/button/index.dart';
 
 class ForgetPasswordPage extends StatefulWidget {
   const ForgetPasswordPage({super.key});
@@ -16,41 +20,369 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  bool _isCodeButtonDisabled = false;
+  int _countdown = 60;
+  Timer? _timer;
+
+  bool _emailTouched = false;
+  bool _passwordTouched = false;
+  bool _codeTouched = false;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _codeController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  bool _validateEmail(String value) =>
+      RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(value);
+
+  bool _validatePassword(String value) =>
+      RegExp(r"^[^\s]{13,}$").hasMatch(value);
+
+  bool get _isFormValid =>
+      _validateEmail(_emailController.text) &&
+      _validatePassword(_passwordController.text) &&
+      _codeController.text.isNotEmpty &&
+      !_isLoading;
+
+  void _startCountdown() {
+    setState(() {
+      _isCodeButtonDisabled = true;
+      _countdown = 60;
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
+        timer.cancel();
+        setState(() => _isCodeButtonDisabled = false);
+      } else {
+        setState(() => _countdown--);
+      }
+    });
+  }
+
+  Future<void> _sendCode() async {
+    setState(() => _emailTouched = true);
+    if (!_validateEmail(_emailController.text)) return;
+
+    try {
+      final res = await getEmailCodeApi(
+        GetEmailCodeReq(email: _emailController.text, type: 'reset_password'),
+      );
+      if (res.code == 0) {
+        BeaverToast.show(context, '验证码已发送');
+        _startCountdown();
+      } else {
+        BeaverToast.show(context, res.msg);
+      }
+    } catch (e) {
+      BeaverToast.show(context, '发送失败');
+    }
+  }
+
+  Future<void> _handleReset() async {
+    setState(() {
+      _emailTouched = true;
+      _passwordTouched = true;
+      _codeTouched = true;
+    });
+
+    if (!_isFormValid) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final res = await resetPasswordApi(
+        ResetPasswordReq(
+          email: _emailController.text,
+          password: _passwordController.text,
+          verifyCode: _codeController.text,
+        ),
+      );
+
+      if (res.code == 0) {
+        BeaverToast.show(context, '密码重置成功');
+        if (mounted) {
+          context.go('/login');
+        }
+      } else {
+        BeaverToast.show(context, res.msg);
+      }
+    } catch (e) {
+      BeaverToast.show(context, '重置失败，请稍后重试');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BeaverLayout(
-      title: '找回密码',
-      showBack: true,
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
+      showBackground: true,
+      showHeader: false,
+      isScrollable: true,
+      child: Stack(
+        children: [
+          // 顶部渐变
+          Container(
+            height: 120.w,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x1AFF7D45), Colors.transparent],
+              ),
+            ),
+          ),
+          // 内容区域
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Column(
+              children: [
+                SizedBox(height: 50.w),
+                // Logo
+                _buildLogo(),
+                SizedBox(height: 24.w),
+                // 标题
+                _buildTitleSection(),
+                SizedBox(height: 8.w),
+                Text(
+                  '请输入您的邮箱地址和验证码，重置密码',
+                  style: TextStyle(
+                    color: const Color(0xFF636E72),
+                    fontSize: 14.sp,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 24.w),
+                // 表单
+                _buildForm(),
+                SizedBox(height: 24.w),
+                // 底部链接
+                _buildBottomLinks(),
+                SizedBox(height: 20.w),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return Image.asset(
+      'assets/images/logo.png',
+      width: 80.w,
+      height: 80.w,
+      fit: BoxFit.contain,
+    );
+  }
+
+  Widget _buildTitleSection() {
+    return Column(
+      children: [
+        Text(
+          '找回密码',
+          style: TextStyle(
+            fontSize: 24.w,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF2D3436),
+            height: 1.3,
+          ),
+        ),
+        SizedBox(height: 8.w),
+        Container(
+          width: 20.w,
+          height: 2.w,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF7D45),
+            borderRadius: BorderRadius.circular(2.w),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      children: [
+        _buildInput(
+          controller: _emailController,
+          hint: '邮箱地址',
+          onChanged: (v) => setState(() => {}),
+          errorText: (_emailTouched && !_validateEmail(_emailController.text))
+              ? '请输入有效邮箱地址'
+              : null,
+        ),
+        SizedBox(height: 17.w),
+        Stack(
+          clipBehavior: Clip.none,
           children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(hintText: '请输入注册邮箱'),
-            ),
-            SizedBox(height: 16.w),
-            TextField(
+            _buildInput(
               controller: _codeController,
-              decoration: const InputDecoration(hintText: '请输入验证码'),
+              hint: '验证码',
+              onChanged: (v) => setState(() => {}),
+              errorText: (_codeTouched && _codeController.text.isEmpty)
+                  ? '请输入验证码'
+                  : null,
+              paddingRight: 110.w,
             ),
-            SizedBox(height: 16.w),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(hintText: '请输入新密码'),
-            ),
-            SizedBox(height: 32.w),
-            BeaverButton(
-              text: '重置密码',
-              onPressed: () {
-                BeaverToast.show(context, '重置成功');
-              },
-              width: double.infinity,
+            Positioned(
+              right: 3.w,
+              top: 3.w,
+              bottom: 3.w,
+              child: _buildCodeButton(),
             ),
           ],
         ),
+        SizedBox(height: 17.w),
+        _buildInput(
+          controller: _passwordController,
+          hint: '设置新密码',
+          obscureText: true,
+          onChanged: (v) => setState(() => {}),
+          errorText:
+              (_passwordTouched && !_validatePassword(_passwordController.text))
+              ? '密码长度不少于13位，且不能包含空格'
+              : null,
+        ),
+        SizedBox(height: 24.w),
+        BeaverButton(
+          text: '重置密码',
+          onPressed: _isFormValid ? _handleReset : null,
+          loading: _isLoading,
+          width: double.infinity,
+          height: 48.w,
+          borderRadius: BorderRadius.circular(14.w),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInput({
+    required TextEditingController controller,
+    required String hint,
+    bool obscureText = false,
+    required Function(String) onChanged,
+    String? errorText,
+    double paddingRight = 32,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: 48.w,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9FAFB),
+            borderRadius: BorderRadius.circular(14.w),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                offset: Offset(0, 1.w),
+                blurRadius: 3.w,
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(left: 16.w, right: paddingRight.w),
+          alignment: Alignment.center,
+          child: TextField(
+            controller: controller,
+            onChanged: (v) {
+              setState(() {});
+              onChanged(v);
+            },
+            obscureText: obscureText,
+            style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: const Color(0xFFB2BEC3),
+                fontSize: 15.sp,
+              ),
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+        if (errorText != null)
+          Positioned(
+            bottom: -16.w,
+            left: 16.w,
+            child: Text(
+              errorText,
+              style: TextStyle(color: const Color(0xFFFF7D45), fontSize: 12.sp),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCodeButton() {
+    final enabled =
+        !_isCodeButtonDisabled && _validateEmail(_emailController.text);
+    return GestureDetector(
+      onTap: enabled ? _sendCode : null,
+      child: Container(
+        constraints: BoxConstraints(minWidth: 70.w),
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFF7D45), Color(0xFFE86835)],
+          ),
+          borderRadius: BorderRadius.circular(10.w),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFFF7D45).withOpacity(0.15),
+                    offset: Offset(0, 2.w),
+                    blurRadius: 8.w,
+                  ),
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Opacity(
+          opacity: enabled ? 1.0 : 0.6,
+          child: Text(
+            _isCodeButtonDisabled ? '${_countdown}s' : '获取验证码',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildBottomLinks() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '记起密码了？',
+          style: TextStyle(color: const Color(0xFF636E72), fontSize: 14.sp),
+        ),
+        GestureDetector(
+          onTap: () => context.pop(),
+          child: Text(
+            '返回登录',
+            style: TextStyle(
+              color: const Color(0xFFFF7D45),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

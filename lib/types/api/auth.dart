@@ -127,6 +127,36 @@ class GetEmailCodeRes {
   );
 }
 
+/// 重置密码请求
+class ResetPasswordReq {
+  final String email;
+  final String verifyCode;
+  final String password;
+
+  ResetPasswordReq({
+    required this.email,
+    required this.verifyCode,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'email': email,
+    'verifyCode': verifyCode,
+    'password': password,
+  };
+}
+
+/// 重置密码响应
+class ResetPasswordRes {
+  final String message;
+
+  ResetPasswordRes({required this.message});
+
+  factory ResetPasswordRes.fromJson(Map<String, dynamic> json) => ResetPasswordRes(
+    message: json['message'] ?? '',
+  );
+}
+
 /// 登出响应
 class LogoutRes {
   factory LogoutRes.fromJson(Map<String, dynamic> json) => LogoutRes();
