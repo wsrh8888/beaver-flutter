@@ -160,12 +160,6 @@ class MessageBusiness implements MessageRepositoryInterface {
     return getIt<ConversationBusiness>().getConversation(conversationId);
   }
 
-  @override
-  Stream<List<MessageModel>> watchMessages(String conversationId) {
-    // TODO: 实现 Drift 的 Stream 监听
-    return Stream.value([]);
-  }
-
   void clearTimers(List<String> messageIds) {
     for (var messageId in messageIds) {
       _sendingTimers[messageId]?.cancel();
@@ -342,7 +336,15 @@ class MessageBusiness implements MessageRepositoryInterface {
 
     // 同步到 Store 更新 UI
     final messageStore = getIt<MessageStore>();
+    final Map<String, IChatMessageItem> latestMessages = {};
+
     for (final msg in messages) {
+      // 跟踪每个会话的最新的消息，用于更新会话列表预览
+      final existingLatest = latestMessages[msg.conversationId];
+      if (existingLatest == null || msg.seq > existingLatest.seq) {
+        latestMessages[msg.conversationId] = msg;
+      }
+
       // 简单映射为 UI 模型
       final model = MessageModel(
         id: msg.messageId,
@@ -355,6 +357,23 @@ class MessageBusiness implements MessageRepositoryInterface {
         isSent: msg.sendUserId == getIt<UserStore>().state.currentUserId,
       );
       messageStore.addMessage(msg.conversationId, model);
+    }
+
+    // 更新各会话的最后一条消息预览和 Seq
+    final conversationService = getIt<ChatConversationService>();
+    for (final entry in latestMessages.entries) {
+      final convId = entry.key;
+      final latestMsg = entry.value;
+
+      try {
+        await conversationService.updateLastMessage(
+          convId,
+          latestMsg.msgPreview,
+          maxSeq: latestMsg.seq,
+        );
+      } catch (e) {
+        print('[MessageBusiness] 更新会话最后消息失败: $e');
+      }
     }
     
     // 触发 ChatStore 刷新，更新会话列表的未读数和最后一条消息

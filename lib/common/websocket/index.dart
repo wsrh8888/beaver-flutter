@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:beaver/common/logger/index.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:beaver/common/config/index.dart' as env_config;
 
 /// WebSocket 客户端服务
-/// 
+///
 /// 职责：纯 WebSocket 连接管理，与业务无关
 /// - 建立/断开连接
 /// - 心跳维护
 /// - 重连机制
 /// - 原始数据收发
 class WsClient {
+  final Logger _logger = Logger('ws');
   WebSocketChannel? _channel;
   final String wsUrl;
   final String token;
@@ -25,6 +27,7 @@ class WsClient {
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
   bool _isConnecting = false;
+  bool _isDisposed = false;
 
   WsClient({
     required this.wsUrl,
@@ -43,32 +46,45 @@ class WsClient {
     void Function()? onConnecting,
     void Function()? onDisconnect,
     void Function(dynamic)? onError,
-  }) =>
-      WsClient(
-        wsUrl: env_config.wsUrl,
-        token: token,
-        onConnect: onConnect,
-        onMessage: onMessage,
-        onConnecting: onConnecting,
-        onDisconnect: onDisconnect,
-        onError: onError,
-      );
+  }) => WsClient(
+    wsUrl: env_config.wsUrl,
+    token: token,
+    onConnect: onConnect,
+    onMessage: onMessage,
+    onConnecting: onConnecting,
+    onDisconnect: onDisconnect,
+    onError: onError,
+  );
 
-  void connect() {
+  Future<void> connect() async {
     if (_isConnecting || _channel != null) return;
     _isConnecting = true;
     onConnecting?.call();
     try {
-      _channel = WebSocketChannel.connect(Uri.parse('$wsUrl?token=$token'));
+      _logger.info({'text': '开始建立WS连接', 'url': wsUrl});
+      final channel = WebSocketChannel.connect(
+        Uri.parse('$wsUrl?token=$token'),
+      );
+
+      // 等待握手完成 (这是大厂和标准框架最推荐的信号)
+      await channel.ready;
+
+      _channel = channel;
       _channel!.stream.listen(
         _onMessageReceived,
         onDone: _onDisconnected,
         onError: _onConnectError,
       );
+
       _startHeartbeat();
       _isConnecting = false;
-      Future.microtask(() => onConnect?.call());
+      _logger.info({'text': 'WS连接已在握手完成后确认'});
+
+      // 握手成功后才触发 onConnect
+      onConnect?.call();
     } catch (e) {
+      _isConnecting = false;
+      _logger.error({'text': 'WS连接或握手异常', 'error': e.toString()});
       _onConnectError(e);
     }
   }
@@ -89,23 +105,34 @@ class WsClient {
   }
 
   void _onDisconnected() {
+    _logger.info({'text': 'WS连接断开'});
     onDisconnect?.call();
     _channel = null;
     _stopHeartbeat();
     _reconnectTimer?.cancel();
+    if (_isDisposed) return;
+    _logger.info({'text': '5秒后尝试重连'});
     _reconnectTimer = Timer(const Duration(seconds: 5), () => connect());
   }
 
   void _onConnectError(dynamic error) {
-    _isConnecting = false;
+    _logger.error({'text': 'WS流错误', 'error': error.toString()});
+    // 只有在 channel 还没关闭前报的错才处理，防止循环
+    if (_channel != null) {
+      _onDisconnected();
+    } else {
+      _isConnecting = false;
+    }
     onError?.call(error);
-    _onDisconnected();
   }
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      send({'command': 'HEARTBEAT', 'timestamp': DateTime.now().millisecondsSinceEpoch});
+      send({
+        'command': 'HEARTBEAT',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
     });
   }
 
@@ -114,6 +141,7 @@ class WsClient {
   }
 
   void dispose() {
+    _isDisposed = true;
     _stopHeartbeat();
     _reconnectTimer?.cancel();
     _channel?.sink.close();
@@ -129,7 +157,7 @@ class WsClient {
         send({
           'command': 'HEARTBEAT',
           'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'action': 'RESUME'
+          'action': 'RESUME',
         });
       } catch (_) {
         _onDisconnected();

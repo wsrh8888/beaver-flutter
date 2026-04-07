@@ -17,3 +17,8 @@ class CloseUpdateModalEvent extends UpdateEvent {
 class DownloadUpdateEvent extends UpdateEvent {
   const DownloadUpdateEvent();
 }
+
+class UpdateProgressEvent extends UpdateEvent {
+  final int progress;
+  const UpdateProgressEvent(this.progress);
+}

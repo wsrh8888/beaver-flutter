@@ -20,15 +20,16 @@ class FriendVerifyReceiver {
       for (final dataItem in data) {
         await getIt<FriendVerifyBusiness>().handleTableUpdates(
           dataItem['userId'] as String?,
-          dataItem['verifyId'] as int?,
+          dataItem['verifyId'] as String?,
           dataItem['version'] as int? ?? 0,
         );
       }
     }
 
     final Map<String, int> latestVersionByFriendId = {};
-    final friendUpdates =
-        tableUpdates.where((update) => update['table'] == 'friends').toList();
+    final friendUpdates = tableUpdates
+        .where((update) => update['table'] == 'friends')
+        .toList();
     for (final update in friendUpdates) {
       final data = update['data'] as List?;
       if (data == null) continue;
@@ -47,8 +48,9 @@ class FriendVerifyReceiver {
       await getIt<FriendBusiness>().handleTableUpdates(item.value, item.key);
     }
 
-    final userUpdates =
-        tableUpdates.where((update) => update['table'] == 'users').toList();
+    final userUpdates = tableUpdates
+        .where((update) => update['table'] == 'users')
+        .toList();
     for (final update in userUpdates) {
       final data = update['data'] as List?;
       if (data == null) continue;

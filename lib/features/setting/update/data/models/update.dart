@@ -3,13 +3,31 @@ class VersionInfo {
   final String size;
   final String releaseNotes;
   final String downloadUrl;
+  final bool isForce;
 
   const VersionInfo({
     required this.version,
     required this.size,
     required this.releaseNotes,
     required this.downloadUrl,
+    this.isForce = false,
   });
+
+  VersionInfo copyWith({
+    String? version,
+    String? size,
+    String? releaseNotes,
+    String? downloadUrl,
+    bool? isForce,
+  }) {
+    return VersionInfo(
+      version: version ?? this.version,
+      size: size ?? this.size,
+      releaseNotes: releaseNotes ?? this.releaseNotes,
+      downloadUrl: downloadUrl ?? this.downloadUrl,
+      isForce: isForce ?? this.isForce,
+    );
+  }
 }
 
 class UpdateInfo {
@@ -28,4 +46,22 @@ class UpdateInfo {
     required this.downloadProgress,
     this.lastCheckTime,
   });
+
+  UpdateInfo copyWith({
+    bool? hasUpdate,
+    VersionInfo? latestVersion,
+    bool? isChecking,
+    bool? isDownloading,
+    int? downloadProgress,
+    DateTime? lastCheckTime,
+  }) {
+    return UpdateInfo(
+      hasUpdate: hasUpdate ?? this.hasUpdate,
+      latestVersion: latestVersion ?? this.latestVersion,
+      isChecking: isChecking ?? this.isChecking,
+      isDownloading: isDownloading ?? this.isDownloading,
+      downloadProgress: downloadProgress ?? this.downloadProgress,
+      lastCheckTime: lastCheckTime ?? this.lastCheckTime,
+    );
+  }
 }

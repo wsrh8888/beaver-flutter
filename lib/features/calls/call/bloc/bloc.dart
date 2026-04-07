@@ -7,16 +7,21 @@ import 'package:beaver/types/call.dart';
 import 'event.dart';
 import 'state.dart';
 
+import 'package:beaver/store/user/user.dart';
+
 class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   final CallStore _callStore;
   final CallBusiness _callBusiness;
+  final UserStore _userStore;
   StreamSubscription? _storeSubscription;
 
   CallPageBloc({
     CallStore? callStore,
     CallBusiness? callBusiness,
+    UserStore? userStore,
   }) : _callStore = callStore ?? getIt<CallStore>(),
        _callBusiness = callBusiness ?? getIt<CallBusiness>(),
+       _userStore = userStore ?? getIt<UserStore>(),
        super(const CallPageState()) {
     on<InitializeCallEvent>(_onInitialize);
     on<StartCallEvent>(_onStartCall);
@@ -25,6 +30,7 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
     on<ToggleSpeakerEvent>(_onToggleSpeaker);
     on<EndCallEvent>(_onEndCall);
     on<_UpdateFromStoreEvent>(_onUpdateFromStore);
+    on<InviteParticipantsEvent>(_onInviteParticipants);
 
     // 监听全局 Store 的变化
     _storeSubscription = _callStore.stream.listen((storeState) {
@@ -42,9 +48,9 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   }
 
   Future<void> _onInitialize(InitializeCallEvent event, Emitter<CallPageState> emit) async {
-    emit(state.copyWith(status: CallStatus.loading));
+    emit(state.copyWith(status: CallStatus.loading, callType: event.callType, isGroup: event.isGroup));
     try {
-      await _callBusiness.initialize(event.roomToken, event.liveKitUrl);
+      await _callBusiness.initialize(event.conversationId, event.roomToken, event.liveKitUrl);
       emit(state.copyWith(status: CallStatus.connected));
     } catch (e) {
       emit(state.copyWith(status: CallStatus.error));
@@ -75,16 +81,19 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
     emit(state.copyWith(status: CallStatus.ended));
   }
   
+  Future<void> _onInviteParticipants(InviteParticipantsEvent event, Emitter<CallPageState> emit) async {
+    await _callBusiness.inviteParticipants(event.userIds);
+  }
+  
   void _onUpdateFromStore(_UpdateFromStoreEvent event, Emitter<CallPageState> emit) {
     emit(state.copyWith(participants: event.storeState.members));
   }
 
   CallParticipant? get localParticipant {
-      // 这里的逻辑应对齐 PC 版，找到成员列表中“自己”的那一项
       final members = _callStore.state.members;
       if (members.isEmpty) return null;
-      // 简单起见，目前假设第一个是自己（由 initialize 中 upsert 顺序决定）
-      return members.firstWhere((p) => p.name == '我', orElse: () => members[0]);
+      final currentUserId = _userStore.state.currentUserId;
+      return members.firstWhere((p) => p.userId == currentUserId, orElse: () => members[0]);
   }
 }
 

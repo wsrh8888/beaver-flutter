@@ -18,9 +18,10 @@ class RejectCallEvent extends CallIncomingEvent {
 
 class LoadCallInfoEvent extends CallIncomingEvent {
   final String conversationId;
+  final String roomId;
   
-  const LoadCallInfoEvent(this.conversationId);
+  const LoadCallInfoEvent(this.conversationId, this.roomId);
   
   @override
-  List<Object?> get props => [conversationId];
+  List<Object?> get props => [conversationId, roomId];
 }

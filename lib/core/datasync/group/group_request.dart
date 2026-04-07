@@ -14,9 +14,9 @@ class GroupJoinRequestSync {
       final groupJoinRequestService = getIt<GroupJoinRequestService>();
       final syncStatusService = getIt<GroupSyncStatusService>();
 
-      // 获取本地最后同步时间
+      // 获取本地最后同步时间 (时间戳游标)
       final cursor = await datasyncService.get('group_join_requests');
-      final lastSyncTime = cursor?.version ?? 0;
+      final lastSyncTime = cursor?.updatedAt ?? 0;
 
       // 获取服务器上变更的版本信息
       final response = await datasyncGetSyncGroupRequestsApi(

@@ -223,10 +223,14 @@ class _SettingMainPageState extends State<SettingMainPage> {
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              BeaverToast.show(context, '已退出登录');
-              context.go('/login');
+              // 调用全局退出登录逻辑 (含 WS 断连及缓存清理)
+              await getIt<AppStore>().logout();
+              if (mounted) {
+                BeaverToast.show(context, '已退出登录');
+                context.go('/login');
+              }
             },
             child: const Text(
               '确认退出',

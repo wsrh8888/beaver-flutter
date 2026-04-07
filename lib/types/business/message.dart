@@ -30,7 +30,6 @@ abstract class MessageRepositoryInterface {
   Future<MessageModel> sendMessage(ChatMessageSendBody data);
   Future<void> updateMessageStatus(String messageId, MessageStatus status);
   Future<ChatModel?> getConversation(String conversationId);
-  Stream<List<MessageModel>> watchMessages(String conversationId);
 }
 
 /// 基础内容模型
@@ -45,6 +44,7 @@ class MessageContentModel {
   final AudioFileMsg? audioFileMsg;
   final ReplyMsg? replyMsg;
   final ForwardMsg? forwardMsg;
+  final NotificationMsg? notificationMsg;
 
   MessageContentModel({
     required this.type,
@@ -57,6 +57,7 @@ class MessageContentModel {
     this.audioFileMsg,
     this.replyMsg,
     this.forwardMsg,
+    this.notificationMsg,
   });
 
   factory MessageContentModel.fromJson(Map<String, dynamic> json) {
@@ -91,6 +92,9 @@ class MessageContentModel {
       forwardMsg: json['forwardMsg'] != null
           ? ForwardMsg.fromJson(json['forwardMsg'])
           : null,
+      notificationMsg: json['notificationMsg'] != null
+          ? NotificationMsg.fromJson(json['notificationMsg'])
+          : null,
     );
   }
 
@@ -106,6 +110,7 @@ class MessageContentModel {
       'audioFileMsg': audioFileMsg?.toJson(),
       'replyMsg': replyMsg?.toJson(),
       'forwardMsg': forwardMsg?.toJson(),
+      'notificationMsg': notificationMsg?.toJson(),
     };
   }
 
@@ -336,6 +341,18 @@ class ForwardMsg {
     'recordId': recordId,
     'count': count,
   };
+}
+
+class NotificationMsg {
+  final int type;
+  final List<String> actors;
+  NotificationMsg({required this.type, required this.actors});
+  factory NotificationMsg.fromJson(Map<String, dynamic> json) =>
+      NotificationMsg(
+        type: json['type'] ?? 0,
+        actors: List<String>.from(json['actors'] ?? []),
+      );
+  Map<String, dynamic> toJson() => {'type': type, 'actors': actors};
 }
 
 class ChatMessageSendBody {

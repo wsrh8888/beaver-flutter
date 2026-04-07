@@ -84,5 +84,12 @@ class FavoriteEmojiModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [emojiId, fileKey, title, packageId, width, height];
+  List<Object?> get props => [
+    emojiId,
+    fileKey,
+    title,
+    packageId,
+    width,
+    height,
+  ];
 }

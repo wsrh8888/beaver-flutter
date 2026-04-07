@@ -10,12 +10,14 @@ import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/call/call.dart';
+import 'package:beaver/store/group/group_member.dart';
+import 'package:beaver/store/group/group_join_request.dart';
 
 /// 全局 Store 依赖配置
 void configureStoreDependencies(GetIt getIt) {
   // App 状态与生命周期
   getIt.registerLazySingleton<AppStore>(() => AppStore());
-  
+
   // 各业务分模块 Store (单例)
   getIt.registerLazySingleton<UserStore>(() => UserStore());
   getIt.registerLazySingleton<ContactStore>(() => ContactStore());
@@ -25,6 +27,10 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<NotificationStore>(() => NotificationStore());
   getIt.registerLazySingleton<MessageStore>(() => MessageStore());
   getIt.registerLazySingleton<EmojiStore>(() => EmojiStore());
-  getIt.registerLazySingleton<UpdateStore>(() => UpdateStore());
+  getIt.registerLazySingleton<UpdateStore>(() => UpdateStore(getIt<UserStore>()));
   getIt.registerLazySingleton<CallStore>(() => CallStore());
+  getIt.registerLazySingleton<GroupMemberStore>(() => GroupMemberStore());
+  getIt.registerLazySingleton<GroupJoinRequestStore>(
+    () => GroupJoinRequestStore(),
+  );
 }

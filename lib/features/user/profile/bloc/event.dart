@@ -46,5 +46,6 @@ class SendEmailCodeEvent extends ProfileEvent {
 }
 
 class UpdateAvatarEvent extends ProfileEvent {
-  const UpdateAvatarEvent();
+  final String imagePath;
+  const UpdateAvatarEvent(this.imagePath);
 }

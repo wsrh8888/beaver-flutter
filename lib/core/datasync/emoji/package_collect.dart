@@ -22,11 +22,13 @@ class EmojiPackageCollectSync {
       if (detailRes.code == 0 && detailRes.result != null) {
         final companions = detailRes.result!.collects.map((item) {
           return EmojiPackageCollectTableCompanion(
-            packageCollectId: Value(item.packageId),
+            packageCollectId: Value(item.packageCollectId),
             userId: Value(item.userId),
             packageId: Value(item.packageId),
             version: Value(item.version),
-            isDeleted: Value(0),
+            isDeleted: Value(item.isDeleted ? 1 : 0),
+            createdAt: Value(item.createdAt),
+            updatedAt: Value(item.updatedAt),
           );
         }).toList();
         await service.batchCreate(companions);

@@ -1,6 +1,4 @@
 import 'package:beaver/api/emoji.dart';
-import 'package:beaver/core/datasync/emoji/sync.dart';
-import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/emoji.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:flutter/material.dart';
@@ -45,8 +43,6 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(item.isCollected ? '已取消订阅' : '订阅成功')),
       );
-      // 触发本地增量同步
-      getIt<EmojiSync>().checkAndSync();
       _loadPackages(); // 刷新状态
     }
   }
@@ -75,8 +71,8 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _packages.isEmpty
-              ? _buildEmpty()
-              : _buildList(),
+          ? _buildEmpty()
+          : _buildList(),
     );
   }
 
@@ -148,7 +144,10 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
                     top: 8.w,
                     right: 8.w,
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.w,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFF7D45),
                         borderRadius: BorderRadius.circular(4.r),
@@ -203,7 +202,10 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
                     ),
                     child: Text(
                       item.isCollected ? '已添加' : '添加',
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),

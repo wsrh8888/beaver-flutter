@@ -4,6 +4,8 @@ import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
+import 'package:wechat_camera_picker/wechat_camera_picker.dart';
+
 final ImagePicker _picker = ImagePicker();
 
 /// 从相册选择图片或视频
@@ -23,13 +25,28 @@ Future<List<AssetEntity>?> pickAssets(BuildContext context, {RequestType type = 
   );
 }
 
-/// 拍摄照片
+/// 拍摄媒体 (对标微信，点击拍照，长按录像)
+Future<AssetEntity?> takeMedia(BuildContext context) async {
+  if (!await _checkPermission(context, Permission.camera)) return null;
+  // 录像通常需要麦克风
+  if (!await _checkPermission(context, Permission.microphone)) return null;
+
+  return CameraPicker.pickFromCamera(
+    context,
+    pickerConfig: const CameraPickerConfig(
+      enableRecording: true,
+      onlyEnableRecording: false,
+    ),
+  );
+}
+
+/// 拍摄照片 (旧逻辑保持兼容)
 Future<XFile?> takePhoto(BuildContext context) async {
   if (!await _checkPermission(context, Permission.camera)) return null;
   return _picker.pickImage(source: ImageSource.camera);
 }
 
-/// 拍摄视频
+/// 拍摄视频 (旧逻辑保持兼容)
 Future<XFile?> takeVideo(BuildContext context) async {
   if (!await _checkPermission(context, Permission.camera)) return null;
   if (!await _checkPermission(context, Permission.microphone)) return null;

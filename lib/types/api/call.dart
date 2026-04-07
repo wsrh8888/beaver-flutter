@@ -1,49 +1,58 @@
 // 通话相关 API 类型定义
 
-/// 开始通话请求
 class StartCallReq {
   final String conversationId;
-  final String callType; // 'audio' or 'video'
+  final int callType; // 1-私聊, 2-群聊
+  final int callMode; // 1-语音起手, 2-视频起手
 
   StartCallReq({
     required this.conversationId,
     required this.callType,
+    required this.callMode,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'conversationId': conversationId,
       'callType': callType,
+      'callMode': callMode,
     };
   }
 }
 
-/// 接受通话请求
+/// 接受通话请求 (对应 GetCallTokenReq)
 class AcceptCallReq {
-  final String conversationId;
+  final String roomId;
 
-  AcceptCallReq({
-    required this.conversationId,
-  });
+  AcceptCallReq({required this.roomId});
 
   Map<String, dynamic> toJson() {
-    return {
-      'conversationId': conversationId,
-    };
+    return {'roomId': roomId};
   }
 }
 
-/// 拒绝通话请求
+/// 拒绝通话请求 (对应 HangupCallReq)
 class RejectCallReq {
-  final String conversationId;
+  final String roomId;
 
-  RejectCallReq({
-    required this.conversationId,
-  });
+  RejectCallReq({required this.roomId});
+
+  Map<String, dynamic> toJson() {
+    return {'roomId': roomId};
+  }
+}
+
+/// 邀请参与者请求
+class InviteParticipantsReq {
+  final String roomId;
+  final List<String> userIds;
+
+  InviteParticipantsReq({required this.roomId, required this.userIds});
 
   Map<String, dynamic> toJson() {
     return {
-      'conversationId': conversationId,
+      'roomId': roomId,
+      'userIds': userIds,
     };
   }
 }
@@ -53,16 +62,10 @@ class EndCallReq {
   final String conversationId;
   final int duration;
 
-  EndCallReq({
-    required this.conversationId,
-    required this.duration,
-  });
+  EndCallReq({required this.conversationId, required this.duration});
 
   Map<String, dynamic> toJson() {
-    return {
-      'conversationId': conversationId,
-      'duration': duration,
-    };
+    return {'conversationId': conversationId, 'duration': duration};
   }
 }
 

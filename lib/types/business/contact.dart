@@ -1,23 +1,20 @@
-
 import 'package:equatable/equatable.dart';
-import 'package:beaver/types/business/user.dart';
 
 /// 好友仓库接口
 abstract class FriendRepositoryInterface {
   Future<List<ContactModel>> getContactList();
-  Map<String, List<ContactModel>> groupContactsByLetter(List<ContactModel> contacts);
+  Map<String, List<ContactModel>> groupContactsByLetter(
+    List<ContactModel> contacts,
+  );
   List<String> getIndexList(Map<String, List<ContactModel>> groups);
   Future<void> deleteFriend(String friendId);
-  Future<UserInfo?> searchUser(String email);
-  Future<bool> addFriend(String userId);
 
   Future<List<FriendRequest>> getFriendRequests();
-  Future<bool> updateFriendRequestStatus(int id, int status);
   Future<int> getUnreadFriendRequestCount(String userId);
 }
 
 class FriendRequest {
-  final int id;
+  final String id;
   final String nickname;
   final String fileName;
   final String? message;
@@ -54,14 +51,7 @@ class ContactModel extends Equatable {
   });
 
   @override
-  List<Object?> get props => [
-    userId,
-    nickname,
-    notice,
-    avatar,
-    fileName,
-  ];
-
+  List<Object?> get props => [userId, nickname, notice, avatar, fileName];
 
   ContactModel copyWith({
     String? userId,

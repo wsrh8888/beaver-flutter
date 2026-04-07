@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/router/routes.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
@@ -390,11 +391,15 @@ class _ChatListViewState extends State<ChatListView> {
       case 2: // 添加朋友
         context.push('/contact/search');
         break;
+      case 3: // 扫一扫
+        context.push(AppRoutes.scan);
+        break;
     }
   }
 
   final List<Map<String, dynamic>> _homeMenus = [
     {'id': 1, 'title': '发起群聊', 'icon': 'assets/icons/dropdown-group-icon.svg'},
-    {'id': 2, 'title': '添加朋友', 'icon': 'assets/icons/dropdown-friend-icon.svg'},
+    {'id': 2, 'title': '添加朋友', 'icon': 'assets/icons/add-friend-icon.svg'},
+    {'id': 3, 'title': '扫一扫', 'icon': 'assets/icons/scan-icon.svg'},
   ];
 }

@@ -1,3 +1,5 @@
+import 'package:beaver/core/database/db.dart';
+import 'package:drift/drift.dart';
 import 'datasync.dart';
 
 /// 好友同步项
@@ -26,17 +28,31 @@ class IFriendSyncItem {
     this.updatedAt,
   });
 
-  factory IFriendSyncItem.fromJson(Map<String, dynamic> json) => IFriendSyncItem(
-    friendId: json['id'] ?? json['friendId'] ?? '',
-    sendUserId: json['sendUserId'] ?? '',
-    revUserId: json['revUserId'] ?? '',
-    sendUserNotice: json['sendUserNotice'],
-    revUserNotice: json['revUserNotice'],
-    source: json['source'],
-    isDeleted: json['isDeleted'] ?? false,
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'],
-    updatedAt: json['updatedAt'],
+  factory IFriendSyncItem.fromJson(Map<String, dynamic> json) =>
+      IFriendSyncItem(
+        friendId: json['id'] ?? json['friendId'] ?? '',
+        sendUserId: json['sendUserId'] ?? '',
+        revUserId: json['revUserId'] ?? '',
+        sendUserNotice: json['sendUserNotice'],
+        revUserNotice: json['revUserNotice'],
+        source: json['source'],
+        isDeleted: json['isDeleted'] ?? false,
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'],
+        updatedAt: json['updatedAt'],
+      );
+
+  FriendsCompanion toCompanion() => FriendsCompanion(
+    friendId: Value(friendId),
+    sendUserId: Value(sendUserId),
+    revUserId: Value(revUserId),
+    sendUserNotice: Value(sendUserNotice),
+    revUserNotice: Value(revUserNotice),
+    source: Value(source),
+    isDeleted: Value(isDeleted ? 1 : 0),
+    version: Value(version),
+    createdAt: Value(createdAt),
+    updatedAt: Value(updatedAt),
   );
 }
 
@@ -66,17 +82,31 @@ class IFriendVerifySyncItem {
     this.updatedAt,
   });
 
-  factory IFriendVerifySyncItem.fromJson(Map<String, dynamic> json) => IFriendVerifySyncItem(
-    verifyId: json['verifyId'] ?? '',
-    sendUserId: json['sendUserId'] ?? '',
-    revUserId: json['revUserId'] ?? '',
-    sendStatus: json['sendStatus'] ?? 0,
-    revStatus: json['revStatus'] ?? 0,
-    message: json['message'],
-    source: json['source'],
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'],
-    updatedAt: json['updatedAt'],
+  factory IFriendVerifySyncItem.fromJson(Map<String, dynamic> json) =>
+      IFriendVerifySyncItem(
+        verifyId: json['verifyId'] ?? '',
+        sendUserId: json['sendUserId'] ?? '',
+        revUserId: json['revUserId'] ?? '',
+        sendStatus: json['sendStatus'] ?? 0,
+        revStatus: json['revStatus'] ?? 0,
+        message: json['message'],
+        source: json['source'],
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'],
+        updatedAt: json['updatedAt'],
+      );
+
+  FriendVerifiesCompanion toCompanion() => FriendVerifiesCompanion(
+    verifyId: Value(verifyId),
+    sendUserId: Value(sendUserId),
+    revUserId: Value(revUserId),
+    sendStatus: Value(sendStatus),
+    revStatus: Value(revStatus),
+    message: Value(message),
+    source: Value(source),
+    version: Value(version),
+    createdAt: Value(createdAt),
+    updatedAt: Value(updatedAt),
   );
 }
 
@@ -85,7 +115,11 @@ class IFriendSyncRes {
   final List<IFriendSyncItem> friends;
   IFriendSyncRes({required this.friends});
   factory IFriendSyncRes.fromJson(Map<String, dynamic> json) => IFriendSyncRes(
-    friends: (json['friends'] as List?)?.map((e) => IFriendSyncItem.fromJson(e)).toList() ?? [],
+    friends:
+        (json['friends'] as List?)
+            ?.map((e) => IFriendSyncItem.fromJson(e))
+            .toList() ??
+        [],
   );
 }
 
@@ -93,9 +127,14 @@ class IFriendSyncRes {
 class IFriendVerifySyncRes {
   final List<IFriendVerifySyncItem> verifies;
   IFriendVerifySyncRes({required this.verifies});
-  factory IFriendVerifySyncRes.fromJson(Map<String, dynamic> json) => IFriendVerifySyncRes(
-    verifies: (json['verifies'] as List?)?.map((e) => IFriendVerifySyncItem.fromJson(e)).toList() ?? [],
-  );
+  factory IFriendVerifySyncRes.fromJson(Map<String, dynamic> json) =>
+      IFriendVerifySyncRes(
+        verifies:
+            (json['verifies'] as List?)
+                ?.map((e) => IFriendVerifySyncItem.fromJson(e))
+                .toList() ??
+            [],
+      );
 }
 
 /// 好友同步请求 (用于 UserSync/FriendSync logic)
@@ -103,7 +142,9 @@ class IFriendSyncReq {
   final List<IFriendVersionItem> friendVersions;
   IFriendSyncReq({required this.friendVersions});
   Map<String, dynamic> toJson() => {
-    'friendVersions': friendVersions.map((e) => {'friendId': e.friendId, 'version': e.version}).toList(),
+    'friendVersions': friendVersions
+        .map((e) => {'friendId': e.friendId, 'version': e.version})
+        .toList(),
   };
 }
 
@@ -111,34 +152,113 @@ class IFriendSyncReq {
 class IGetFriendsListByIdsReq {
   final List<String> friendIds;
   IGetFriendsListByIdsReq({required this.friendIds});
-  Map<String, dynamic> toJson() => {
-    'friendIds': friendIds,
-  };
+  Map<String, dynamic> toJson() => {'friendIds': friendIds};
 }
 
 /// 批量获取好友数据响应
 class IGetFriendsListByIdsRes {
   final List<IFriendSyncItem> friends;
   IGetFriendsListByIdsRes({required this.friends});
-  factory IGetFriendsListByIdsRes.fromJson(Map<String, dynamic> json) => IGetFriendsListByIdsRes(
-    friends: (json['friends'] as List?)?.map((e) => IFriendSyncItem.fromJson(e)).toList() ?? [],
-  );
+  factory IGetFriendsListByIdsRes.fromJson(Map<String, dynamic> json) =>
+      IGetFriendsListByIdsRes(
+        friends:
+            (json['friends'] as List?)
+                ?.map((e) => IFriendSyncItem.fromJson(e))
+                .toList() ??
+            [],
+      );
 }
 
 /// 批量获取好友验证数据请求
 class IGetFriendVerifiesListByIdsReq {
   final List<String> verifyIds;
   IGetFriendVerifiesListByIdsReq({required this.verifyIds});
-  Map<String, dynamic> toJson() => {
-    'verifyIds': verifyIds,
-  };
+  Map<String, dynamic> toJson() => {'verifyIds': verifyIds};
 }
 
 /// 批量获取好友验证数据响应
 class IGetFriendVerifiesListByIdsRes {
   final List<IFriendVerifySyncItem> friendVerifies;
   IGetFriendVerifiesListByIdsRes({required this.friendVerifies});
-  factory IGetFriendVerifiesListByIdsRes.fromJson(Map<String, dynamic> json) => IGetFriendVerifiesListByIdsRes(
-    friendVerifies: (json['friendVerifies'] as List?)?.map((e) => IFriendVerifySyncItem.fromJson(e)).toList() ?? [],
-  );
+  factory IGetFriendVerifiesListByIdsRes.fromJson(Map<String, dynamic> json) =>
+      IGetFriendVerifiesListByIdsRes(
+        friendVerifies:
+            (json['friendVerifies'] as List?)
+                ?.map((e) => IFriendVerifySyncItem.fromJson(e))
+                .toList() ??
+            [],
+      );
+}
+
+/// 搜索用户请求
+class ISearchUserReq {
+  final String keyword;
+  final String? type;
+
+  ISearchUserReq({required this.keyword, this.type});
+
+  Map<String, dynamic> toJson() => {
+    'keyword': keyword,
+    if (type != null) 'type': type,
+  };
+}
+
+/// 搜索用户响应
+class IResSearchUserInfo {
+  final String userId;
+  final String nickName;
+  final String avatar;
+  final String abstract;
+  final String notice;
+  final bool isFriend;
+  final String? conversationId;
+  final String? email;
+
+  IResSearchUserInfo({
+    required this.userId,
+    required this.nickName,
+    required this.avatar,
+    required this.abstract,
+    required this.notice,
+    required this.isFriend,
+    this.conversationId,
+    this.email,
+  });
+
+  factory IResSearchUserInfo.fromJson(Map<String, dynamic> json) =>
+      IResSearchUserInfo(
+        userId: json['userId'] ?? '',
+        nickName: json['nickName'] ?? '',
+        avatar: json['avatar'] ?? '',
+        abstract: json['abstract'] ?? '',
+        notice: json['notice'] ?? '',
+        isFriend: json['isFriend'] ?? false,
+        conversationId: json['conversationId'],
+        email: json['email'],
+      );
+}
+
+/// 申请添加好友请求
+class IAddFriendReq {
+  final String friendId;
+  final String? verify;
+  final String? source;
+
+  IAddFriendReq({required this.friendId, this.verify, this.source});
+
+  Map<String, dynamic> toJson() => {
+    'friendId': friendId,
+    if (verify != null) 'verify': verify,
+    if (source != null) 'source': source,
+  };
+}
+
+/// 验证好友申请请求
+class IValiFriendReq {
+  final String verifyId;
+  final int status; // 1: 接受, 2: 拒绝
+
+  IValiFriendReq({required this.verifyId, required this.status});
+
+  Map<String, dynamic> toJson() => {'verifyId': verifyId, 'status': status};
 }

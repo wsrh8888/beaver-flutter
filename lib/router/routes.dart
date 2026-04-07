@@ -33,6 +33,8 @@ class AppRoutes {
   
   // 通话模块
   static const String callsPage = '/calls';
+  static const String call = '/call';
+  static const String callIncoming = '/call/incoming';
   
   // 发现模块
   static const String discoverMain = '/discover';
@@ -59,4 +61,8 @@ class AppRoutes {
   // 表情模块
   static const String emojiShop = '/emoji/shop';
   static const String emojiDetail = '/emoji/detail';
+
+  // 通用模块
+  static const String webview = '/common/webview';
+  static const String scan = '/common/scan';
 }

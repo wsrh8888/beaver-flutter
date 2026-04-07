@@ -1,4 +1,5 @@
 import 'package:beaver/core/database/db.dart';
+import 'package:drift/drift.dart';
 
 class EmojiService {
   final AppDatabase _db;
@@ -7,7 +8,13 @@ class EmojiService {
 
   Future<void> batchCreate(List<EmojisCompanion> entries) async {
     await _db.batch((batch) {
-      batch.insertAllOnConflictUpdate(_db.emojis, entries);
+      for (final entry in entries) {
+        batch.insert(
+          _db.emojis,
+          entry,
+          onConflict: DoUpdate((old) => entry, target: [_db.emojis.emojiId]),
+        );
+      }
     });
   }
 
@@ -18,6 +25,8 @@ class EmojiService {
   }
 
   Future<Emoji?> getEmojiById(String id) async {
-    return await (_db.select(_db.emojis)..where((t) => t.emojiId.equals(id))).getSingleOrNull();
+    return await (_db.select(
+      _db.emojis,
+    )..where((t) => t.emojiId.equals(id))).getSingleOrNull();
   }
 }

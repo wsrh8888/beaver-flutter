@@ -3,6 +3,7 @@ import 'package:beaver/features/user/profile/bloc/event.dart';
 import 'package:beaver/features/user/profile/bloc/state.dart';
 import 'package:beaver/features/user/profile/data/repositories/repository.dart';
 import 'package:beaver/types/business/user.dart';
+import 'package:beaver/api/file.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository _profileRepository;
@@ -251,22 +252,27 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   ) async {
     if (state.userInfo == null) return;
 
-    // 这里应该先选择图片并上传
-    // 暂时保持空逻辑或使用模拟上传
     emit(state.copyWith(status: ProfileStatus.loading));
     try {
-      // 假设上传后拿到 fileKey
-      const mockFileKey = 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20new&size=512x512';
-      final success = await _profileRepository.updateUserInfo({'fileName': mockFileKey});
-      if (success) {
-        final updatedUserInfo = state.userInfo!.copyWith(avatar: mockFileKey);
-        emit(state.copyWith(
-          status: ProfileStatus.success,
-          userInfo: updatedUserInfo,
-          errorMessage: '头像更新成功',
-        ));
+      final uploadRes = await uploadFileApi(event.imagePath);
+      if (uploadRes.code == 0 && uploadRes.result != null) {
+        final fileKey = uploadRes.result!.fileKey;
+        final success = await _profileRepository.updateUserInfo({'fileName': fileKey});
+        if (success) {
+          final updatedUserInfo = state.userInfo!.copyWith(avatar: fileKey);
+          emit(state.copyWith(
+            status: ProfileStatus.success,
+            userInfo: updatedUserInfo,
+            errorMessage: '头像更新成功',
+          ));
+        } else {
+          emit(state.copyWith(status: ProfileStatus.error, errorMessage: '资料更新失败'));
+        }
       } else {
-        emit(state.copyWith(status: ProfileStatus.error, errorMessage: '头像更新失败'));
+        emit(state.copyWith(
+          status: ProfileStatus.error,
+          errorMessage: '文件上传失败: ${uploadRes.msg}',
+        ));
       }
     } catch (e) {
       emit(state.copyWith(

@@ -32,6 +32,42 @@
 
 ---
 
+## 📱 功能展示
+
+### 💬 聊天功能
+<div align="center">
+  <img src="./assets/screenshots/messages.jpg" width="200" alt="消息列表"/>
+  <img src="./assets/screenshots/chat_content.jpg" width="200" alt="聊天内容"/>
+  <img src="./assets/screenshots/chat_settings.jpg" width="200" alt="聊天设置"/>
+  <img src="./assets/screenshots/favorite_emojis.jpg" width="200" alt="收藏表情"/>
+  <img src="./assets/screenshots/default_emojis.jpg" width="200" alt="默认表情"/>
+</div>
+
+### 👥 社交功能
+<div align="center">
+  <img src="./assets/screenshots/friend_list.jpg" width="200" alt="好友列表"/>
+  <img src="./assets/screenshots/friend_profile.jpg" width="200" alt="好友详情"/>
+  <img src="./assets/screenshots/new_friend_received.jpg" width="200" alt="收到申请"/>
+  <img src="./assets/screenshots/new_friend_sent.jpg" width="200" alt="发出申请"/>
+</div>
+
+### 👥 群聊功能
+<div align="center">
+  <img src="./assets/screenshots/create_group.jpg" width="200" alt="创建群聊"/>
+  <img src="./assets/screenshots/my_groups.jpg" width="200" alt="我的群聊"/>
+</div>
+
+### ⚙️ 系统功能
+<div align="center">
+  <img src="./assets/screenshots/my_profile.jpg" width="200" alt="个人中心"/>
+  <img src="./assets/screenshots/general_settings.jpg" width="200" alt="通用设置"/>
+  <img src="./assets/screenshots/feedback.jpg" width="200" alt="意见反馈"/>
+  <img src="./assets/screenshots/camera.jpg" width="200" alt="拍照"/>
+  <img src="./assets/screenshots/database.jpg" width="200" alt="数据库同步"/>
+</div>
+
+---
+
 ## 🚀 快速开始
 
 ### 环境要求

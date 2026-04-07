@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/types/call.dart';
+import 'package:beaver/api/call.dart';
+import 'package:beaver/types/api/call.dart' as api;
+import 'package:beaver/store/contact/contact.dart';
+import 'package:flutter/material.dart' hide ConnectionState;
 
 abstract class CallRepositoryInterface {
 }
@@ -10,15 +14,65 @@ abstract class CallRepositoryInterface {
 class CallBusiness implements CallRepositoryInterface {
   final Room _room = Room();
   bool _isInitialized = false;
+  String? _currentRoomId;
   
   CallStore get _store => getIt<CallStore>();
   
   CallBusiness() {
     _setupRoomListeners();
   }
+
+  // 发起通话
+  Future<api.CallInfoRes?> makeCall(String conversationId, int callType, int callMode) async {
+    final response = await startCallApi(api.StartCallReq(
+      conversationId: conversationId,
+      callType: callType,
+      callMode: callMode,
+    ));
+    
+    if (response.code == 0 && response.result != null) {
+      return response.result;
+    }
+    return null;
+  }
+
+  // 内部辅助方法：更新成员，自动补全头像和昵称
+  void _upsertMember(String userId, {
+    String? nickName,
+    String? avatar,
+    CallParticipantStatus? status,
+    bool? isMuted,
+    bool? isCameraOff,
+    dynamic videoTrack,
+    dynamic audioTrack,
+    String? sid,
+  }) {
+    var finalNickName = nickName;
+    var finalAvatar = avatar;
+    
+    if (finalNickName == null || finalAvatar == null || finalNickName == userId) {
+      final contact = getIt<ContactStore>().getContact(userId);
+      if (contact != null) {
+        finalNickName = (finalNickName == null || finalNickName == userId) ? contact.nickname : finalNickName;
+        finalAvatar ??= contact.avatar;
+      }
+    }
+    
+    _store.upsertMember(userId,
+      nickName: finalNickName,
+      avatar: finalAvatar,
+      status: status,
+      isMuted: isMuted,
+      isCameraOff: isCameraOff,
+      videoTrack: videoTrack,
+      audioTrack: audioTrack,
+      sid: sid,
+    );
+  }
   
   // 初始化LiveKit房间
-  Future<void> initialize(String roomToken, String liveKitUrl) async {
+  Future<void> initialize(String roomId, String roomToken, String liveKitUrl) async {
+    _currentRoomId = roomId;
     if (_isInitialized && _room.connectionState == ConnectionState.connected) return;
     
     try {
@@ -29,15 +83,14 @@ class CallBusiness implements CallRepositoryInterface {
       // 同步本地参与者
       final local = _room.localParticipant;
       if (local != null) {
-        _store.upsertMember(local.identity, 
+        _upsertMember(local.identity, 
           status: CallParticipantStatus.joined,
-          nickName: '我', // 实际应用中可以从用户信息中获取
         );
       }
       
       // 同步存量远程参与者
       for (var p in _room.remoteParticipants.values) {
-        _store.upsertMember(p.identity, status: CallParticipantStatus.joined, nickName: p.name);
+        _upsertMember(p.identity, status: CallParticipantStatus.joined, nickName: p.name);
         // 订阅存量轨道
         for (var pub in p.trackPublications.values) {
           final track = pub.track;
@@ -52,10 +105,25 @@ class CallBusiness implements CallRepositoryInterface {
     }
   }
   
+  // 邀请参与者
+  Future<void> inviteParticipants(List<String> userIds) async {
+    if (_currentRoomId == null) return;
+    await inviteParticipantsApi(api.InviteParticipantsReq(
+      roomId: _currentRoomId!,
+      userIds: userIds,
+    ));
+    
+    // 预填入参会者列表（待加入状态）
+    for (var userId in userIds) {
+      _upsertMember(userId, status: CallParticipantStatus.pending);
+    }
+  }
+  
   // 断开连接
   Future<void> disconnect() async {
     await _room.disconnect();
     _isInitialized = false;
+    _currentRoomId = null;
     _store.clear();
   }
   
@@ -85,7 +153,7 @@ class CallBusiness implements CallRepositoryInterface {
     final isMuted = !localParticipant.isMicrophoneEnabled();
     await localParticipant.setMicrophoneEnabled(isMuted);
     
-    _store.upsertMember(localParticipant.identity, isMuted: !isMuted);
+    _upsertMember(localParticipant.identity, isMuted: !isMuted);
   }
   
   // 切换摄像头
@@ -96,7 +164,7 @@ class CallBusiness implements CallRepositoryInterface {
     final isCameraOff = !localParticipant.isCameraEnabled();
     await localParticipant.setCameraEnabled(isCameraOff);
     
-    _store.upsertMember(localParticipant.identity, isCameraOff: !isCameraOff);
+    _upsertMember(localParticipant.identity, isCameraOff: !isCameraOff);
   }
   
   // 切换扬声器
@@ -109,13 +177,13 @@ class CallBusiness implements CallRepositoryInterface {
     listener
       ..on<ParticipantConnectedEvent>((event) {
         debugPrint('参与者加入: ${event.participant.identity}');
-        _store.upsertMember(event.participant.identity, 
+        _upsertMember(event.participant.identity, 
           status: CallParticipantStatus.joined,
           nickName: event.participant.name);
       })
       ..on<ParticipantDisconnectedEvent>((event) {
         debugPrint('参与者离开: ${event.participant.identity}');
-        _store.upsertMember(event.participant.identity, status: CallParticipantStatus.left);
+        _upsertMember(event.participant.identity, status: CallParticipantStatus.left);
       })
       ..on<TrackSubscribedEvent>((event) {
         _onTrackSubscribed(event.track, event.publication, event.participant);
@@ -133,9 +201,9 @@ class CallBusiness implements CallRepositoryInterface {
         final identity = _room.localParticipant?.identity;
         if (identity == null) return;
         if (event.publication.kind == TrackType.VIDEO) {
-          _store.upsertMember(identity, videoTrack: event.publication.track as VideoTrack?);
+          _upsertMember(identity, videoTrack: event.publication.track as VideoTrack?);
         } else if (event.publication.kind == TrackType.AUDIO) {
-          _store.upsertMember(identity, audioTrack: event.publication.track as AudioTrack?);
+          _upsertMember(identity, audioTrack: event.publication.track as AudioTrack?);
         }
       })
       ..on<RoomDisconnectedEvent>((event) {
@@ -145,13 +213,13 @@ class CallBusiness implements CallRepositoryInterface {
 
   void _onTrackSubscribed(Track track, RemoteTrackPublication publication, RemoteParticipant participant) {
     if (track is VideoTrack) {
-      _store.upsertMember(participant.identity, 
+      _upsertMember(participant.identity, 
         videoTrack: track, 
         isCameraOff: false,
         sid: track.sid
       );
     } else if (track is AudioTrack) {
-      _store.upsertMember(participant.identity, 
+      _upsertMember(participant.identity, 
         audioTrack: track, 
         isMuted: false,
         sid: track.sid
@@ -161,17 +229,17 @@ class CallBusiness implements CallRepositoryInterface {
 
   void _onTrackUnsubscribed(Track track, RemoteTrackPublication publication, RemoteParticipant participant) {
     if (track is VideoTrack) {
-      _store.upsertMember(participant.identity, videoTrack: null, isCameraOff: true);
+      _upsertMember(participant.identity, videoTrack: null, isCameraOff: true);
     } else if (track is AudioTrack) {
-      _store.upsertMember(participant.identity, audioTrack: null, isMuted: true);
+      _upsertMember(participant.identity, audioTrack: null, isMuted: true);
     }
   }
 
   void _onTrackMuteChanged(Participant participant, TrackPublication publication, bool isMuted) {
     if (publication.kind == TrackType.VIDEO) {
-       _store.upsertMember(participant.identity, isCameraOff: isMuted);
+       _upsertMember(participant.identity, isCameraOff: isMuted);
     } else if (publication.kind == TrackType.AUDIO) {
-       _store.upsertMember(participant.identity, isMuted: isMuted);
+       _upsertMember(participant.identity, isMuted: isMuted);
     }
   }
 

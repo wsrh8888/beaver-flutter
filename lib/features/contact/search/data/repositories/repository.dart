@@ -1,18 +1,34 @@
-import 'package:beaver/di/injection.dart';
-import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/api/friend.dart';
+import 'package:beaver/common/request/request.dart';
+import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/types/business/user.dart';
 
 class SearchContactRepository {
-  final FriendRepositoryInterface _friendRepository;
+  Future<UserInfo?> searchUser(String keyword) async {
+    final response = await getSearchFriendApi(
+      ISearchUserReq(
+        keyword: keyword,
+        type: keyword.contains('@') ? 'email' : 'userId',
+      ),
+    );
 
-  SearchContactRepository({FriendRepositoryInterface? friendRepository}) 
-    : _friendRepository = friendRepository ?? getIt<FriendRepositoryInterface>();
+    if (response.code != 0 || response.result == null) {
+      return null;
+    }
 
-  Future<UserInfo?> searchUser(String email) async {
-    return _friendRepository.searchUser(email);
+    final res = response.result!;
+    return UserInfo(
+      userId: res.userId,
+      nickname: res.nickName,
+      avatar: res.avatar,
+      abstract: res.abstract,
+      email: res.email,
+    );
   }
 
-  Future<bool> addFriend(String userId) async {
-    return _friendRepository.addFriend(userId);
+  Future<BaseResponse<void>> addFriend(String userId) async {
+    return applyAddFriendApi(
+      IAddFriendReq(friendId: userId, source: 'userId', verify: 'verify'),
+    );
   }
 }

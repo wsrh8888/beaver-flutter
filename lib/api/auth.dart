@@ -36,3 +36,9 @@ Future<BaseResponse<LogoutRes>> logoutApi() {
   const url = '/api/auth/logout';
   return httpClient.post<LogoutRes>(url, data: LogoutReq().toJson(), fromJsonT: (json) => LogoutRes.fromJson(json));
 }
+
+/// 重置密码
+Future<BaseResponse<ResetPasswordRes>> resetPasswordApi(ResetPasswordReq data) {
+  const url = '/api/auth/reset_password';
+  return httpClient.post<ResetPasswordRes>(url, data: data.toJson(), fromJsonT: (json) => ResetPasswordRes.fromJson(json));
+}

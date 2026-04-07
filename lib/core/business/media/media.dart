@@ -17,8 +17,8 @@ class MediaBusiness {
   }
 
   /// 上传文件并返回上传结果 (对标 PC uploadFileApi)
-  Future<IFileUploadResult?> uploadFile(String filePath, {FileInfo? fileInfo}) async {
-    final response = await uploadFileApi(filePath, fileInfo: fileInfo);
+  Future<IFileUploadResult?> uploadFile(String filePath) async {
+    final response = await uploadFileApi(filePath);
     if (response.isSuccess && response.result != null) {
       return response.result;
     }

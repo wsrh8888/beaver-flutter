@@ -3,8 +3,8 @@ class EmojiItem {
   final String userId;
   final String emojiCode;
   final int version;
-  final String createdAt;
-  final String updatedAt;
+  final int createdAt;
+  final int updatedAt;
 
   EmojiItem({
     required this.emojiId,
@@ -20,36 +20,40 @@ class EmojiItem {
     userId: json['userId'] ?? '',
     emojiCode: json['emojiCode'] ?? '',
     version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? '',
-    updatedAt: json['updatedAt'] ?? '',
+    createdAt: json['createdAt'] ?? 0,
+    updatedAt: json['updatedAt'] ?? 0,
   );
 }
 
 class EmojiPackageItem {
+  final String packageCollectId;
   final String packageId;
   final String userId;
-  final String packageCode;
+  final bool isDeleted;
   final int version;
-  final String createdAt;
-  final String updatedAt;
+  final int createdAt;
+  final int updatedAt;
 
   EmojiPackageItem({
+    required this.packageCollectId,
     required this.packageId,
     required this.userId,
-    required this.packageCode,
+    required this.isDeleted,
     required this.version,
     required this.createdAt,
     required this.updatedAt,
   });
 
-  factory EmojiPackageItem.fromJson(Map<String, dynamic> json) => EmojiPackageItem(
-    packageId: json['packageId'] ?? '',
-    userId: json['userId'] ?? '',
-    packageCode: json['packageCode'] ?? '',
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? '',
-    updatedAt: json['updatedAt'] ?? '',
-  );
+  factory EmojiPackageItem.fromJson(Map<String, dynamic> json) =>
+      EmojiPackageItem(
+        packageCollectId: json['packageCollectId'] ?? '',
+        packageId: json['packageId'] ?? '',
+        userId: json['userId'] ?? '',
+        isDeleted: json['isDeleted'] ?? false,
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+        updatedAt: json['updatedAt'] ?? 0,
+      );
 }
 
 class EmojiPackage {
@@ -62,8 +66,8 @@ class EmojiPackage {
   final String type;
   final int status;
   final int version;
-  final String createdAt;
-  final String updatedAt;
+  final int createdAt;
+  final int updatedAt;
 
   EmojiPackage({
     required this.id,
@@ -89,8 +93,8 @@ class EmojiPackage {
     type: json['type'] ?? '',
     status: json['status'] ?? 0,
     version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? '',
-    updatedAt: json['updatedAt'] ?? '',
+    createdAt: json['createdAt'] ?? 0,
+    updatedAt: json['updatedAt'] ?? 0,
   );
 }
 
@@ -100,8 +104,8 @@ class EmojiPackageContent {
   final String emojiId;
   final int sortOrder;
   final int version;
-  final String createdAt;
-  final String updatedAt;
+  final int createdAt;
+  final int updatedAt;
 
   EmojiPackageContent({
     required this.relationId,
@@ -113,15 +117,16 @@ class EmojiPackageContent {
     required this.updatedAt,
   });
 
-  factory EmojiPackageContent.fromJson(Map<String, dynamic> json) => EmojiPackageContent(
-    relationId: json['relationId'] ?? '',
-    packageId: json['packageId'] ?? '',
-    emojiId: json['emojiId'] ?? '',
-    sortOrder: json['sortOrder'] ?? 0,
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? '',
-    updatedAt: json['updatedAt'] ?? '',
-  );
+  factory EmojiPackageContent.fromJson(Map<String, dynamic> json) =>
+      EmojiPackageContent(
+        relationId: json['relationId'] ?? '',
+        packageId: json['packageId'] ?? '',
+        emojiId: json['emojiId'] ?? '',
+        sortOrder: json['sortOrder'] ?? 0,
+        version: json['version'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+        updatedAt: json['updatedAt'] ?? 0,
+      );
 }
 
 class EmojiCollectItem {
@@ -132,6 +137,8 @@ class EmojiCollectItem {
   final int status;
   final int version;
   final int updatedAt;
+  final int createdAt;
+  final bool isDeleted;
 
   EmojiCollectItem({
     required this.emojiCollectId,
@@ -139,19 +146,24 @@ class EmojiCollectItem {
     required this.emojiId,
     this.packageId,
     required this.status,
+    required this.isDeleted,
     required this.version,
     required this.updatedAt,
+    required this.createdAt,
   });
 
-  factory EmojiCollectItem.fromJson(Map<String, dynamic> json) => EmojiCollectItem(
-    emojiCollectId: json['emojiCollectId'] ?? '',
-    userId: json['userId'] ?? '',
-    emojiId: json['emojiId'] ?? '',
-    packageId: json['packageId'],
-    status: json['status'] ?? 1,
-    version: json['version'] ?? 0,
-    updatedAt: json['updatedAt'] ?? 0,
-  );
+  factory EmojiCollectItem.fromJson(Map<String, dynamic> json) =>
+      EmojiCollectItem(
+        emojiCollectId: json['emojiCollectId'] ?? '',
+        userId: json['userId'] ?? '',
+        emojiId: json['emojiId'] ?? '',
+        packageId: json['packageId'],
+        status: json['status'] ?? 1,
+        isDeleted: json['isDeleted'] ?? false,
+        version: json['version'] ?? 0,
+        updatedAt: json['updatedAt'] ?? 0,
+        createdAt: json['createdAt'] ?? 0,
+      );
 }
 
 class EmojiCollectsResponse {
@@ -247,7 +259,8 @@ class EmojiPackageDetailResponse extends EmojiShopPackageItem {
       emojiCount: json['emojiCount'] ?? 0,
       isCollected: json['isCollected'] ?? false,
       isAuthor: json['isAuthor'] ?? false,
-      emojis: (json['emojis'] as List?)
+      emojis:
+          (json['emojis'] as List?)
               ?.map((e) => EmojiItem.fromJson(e))
               .toList() ??
           [],

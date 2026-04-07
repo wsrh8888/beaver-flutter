@@ -11,9 +11,16 @@ class FriendMessageRouter {
 
   /**
    * 处理好友消息
-   * @param data WebSocket 消息内容中的 data 字段
+   * @param wsMessage WebSocket 消息内容
    */
-  Future<void> processFriendMessage(Map<String, dynamic> data) async {
+  Future<void> processFriendMessage(Map<String, dynamic> wsMessage) async {
+    final data = wsMessage['data'] as Map<String, dynamic>?;
+
+    if (data == null) {
+      print('[FriendMessageRouter] 收到好友消息, 但缺少 data 字段: $wsMessage');
+      return;
+    }
+
     final type = data['type'] as String?;
     final body = data['body'] as Map<String, dynamic>?;
 

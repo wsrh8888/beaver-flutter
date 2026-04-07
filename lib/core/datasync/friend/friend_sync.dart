@@ -20,9 +20,9 @@ class FriendSyncModule {
       final datasyncService = getIt<DatasyncService>();
       final friendService = getIt<FriendService>();
 
-      // 获取本地同步时间戳
+      // 获取本地同步游标 (时间戳)
       final localCursor = await datasyncService.get('friends');
-      final lastSyncTime = localCursor?.version ?? 0;
+      final lastSyncTime = localCursor?.updatedAt ?? 0;
 
       // 获取服务器上变更的好友版本信息
       final response = await datasyncGetSyncFriendsApi(
@@ -129,7 +129,10 @@ class FriendSyncModule {
       if (response.code == 0 &&
           response.result != null &&
           response.result!.friends.isNotEmpty) {
-        await friendService.batchCreate(response.result!.friends);
+        final companions = response.result!.friends
+            .map((f) => f.toCompanion())
+            .toList();
+        await friendService.batchCreate(companions);
         // TODO: 发送通知到渲染进程
       }
     }

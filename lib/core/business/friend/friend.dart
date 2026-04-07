@@ -7,7 +7,6 @@ import 'package:beaver/di/injection.dart';
 import 'package:intl/intl.dart';
 import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/types/business/contact.dart';
-import 'package:beaver/types/business/user.dart';
 
 /// 好友业务逻辑
 class FriendBusiness implements FriendRepositoryInterface {
@@ -108,29 +107,6 @@ class FriendBusiness implements FriendRepositoryInterface {
     await _service.deleteFriend(friendId);
   }
 
-  /**
-   * @description 搜索用户
-   */
-  Future<UserInfo?> searchUser(String email) async {
-    // 模拟搜索用户
-    await Future.delayed(const Duration(seconds: 1));
-    return const UserInfo(
-      userId: '123456',
-      nickname: '李四',
-      avatar:
-          'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
-    );
-  }
-
-  /**
-   * @description 添加好友
-   */
-  Future<bool> addFriend(String userId) async {
-    // 模拟发送好友请求
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
-  }
-
   @override
   Future<List<FriendRequest>> getFriendRequests() async {
     final currentUserId = DatabaseManager.currentUserId ?? '';
@@ -174,7 +150,7 @@ class FriendBusiness implements FriendRepositoryInterface {
           : '';
 
       return FriendRequest(
-        id: v.id,
+        id: v.verifyId,
         nickname: userInfo?.nickname ?? friendUserId,
         fileName: userInfo?.avatar ?? '',
         message: v.message,
@@ -195,12 +171,6 @@ class FriendBusiness implements FriendRepositoryInterface {
   Future<int> getUnreadFriendRequestCount(String userId) async {
     final verifyService = getIt<FriendVerifyService>();
     return await verifyService.getUnreadCount(userId);
-  }
-
-  @override
-  Future<bool> updateFriendRequestStatus(int id, int status) async {
-    // TODO: 调用 API 同步状态到服务器，并更新本地数据库
-    return true;
   }
 
   /**
@@ -225,7 +195,10 @@ class FriendBusiness implements FriendRepositoryInterface {
     }
 
     if (response.result!.friends.isNotEmpty) {
-      await _service.batchCreate(response.result!.friends);
+      final companions = response.result!.friends
+          .map((f) => f.toCompanion())
+          .toList();
+      await _service.batchCreate(companions);
     }
 
     _lastHandledVersionByFriendId[friendId] = version;

@@ -12,7 +12,7 @@ class EmojiDetailSync {
     final emojiService = getIt<EmojiService>();
 
     final cursor = await datasyncService.get('emojis');
-    final lastSyncTime = cursor?.version ?? 0;
+    final lastSyncTime = cursor?.updatedAt ?? 0;
 
     final response = await datasyncGetSyncEmojisApi(
       IGetSyncEmojisReq(since: lastSyncTime),
@@ -60,6 +60,8 @@ class EmojiDetailSync {
               emojiInfo: Value(json['emojiInfo']?.toString()),
               status: Value(json['status'] ?? 1),
               version: Value(json['version'] ?? 0),
+              createdAt: Value(json['createdAt'] ?? 0),
+              updatedAt: Value(json['updatedAt'] ?? 0),
             );
           }).toList();
           await emojiService.batchCreate(emojis);

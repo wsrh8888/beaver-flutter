@@ -1,4 +1,4 @@
-import 'package:beaver/types/business/group.dart';
+import 'package:beaver/types/business/contact.dart';
 abstract class CreateGroupEvent {
   const CreateGroupEvent();
 }
@@ -8,7 +8,7 @@ class LoadContactsEvent extends CreateGroupEvent {
 }
 
 class SelectContactEvent extends CreateGroupEvent {
-  final Contact contact;
+  final ContactModel contact;
 
   const SelectContactEvent(this.contact);
 }

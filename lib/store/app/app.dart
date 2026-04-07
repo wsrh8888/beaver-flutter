@@ -15,6 +15,8 @@ import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/core/datasync/emoji/sync.dart';
 import 'package:beaver/core/datasync/manager.dart' show syncManager;
+import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/shared/utils/storage_util.dart';
 
 enum AppLifecycleStatus { connecting, syncing, ready, error }
 
@@ -80,6 +82,27 @@ class AppStore extends Cubit<AppStoreState> {
   Future<void> clearLocalData() async {
     await DatabaseManager.instance.clearAllData();
     await clearEmojiSyncState();
+  }
+
+  /// 退出登录，清理所有状态和缓存 (对标 PC logout)
+  Future<void> logout() async {
+    // 1. 断开 WebSocket
+    getIt<WsConnectionManager>().disconnect();
+
+    // 2. 清理本地存储 (token, userId 等)
+    await StorageUtil.clear();
+
+    // 3. 通知 UserStore 状态变更为未认证
+    getIt<UserStore>().logout();
+
+    // 4. 重置 AppStore 状态
+    emit(const AppStoreState(
+      status: AppLifecycleStatus.connecting,
+      isInitComplete: false,
+    ));
+
+    // 建议：如果需要彻底清理数据库也可以在这里调用 clearLocalData()
+    // 但通常退出登录只需清理 Session。如果用户要求清空缓存，则调用上面的 clearLocalData。
   }
 
   /**
