@@ -46,6 +46,8 @@ class GroupMemberBusiness {
     return dbMembers.map((dbMember) => GroupMember(
       groupId: dbMember.groupId,
       userId: dbMember.userId,
+      nickname: dbMember.nickName,
+      avatar: dbMember.avatar,
       role: dbMember.role,
       status: dbMember.status,
       joinTime: dbMember.joinTime ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,

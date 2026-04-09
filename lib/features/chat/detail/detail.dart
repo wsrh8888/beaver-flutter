@@ -67,17 +67,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                       FocusScope.of(context).unfocus();
                       _chatBloc.add(const DismissComposerEvent());
                     },
-                    child: ChatContent(
-                      messages: state.messages,
-                      isLoading: state.status == ChatStatus.loading,
-                      isLoadingMore: state.isLoadingMore,
-                      isMultiSelect: isMultiSelect,
-                      onLoadMore: () {
-                        context.read<ChatBloc>().add(
-                          const LoadMoreMessagesEvent(),
-                        );
-                      },
-                    ),
+                    child: const ChatContent(),
                   ),
                 ),
                 ChatBottom(
@@ -98,12 +88,18 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   Widget _buildMoreButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final id = widget.conversationId ?? '';
-        if (id.isEmpty) {
+        final conversationId = widget.conversationId ?? '';
+        if (conversationId.isEmpty) {
           BeaverToast.show(context, '找不到会话');
           return;
         }
-        context.push('${AppRoutes.chatSetting}?id=$id');
+        
+        // 根据会话类型跳转不同路由
+        final route = conversationId.startsWith('group_') 
+            ? AppRoutes.groupChatSetting 
+            : AppRoutes.privateChatSetting;
+            
+        context.push('$route?id=$conversationId');
       },
       child: Container(
         width: 36.w,

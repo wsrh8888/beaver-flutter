@@ -162,16 +162,23 @@ class MessageStore extends Cubit<MessageStoreState> {
   void addMessage(String conversationId, MessageModel message) {
     final history = List<MessageModel>.from(state.chatHistory[conversationId] ?? []);
     
-    // 去重逻辑
+    // 更加健壮的去重逻辑：优先通过 ID 匹配
     final index = history.indexWhere((m) => m.id == message.id);
+    
+    bool isNew = false;
     if (index != -1) {
+      // 如果消息已存在，更新它
       history[index] = message;
     } else {
-      // 如果是 reverse: true 的 ListView，通常最新消息插在 0 
-      // 但这里存储是追加还是插前取决于 ListView 渲染方式。
-      // PC 端是 history.push(message)，数组末尾是最新的。
-      // 我们也保持末尾最新。
-      history.insert(0, message); 
+      // 再次通过 ID 字符串比对（防止某些情况下 ID 类型不一致）
+      final stringIndex = history.indexWhere((m) => m.id.toString() == message.id.toString());
+      if (stringIndex != -1) {
+        history[stringIndex] = message;
+      } else {
+        // 真的是新消息，插入到头部（ListView reverse: true）
+        history.insert(0, message); 
+        isNew = true;
+      }
     }
 
     final newHistory = Map<String, List<MessageModel>>.from(state.chatHistory);
@@ -179,7 +186,11 @@ class MessageStore extends Cubit<MessageStoreState> {
 
     final newPagination = Map<String, MessagePagination>.from(state.messagePagination);
     final pagination = newPagination[conversationId] ?? const MessagePagination();
-    newPagination[conversationId] = pagination.copyWith(offset: pagination.offset + 1);
+    
+    // 只有在插入新消息时才增加 offset，避免重复更新导致分页偏移
+    if (isNew) {
+      newPagination[conversationId] = pagination.copyWith(offset: pagination.offset + 1);
+    }
 
     emit(state.copyWith(
       chatHistory: newHistory,

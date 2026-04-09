@@ -21,36 +21,34 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ChatContent extends StatelessWidget {
-  final List<MessageModel> messages;
-  final bool isLoading;
-  final bool isLoadingMore;
-  final bool isMultiSelect;
-  final VoidCallback onLoadMore;
   const ChatContent({
     super.key,
-    required this.messages,
-    required this.isLoading,
-    required this.isLoadingMore,
-    required this.isMultiSelect,
-    required this.onLoadMore,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading)
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFFFF7D45)),
-      );
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
+        if (state.status == ChatStatus.loading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFFF7D45)),
+          );
+        }
+
+        final messages = state.messages;
+        final isMultiSelect = state.status == ChatStatus.multiSelect;
+
         return ListView.builder(
           reverse: true,
           padding: EdgeInsets.symmetric(vertical: 20.w, horizontal: 16.w),
           itemCount: messages.length + 1,
           itemBuilder: (context, index) {
             if (index == messages.length) {
-              if (state.hasMore) {
-                onLoadMore();
+              if (state.hasMore && !state.isLoadingMore) {
+                // 使用 postFrameCallback 避免在 build 过程中直接 add event
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.read<ChatBloc>().add(const LoadMoreMessagesEvent());
+                });
                 return _buildLoader();
               }
               return SizedBox(height: 20.w);
@@ -64,7 +62,7 @@ class ChatContent extends StatelessWidget {
               return _buildFullWidthMessage(message, isSelf);
             }
 
-            return _buildMessageRow(context, message, isSelf, isSelected);
+            return _buildMessageRow(context, message, isSelf, isSelected, isMultiSelect);
           },
         );
       },
@@ -84,6 +82,7 @@ class ChatContent extends StatelessWidget {
     MessageModel message,
     bool isSelf,
     bool isSelected,
+    bool isMultiSelect,
   ) {
     return Padding(
       padding: EdgeInsets.only(bottom: 20.w),

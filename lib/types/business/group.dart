@@ -74,6 +74,8 @@ class GroupNotification {
 class GroupMember {
   final String groupId;
   final String userId;
+  final String? nickname;
+  final String? avatar;
   final int role;
   final int status;
   final int joinTime;
@@ -82,9 +84,11 @@ class GroupMember {
   const GroupMember({
     required this.groupId,
     required this.userId,
+    this.nickname,
+    this.avatar,
     required this.role,
     required this.status,
     required this.joinTime,
     required this.version,
   });
-}
+}
