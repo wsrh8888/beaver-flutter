@@ -9,7 +9,7 @@ class AudioMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelf ? Colors.white : const Color(0xFF636E72);
+    final color = const Color(0xFF636E72);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

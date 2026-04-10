@@ -23,7 +23,7 @@ const _configs = <Env, EnvConfig>{
   ),
 };
 
-Env _currentEnv = Env.dev;
+Env _currentEnv = Env.prod;
 
 /// 当前环境 (可通过 AppConfig.init 或 --dart-define 设置)
 Env get currentEnv => _currentEnv;

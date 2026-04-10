@@ -12,6 +12,7 @@ class AppRoutes {
   static const String privateChatSetting = '/chat/setting/private';
   static const String groupChatSetting = '/chat/setting/group';
   static const String chatForward = '/chat/forward';
+  static const String chatForwardDetail = '/chat/forward/detail';
   
   // 联系人模块
   static const String contactList = '/contact/list';

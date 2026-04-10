@@ -12,9 +12,9 @@ class TextMessage extends StatelessWidget {
     return Text(
       msg.content,
       style: TextStyle(
-        fontSize: 14.sp,
-        height: 1.5,
-        color: isSelf ? Colors.white : const Color(0xFF2D3436),
+        fontSize: 16.sp,
+        color: const Color(0xFF2D3436),
+        height: 1.4,
       ),
     );
   }

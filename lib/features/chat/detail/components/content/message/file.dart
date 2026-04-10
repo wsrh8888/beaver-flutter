@@ -9,8 +9,8 @@ class FileMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
-    final subColor = isSelf ? Colors.white70 : const Color(0xFF636E72);
+    const textColor = Color(0xFF2D3436);
+    const subColor = Color(0xFF636E72);
 
     return Row(
       children: [
@@ -31,7 +31,7 @@ class FileMessage extends StatelessWidget {
           ),
         ),
         SizedBox(width: 12.w),
-        Icon(Icons.description, size: 32.w, color: isSelf ? Colors.white : const Color(0xFF2196F3)),
+        Icon(Icons.description, size: 32.w, color: const Color(0xFF2196F3)),
       ],
     );
   }

@@ -1,0 +1,133 @@
+import 'package:beaver/store/contact/contact.dart';
+import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/types/business/user.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'bloc/picker_bloc.dart';
+import 'bloc/picker_event.dart';
+import 'bloc/picker_state.dart';
+
+class ForwardPickerPage extends StatelessWidget {
+  final List<String> messageIds;
+  final int forwardMode; // 1:逐条 2:合并
+
+  const ForwardPickerPage({
+    super.key,
+    this.messageIds = const [],
+    this.forwardMode = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ForwardPickerBloc(
+        messageIds: messageIds,
+        forwardMode: forwardMode,
+        contactStore: context.read<ContactStore>(),
+      ),
+      child: BlocConsumer<ForwardPickerBloc, ForwardPickerState>(
+        listener: (context, state) {
+          if (state.status == ForwardPickerStatus.completed) {
+            BeaverToast.show(context, '转发成功');
+            context.pop();
+          } else if (state.status == ForwardPickerStatus.failure) {
+            BeaverToast.show(context, state.error ?? '转发失败');
+          }
+        },
+        builder: (context, state) {
+          return BeaverLayout(
+            title: forwardMode == 2 ? '合并转发' : '逐条转发',
+            showBack: true,
+            child: Column(
+              children: [
+                _buildSearchBox(context),
+                Expanded(child: _buildContactList(context, state)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchBox(BuildContext context) => Container(
+        padding: EdgeInsets.all(12.w),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F2F6),
+            borderRadius: BorderRadius.circular(8.w),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search, size: 20.w, color: const Color(0xFF99A3AD)),
+              SizedBox(width: 8.w),
+              Expanded(
+                child: TextField(
+                  onChanged: (val) => context
+                      .read<ForwardPickerBloc>()
+                      .add(LoadContactsEvent(query: val)),
+                  decoration: const InputDecoration(
+                    hintText: '搜索联系人',
+                    hintStyle: TextStyle(color: Color(0xFF99A3AD)),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildContactList(BuildContext context, ForwardPickerState state) {
+    if (state.status == ForwardPickerStatus.loading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFFFF7D45)));
+    }
+    
+    final contacts = state.contacts;
+    return ListView.builder(
+      itemCount: contacts.length,
+      itemBuilder: (context, index) =>
+          _buildContactItem(context, contacts[index]),
+    );
+  }
+
+  Widget _buildContactItem(BuildContext context, UserInfo user) {
+    return InkWell(
+      onTap: () {
+        context.read<ForwardPickerBloc>().add(
+              ExecuteForwardEvent(targetId: user.userId, forwardType: 1),
+            );
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: const Color(0xFFE9EDF2), width: 1.w),
+          ),
+        ),
+        child: Row(
+          children: [
+            BeaverAvatar(avatar: user.avatar, size: 40),
+            SizedBox(width: 12.w),
+            Text(
+              user.nickname,
+              style: TextStyle(fontSize: 16.sp, color: const Color(0xFF2D3436)),
+            ),
+            const Spacer(),
+            Icon(Icons.chevron_right, size: 22.w, color: const Color(0xFFCBD2DA)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+

@@ -29,3 +29,15 @@ Future<BaseResponse<IPinnedChatRes>> pinnedChatApi(IPinnedChatReq data) {
   const url = '/api/chat/pinnedChat';
   return httpClient.post<IPinnedChatRes>(url, data: data.toJson(), fromJsonT: (json) => IPinnedChatRes.fromJson(json));
 }
+
+/// 获取合并转发详情
+Future<BaseResponse<IGetForwardDetailsRes>> getForwardDetailsApi(IGetForwardDetailsReq data) {
+  const url = '/api/chat/getForwardDetails';
+  return httpClient.get<IGetForwardDetailsRes>(url, queryParameters: data.toJson(), fromJsonT: (json) => IGetForwardDetailsRes.fromJson(json));
+}
+
+/// 转发消息
+Future<BaseResponse<IForwardMessageRes>> forwardMessageApi(IForwardMessageReq data) {
+  const url = '/api/chat/forward';
+  return httpClient.post<IForwardMessageRes>(url, data: data.toJson(), fromJsonT: (json) => IForwardMessageRes.fromJson(json));
+}

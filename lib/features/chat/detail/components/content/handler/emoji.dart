@@ -1,9 +1,10 @@
 import 'package:beaver/features/chat/detail/components/content/handler/base.dart';
 import 'package:beaver/types/business/message.dart';
+import 'package:flutter/widgets.dart';
 
 class EmojiHandler extends BaseMessageHandler {
   @override
-  Future<void> handleCommand(String commandId, MessageModel message) async {
+  Future<void> handleCommand(BuildContext context, String commandId, MessageModel message) async {
     // TODO: Implement emoji specific commands
   }
 
