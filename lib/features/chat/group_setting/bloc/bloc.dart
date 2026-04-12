@@ -1,11 +1,13 @@
 import 'package:beaver/api/group.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/core/database/db.dart';
+import 'package:beaver/core/business/chat/message.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/chat/group_setting/bloc/event.dart';
 import 'package:beaver/features/chat/group_setting/bloc/state.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/store/group/group_member.dart';
+import 'package:beaver/store/message/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
@@ -20,6 +22,8 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     on<AddGroupMembersEvent>(_onAddMembers);
     on<RemoveGroupMemberEvent>(_onRemoveMember);
     on<DisbandGroupEvent>(_onDisbandGroup);
+    on<ClearGroupChatHistoryEvent>(_onClearHistory);
+    on<ShowClearGroupHistoryDialogEvent>(_onShowClearDialog);
   }
 
   Future<void> _onInit(
@@ -189,5 +193,38 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
+  }
+
+  Future<void> _onClearHistory(
+    ClearGroupChatHistoryEvent event,
+    Emitter<GroupSettingState> emit,
+  ) async {
+    if (state.isSaving) return;
+
+    emit(state.copyWith(isSaving: true, showClearDialog: false));
+    try {
+      final conversationId = state.conversationId;
+
+      // 1. 清除本地数据库和元数据 (Business 层)
+      await getIt<MessageBusiness>().clearHistory(conversationId);
+
+      // 2. 清除 Store 中的内存缓存
+      getIt<MessageStore>().clearConversationMessages(conversationId);
+
+      emit(state.copyWith(
+        isSaving: false,
+        status: GroupSettingStatus.historyCleared,
+        conversation: state.conversation?.copyWith(msgPreview: ''),
+      ));
+    } catch (e) {
+      emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
+    }
+  }
+
+  void _onShowClearDialog(
+    ShowClearGroupHistoryDialogEvent event,
+    Emitter<GroupSettingState> emit,
+  ) {
+    emit(state.copyWith(showClearDialog: event.show));
   }
 }

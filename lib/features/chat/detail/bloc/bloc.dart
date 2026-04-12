@@ -99,6 +99,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       return m;
     }).toList();
 
+    print('[ChatBloc] _syncStoreToState: emitting ${enrichedMessages.length} messages for $conversationId');
     emit(state.copyWith(
       status: ChatStatus.success,
       messages: enrichedMessages,

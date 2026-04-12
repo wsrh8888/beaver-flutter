@@ -30,6 +30,7 @@ abstract class MessageRepositoryInterface {
   Future<MessageModel> sendMessage(ChatMessageSendBody data);
   Future<void> updateMessageStatus(String messageId, MessageStatus status);
   Future<ChatModel?> getConversation(String conversationId);
+  Future<void> clearHistory(String conversationId);
 }
 
 /// 基础内容模型

@@ -9,6 +9,7 @@ class PrivateSettingPanel extends StatelessWidget {
   final String avatar;
   final bool isTop;
   final VoidCallback onToggleTop;
+  final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
 
   const PrivateSettingPanel({
@@ -18,6 +19,7 @@ class PrivateSettingPanel extends StatelessWidget {
     required this.avatar,
     required this.isTop,
     required this.onToggleTop,
+    required this.onClearHistory,
     required this.onDeleteConversation,
   });
 
@@ -85,6 +87,25 @@ class PrivateSettingPanel extends StatelessWidget {
               onChanged: (_) => onToggleTop(),
               activeColor: const Color(0xFFFF7D45),
             ),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '清空聊天记录',
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: const Color(0xFFF44336),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: onClearHistory,
           ),
         ),
         Container(

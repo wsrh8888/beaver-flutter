@@ -2,7 +2,7 @@ import 'package:beaver/types/business/chat.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:equatable/equatable.dart';
 
-enum GroupSettingStatus { initial, loading, success, error, deleted }
+enum GroupSettingStatus { initial, loading, success, error, deleted, historyCleared }
 
 class GroupSettingState extends Equatable {
   final GroupSettingStatus status;
@@ -12,6 +12,7 @@ class GroupSettingState extends Equatable {
   final String currentUserId;
   final bool isSaving;
   final bool showDeleteDialog;
+  final bool showClearDialog;
   final String? errorMessage;
 
   const GroupSettingState({
@@ -22,6 +23,7 @@ class GroupSettingState extends Equatable {
     this.currentUserId = '',
     this.isSaving = false,
     this.showDeleteDialog = false,
+    this.showClearDialog = false,
     this.errorMessage,
   });
 
@@ -40,6 +42,7 @@ class GroupSettingState extends Equatable {
     String? currentUserId,
     bool? isSaving,
     bool? showDeleteDialog,
+    bool? showClearDialog,
     String? errorMessage,
   }) {
     return GroupSettingState(
@@ -50,6 +53,7 @@ class GroupSettingState extends Equatable {
       currentUserId: currentUserId ?? this.currentUserId,
       isSaving: isSaving ?? this.isSaving,
       showDeleteDialog: showDeleteDialog ?? this.showDeleteDialog,
+      showClearDialog: showClearDialog ?? this.showClearDialog,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -63,6 +67,7 @@ class GroupSettingState extends Equatable {
         currentUserId,
         isSaving,
         showDeleteDialog,
+        showClearDialog,
         errorMessage,
       ];
 }

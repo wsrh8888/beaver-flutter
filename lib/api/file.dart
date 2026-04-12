@@ -38,7 +38,7 @@ Future<BaseResponse<IFileUploadResult>> _uploadFileApiWithTarget(
   String filePath,
   String endpoint,
 ) async {
-  final uploadUrl = '/api/file/$endpoint';
+  final uploadUrl = '$baseUrl/api/file/$endpoint';
 
   _logger.info({
     'text': '开始上传文件',

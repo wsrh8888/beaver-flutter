@@ -51,6 +51,9 @@ class _GroupSettingView extends StatelessWidget {
             (route) => route.settings.name == '/chat/list' || route.isFirst,
           );
         }
+        if (state.status == GroupSettingStatus.historyCleared) {
+          BeaverToast.show(context, '已清空聊天记录');
+        }
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
           BeaverToast.show(context, state.errorMessage!);
         }
@@ -78,6 +81,7 @@ class _GroupSettingView extends StatelessWidget {
                       ? '确定解散该群聊吗？此操作不可撤销。'
                       : '确定退出该群聊吗？',
                   confirmText: '确定',
+                  confirmColor: const Color(0xFFF44336), 
                   cancelText: '取消',
                   onCancel: () => context.read<GroupSettingBloc>().add(
                     const ShowDeleteGroupDialogEvent(false),
@@ -93,6 +97,16 @@ class _GroupSettingView extends StatelessWidget {
                       );
                     }
                   },
+                ),
+              if (state.showClearDialog)
+                BeaverDialog(
+                  title: '清空聊天记录',
+                  contentText: '确定清空该群聊的聊天记录吗？',
+                  confirmText: '清空',
+                  confirmColor: const Color(0xFFF44336),
+                  cancelText: '取消',
+                  onCancel: () => context.read<GroupSettingBloc>().add(const ShowClearGroupHistoryDialogEvent(false)),
+                  onConfirm: () => context.read<GroupSettingBloc>().add(const ClearGroupChatHistoryEvent()),
                 ),
               if (state.isSaving)
                 Container(
@@ -136,7 +150,7 @@ class _GroupSettingView extends StatelessWidget {
       contactStore: contactStore,
       onToggleTop: () =>
           context.read<GroupSettingBloc>().add(const TogglePinGroupChatEvent()),
-
+      onClearHistory: () => context.read<GroupSettingBloc>().add(const ShowClearGroupHistoryDialogEvent(true)),
       onDeleteConversation: () => context.read<GroupSettingBloc>().add(
         const ShowDeleteGroupDialogEvent(true),
       ),

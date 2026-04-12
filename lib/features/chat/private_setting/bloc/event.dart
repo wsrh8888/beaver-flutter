@@ -30,3 +30,15 @@ class ShowDeletePrivateChatDialogEvent extends PrivateSettingEvent {
   @override
   List<Object?> get props => [show];
 }
+
+class ClearChatHistoryEvent extends PrivateSettingEvent {
+  const ClearChatHistoryEvent();
+}
+
+class ShowClearHistoryDialogEvent extends PrivateSettingEvent {
+  final bool show;
+  const ShowClearHistoryDialogEvent(this.show);
+
+  @override
+  List<Object?> get props => [show];
+}

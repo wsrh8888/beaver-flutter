@@ -3,7 +3,6 @@ import 'package:beaver/common/logger/index.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import 'package:beaver/common/config/env.dart';
 import 'package:beaver/common/config/config.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 
@@ -176,4 +175,4 @@ class HttpClient {
 }
 
 /// 全局唯一 HTTP 客户端实例
-final httpClient = HttpClient(baseUrl: baseUrl);
+final httpClient = HttpClient();

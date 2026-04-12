@@ -13,6 +13,9 @@ class BeaverDialog extends StatelessWidget {
   final Widget? child;
   final bool maskClosable;
 
+  final Color? confirmColor;
+  final Gradient? confirmGradient;
+
   const BeaverDialog({
     super.key,
     required this.title,
@@ -25,6 +28,8 @@ class BeaverDialog extends StatelessWidget {
     this.showCancel = true,
     this.child,
     this.maskClosable = true,
+    this.confirmColor,
+    this.confirmGradient,
   });
 
   @override
@@ -127,14 +132,15 @@ class BeaverDialog extends StatelessWidget {
                             child: Container(
                               height: 40.w, // 80rpx
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                                color: confirmColor,
+                                gradient: confirmColor != null ? null : (confirmGradient ?? const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
                                     Color(0xFFFF7D45),
                                     Color(0xFFE86835),
                                   ],
-                                ),
+                                )),
                                 borderRadius: BorderRadius.circular(12.w), // 24rpx
                               ),
                               alignment: Alignment.center,

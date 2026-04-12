@@ -50,3 +50,15 @@ class RemoveGroupMemberEvent extends GroupSettingEvent {
 class DisbandGroupEvent extends GroupSettingEvent {
   const DisbandGroupEvent();
 }
+
+class ClearGroupChatHistoryEvent extends GroupSettingEvent {
+  const ClearGroupChatHistoryEvent();
+}
+
+class ShowClearGroupHistoryDialogEvent extends GroupSettingEvent {
+  final bool show;
+  const ShowClearGroupHistoryDialogEvent(this.show);
+
+  @override
+  List<Object?> get props => [show];
+}

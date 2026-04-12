@@ -15,6 +15,7 @@ class GroupSettingPanel extends StatelessWidget {
   final bool isAdmin;
   final ContactStore contactStore; // 新增：全局联系人仓库
   final VoidCallback onToggleTop;
+  final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
   final VoidCallback onAddMember;
   final Function(String userId) onRemoveMember;
@@ -30,6 +31,7 @@ class GroupSettingPanel extends StatelessWidget {
     required this.isAdmin,
     required this.contactStore,
     required this.onToggleTop,
+    required this.onClearHistory,
     required this.onDeleteConversation,
     required this.onAddMember,
     required this.onRemoveMember,
@@ -273,9 +275,13 @@ class GroupSettingPanel extends StatelessWidget {
             contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
             title: Text(
               '清空聊天记录',
-              style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: const Color(0xFFF44336), 
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            onTap: () {},
+            onTap: onClearHistory,
           ),
         ),
         SizedBox(height: 12.w),

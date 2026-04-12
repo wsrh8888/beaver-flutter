@@ -37,7 +37,7 @@ class _PrivateSettingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PrivateSettingBloc, PrivateSettingState>(
+        return BlocConsumer<PrivateSettingBloc, PrivateSettingState>(
       listener: (context, state) {
         if (state.status == PrivateSettingStatus.deleted) {
           BeaverToast.show(context, '已删除会话');
@@ -47,6 +47,9 @@ class _PrivateSettingView extends StatelessWidget {
           if (Navigator.of(context).canPop()) {
             context.pop();
           }
+        }
+        if (state.status == PrivateSettingStatus.historyCleared) {
+          BeaverToast.show(context, '已清空聊天记录');
         }
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
           BeaverToast.show(context, state.errorMessage!);
@@ -73,9 +76,20 @@ class _PrivateSettingView extends StatelessWidget {
                   title: '删除会话',
                   contentText: '确定删除该会话吗？',
                   confirmText: '删除',
+                  confirmColor: const Color(0xFFF44336),
                   cancelText: '取消',
                   onCancel: () => context.read<PrivateSettingBloc>().add(const ShowDeletePrivateChatDialogEvent(false)),
                   onConfirm: () => context.read<PrivateSettingBloc>().add(const DeletePrivateChatEvent()),
+                ),
+              if (state.showClearDialog)
+                BeaverDialog(
+                  title: '清空聊天记录',
+                  contentText: '确定清空该会话的聊天记录吗？',
+                  confirmText: '清空',
+                  confirmColor: const Color(0xFFF44336),
+                  cancelText: '取消',
+                  onCancel: () => context.read<PrivateSettingBloc>().add(const ShowClearHistoryDialogEvent(false)),
+                  onConfirm: () => context.read<PrivateSettingBloc>().add(const ClearChatHistoryEvent()),
                 ),
               if (state.isSaving)
                 Container(
@@ -97,6 +111,7 @@ class _PrivateSettingView extends StatelessWidget {
       avatar: conversation.avatar ?? '',
       isTop: conversation.isTop,
       onToggleTop: () => context.read<PrivateSettingBloc>().add(const TogglePinPrivateChatEvent()),
+      onClearHistory: () => context.read<PrivateSettingBloc>().add(const ShowClearHistoryDialogEvent(true)),
       onDeleteConversation: () => context.read<PrivateSettingBloc>().add(const ShowDeletePrivateChatDialogEvent(true)),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:beaver/types/business/chat.dart';
 import 'package:equatable/equatable.dart';
 
-enum PrivateSettingStatus { initial, loading, success, error, deleted }
+enum PrivateSettingStatus { initial, loading, success, error, deleted, historyCleared }
 
 class PrivateSettingState extends Equatable {
   final PrivateSettingStatus status;
@@ -9,6 +9,7 @@ class PrivateSettingState extends Equatable {
   final ChatModel? conversation;
   final bool isSaving;
   final bool showDeleteDialog;
+  final bool showClearDialog;
   final String? errorMessage;
 
   const PrivateSettingState({
@@ -17,6 +18,7 @@ class PrivateSettingState extends Equatable {
     this.conversation,
     this.isSaving = false,
     this.showDeleteDialog = false,
+    this.showClearDialog = false,
     this.errorMessage,
   });
 
@@ -26,6 +28,7 @@ class PrivateSettingState extends Equatable {
     ChatModel? conversation,
     bool? isSaving,
     bool? showDeleteDialog,
+    bool? showClearDialog,
     String? errorMessage,
   }) {
     return PrivateSettingState(
@@ -34,6 +37,7 @@ class PrivateSettingState extends Equatable {
       conversation: conversation ?? this.conversation,
       isSaving: isSaving ?? this.isSaving,
       showDeleteDialog: showDeleteDialog ?? this.showDeleteDialog,
+      showClearDialog: showClearDialog ?? this.showClearDialog,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -45,6 +49,7 @@ class PrivateSettingState extends Equatable {
         conversation,
         isSaving,
         showDeleteDialog,
+        showClearDialog,
         errorMessage,
       ];
 }

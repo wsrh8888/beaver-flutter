@@ -29,7 +29,11 @@ class MessageBusiness implements MessageRepositoryInterface {
     int offset = 0,
   }) async {
     // limit + 1 用于判断是否还有更多
-    final chats = await _service.getChatHistory(conversationId, limit: limit);
+    final chats = await _service.getChatHistory(
+      conversationId,
+      limit: limit,
+      offset: offset,
+    );
     final currentUserId = getIt<UserStore>().state.currentUserId;
 
     return chats.map((chat) {
@@ -208,6 +212,9 @@ class MessageBusiness implements MessageRepositoryInterface {
    * 处理 WebSocket 推送的新消息 (对标 PC handleWSMessage)
    */
   Future<void> handleNewWSMessage(Map<String, dynamic> data) async {
+    print(
+      '[MessageBusiness] handleNewWSMessage type=${data['data']?['type']} body.msgId=${data['body']?['messageId']}',
+    );
     final body = data['body'] as Map<String, dynamic>?;
     final conversationId = data['conversationId'] as String?;
     if (conversationId == null || body == null) return;
@@ -259,6 +266,9 @@ class MessageBusiness implements MessageRepositoryInterface {
       createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt * 1000),
       isSent: sendUserId == getIt<UserStore>().state.currentUserId,
     );
+    print(
+      '[MessageBusiness] handleNewWSMessage: adding message ${model.id} to store (WS PUSH)',
+    );
     getIt<MessageStore>().addMessage(conversationId, model);
 
     // 4. 发送会话流更新通知 (让 ChatStore 响应)
@@ -281,14 +291,18 @@ class MessageBusiness implements MessageRepositoryInterface {
     int minVersion,
     int maxVersion,
   ) async {
-    print('[MessageBusiness] 开始拉取消息: conv=$conversationId, range=[$minVersion, $maxVersion]');
+    print(
+      '[MessageBusiness] 开始拉取消息: conv=$conversationId, range=[$minVersion, $maxVersion]',
+    );
     try {
-      final response = await chatSyncApi(IChatSyncReq(
-        conversationId: conversationId,
-        fromSeq: minVersion,
-        toSeq: maxVersion,
-        limit: 100,
-      ));
+      final response = await chatSyncApi(
+        IChatSyncReq(
+          conversationId: conversationId,
+          fromSeq: minVersion,
+          toSeq: maxVersion,
+          limit: 100,
+        ),
+      );
 
       if (response.code == 0 && response.result != null) {
         final messages = response.result!.messages;
@@ -300,7 +314,9 @@ class MessageBusiness implements MessageRepositoryInterface {
           );
         }
       } else {
-        print('[MessageBusiness] 拉取失败: code=${response.code}, msg=${response.msg}');
+        print(
+          '[MessageBusiness] 拉取失败: code=${response.code}, msg=${response.msg}',
+        );
       }
     } catch (e) {
       print('[MessageBusiness] 同步消息异常: $e');
@@ -356,6 +372,9 @@ class MessageBusiness implements MessageRepositoryInterface {
         createdAt: DateTime.fromMillisecondsSinceEpoch(msg.createdAt * 1000),
         isSent: msg.sendUserId == getIt<UserStore>().state.currentUserId,
       );
+      print(
+        '[MessageBusiness] _handleSyncedMessages: adding message ${model.id} to store (SYNC PULL)',
+      );
       messageStore.addMessage(msg.conversationId, model);
     }
 
@@ -375,7 +394,7 @@ class MessageBusiness implements MessageRepositoryInterface {
         print('[MessageBusiness] 更新会话最后消息失败: $e');
       }
     }
-    
+
     // 触发 ChatStore 刷新，更新会话列表的未读数和最后一条消息
     getIt<ConversationBusiness>().notifyConversationUpdate();
   }
@@ -408,5 +427,24 @@ class MessageBusiness implements MessageRepositoryInterface {
       default:
         return 1;
     }
+  }
+
+  @override
+  Future<void> clearHistory(String conversationId) async {
+    // 1. 清空本地数据库中的消息
+    await _service.clearHistory(conversationId);
+
+    // 2. 清空会话元数据中的最后一条消息，并更新时间戳
+    final conversationService = getIt<ChatConversationService>();
+    await conversationService.upsert(
+      ChatConversationsCompanion(
+        conversationId: Value(conversationId),
+        lastMessage: const Value(''),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
+      ),
+    );
+
+    // 3. 通知全局会话列表刷新
+    getIt<ConversationBusiness>().notifyConversationUpdate();
   }
 }

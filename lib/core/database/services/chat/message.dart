@@ -70,14 +70,25 @@ class ChatMessageService extends BaseService {
   }
 
   /// 获取会话的历史消息（纯数据库查询，不含业务逻辑）
-  Future<List<Chat>> getChatHistory(String conversationId, {int? seq, int limit = 20}) async {
-    var query = db.select(db.chats)..where((t) => t.conversationId.equals(conversationId));
+  Future<List<Chat>> getChatHistory(
+    String conversationId, {
+    int? seq,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    var query = db.select(db.chats)
+      ..where((t) => t.conversationId.equals(conversationId));
 
     if (seq != null) {
-      query = query..where((t) => t.seq.isSmallerThanValue(seq));
+      query = query ..where((t) => t.seq.isSmallerThanValue(seq));
     }
 
-    return (query..orderBy([(t) => OrderingTerm(expression: t.seq, mode: OrderingMode.desc)])..limit(limit + 1)).get();
+    return (query
+          ..orderBy([
+            (t) => OrderingTerm(expression: t.seq, mode: OrderingMode.desc),
+          ])
+          ..limit(limit + 1, offset: offset))
+        .get();
   }
 
   /// 按序列号范围获取消息（纯数据库查询，不含业务逻辑）
@@ -109,5 +120,10 @@ class ChatMessageService extends BaseService {
     return (db.select(db.chats)
           ..where((t) => t.conversationId.equals(conversationId) & t.sendStatus.equals(0)))
         .get();
+  }
+
+  /// 清空会话的所有消息
+  Future<void> clearHistory(String conversationId) async {
+    await (db.delete(db.chats)..where((t) => t.conversationId.equals(conversationId))).go();
   }
 }
