@@ -39,11 +39,36 @@ class _LoginViewState extends State<LoginView> {
   bool _passwordTouched = false;
 
   bool get _isEmailValid {
-    final email = _emailController.text;
+    final email = _emailController.text.trim();
     return RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(email);
   }
 
-  bool get _isFormValid => _isEmailValid && _passwordController.text.isNotEmpty;
+  void _handleLogin() {
+    setState(() {
+      _emailTouched = true;
+      _passwordTouched = true;
+    });
+
+    if (!_isEmailValid) {
+      BeaverToast.show(context, '请输入有效的邮箱地址');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      BeaverToast.show(context, '请输入登录密码');
+      return;
+    }
+
+    final isLoading =
+        context.read<LoginBloc>().state.status == LoginStatus.loading;
+    if (isLoading) return;
+
+    context.read<LoginBloc>().add(
+      LoginSubmitEvent(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -136,12 +161,15 @@ class _LoginViewState extends State<LoginView> {
           onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
           isPassword: true,
           onChanged: (v) => setState(() => _passwordTouched = true),
+          errorText: (_passwordTouched && _passwordController.text.isEmpty)
+              ? '请输入登录密码'
+              : null,
         ),
         SizedBox(height: 10.w),
         Align(
           alignment: Alignment.centerRight,
           child: GestureDetector(
-            onTap: () => context.push(AppRoutes.forgotPassword),
+            onTap: () => context.go(AppRoutes.forgotPassword),
             child: Text(
               '忘记密码?',
               style: TextStyle(
@@ -237,24 +265,16 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildLoginBtn() {
     final isLoading =
         context.watch<LoginBloc>().state.status == LoginStatus.loading;
-    final enabled = _isFormValid && !isLoading;
     return GestureDetector(
-      onTap: enabled
-          ? () => context.read<LoginBloc>().add(
-              LoginSubmitEvent(
-                email: _emailController.text,
-                password: _passwordController.text,
-              ),
-            )
-          : null,
+      onTap: _handleLogin,
       child: Container(
         width: double.infinity,
         height: 48.w,
         decoration: BoxDecoration(
-          gradient: enabled ? AppColors.primaryGradient : null,
-          color: enabled ? null : Colors.grey[300],
+          gradient: !isLoading ? AppColors.primaryGradient : null,
+          color: !isLoading ? null : Colors.grey[300],
           borderRadius: BorderRadius.circular(14.w),
-          boxShadow: enabled
+          boxShadow: !isLoading
               ? [
                   BoxShadow(
                     color: const Color(0xFFFF7D45).withOpacity(0.2),
@@ -295,7 +315,7 @@ class _LoginViewState extends State<LoginView> {
           style: TextStyle(color: const Color(0xFF636E72), fontSize: 14.w),
         ),
         GestureDetector(
-          onTap: () => context.push(AppRoutes.register),
+          onTap: () => context.go(AppRoutes.register),
           child: Text(
             '立即注册',
             style: TextStyle(

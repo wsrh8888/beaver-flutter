@@ -130,18 +130,18 @@ class GetEmailCodeRes {
 /// 重置密码请求
 class ResetPasswordReq {
   final String email;
-  final String verifyCode;
+  final String code;
   final String password;
 
   ResetPasswordReq({
     required this.email,
-    required this.verifyCode,
+    required this.code,
     required this.password,
   });
 
   Map<String, dynamic> toJson() => {
     'email': email,
-    'verifyCode': verifyCode,
+    'code': code,
     'password': password,
   };
 }

@@ -59,7 +59,7 @@ abstract class BaseMessageHandler {
   );
 
   /// 处理命令 (如：复制, 转发, 撤回, 删除)
-  Future<void> handleCommand(String commandId, MessageModel message);
+  Future<void> handleCommand(BuildContext context, String commandId, MessageModel message);
 
   /// 获取支持的命令列表
   List<String> getSupportedCommands();

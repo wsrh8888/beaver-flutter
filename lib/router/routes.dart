@@ -9,8 +9,10 @@ class AppRoutes {
   // 聊天模块
   static const String chatList = '/chat/list';
   static const String chatDetail = '/chat/detail';
-  static const String chatSetting = '/chat/setting';
+  static const String privateChatSetting = '/chat/setting/private';
+  static const String groupChatSetting = '/chat/setting/group';
   static const String chatForward = '/chat/forward';
+  static const String chatForwardDetail = '/chat/forward/detail';
   
   // 联系人模块
   static const String contactList = '/contact/list';

@@ -7,19 +7,27 @@ class AuthGuard {
   static String? redirect(BuildContext context, GoRouterState state) {
     final token = StorageUtil.getString('token');
     final userId = StorageUtil.getString('userId');
-    final isLoggedIn = token != null && token.isNotEmpty && userId != null && userId.isNotEmpty;
+    final isLoggedIn =
+        token != null &&
+        token.isNotEmpty &&
+        userId != null &&
+        userId.isNotEmpty;
     final currentPath = state.uri.path;
-    
+
     // 已登录用户访问登录/注册页，跳转到首页
-    if (isLoggedIn && (currentPath == AppRoutes.login || currentPath == AppRoutes.register)) {
+    if (isLoggedIn &&
+        (currentPath == AppRoutes.login || currentPath == AppRoutes.register)) {
       return AppRoutes.root;
     }
-    
+
     // 未登录用户访问需要认证的页面，跳转到登录页
-    if (!isLoggedIn && currentPath != AppRoutes.login && currentPath != AppRoutes.register) {
+    if (!isLoggedIn &&
+        currentPath != AppRoutes.login &&
+        currentPath != AppRoutes.register &&
+        currentPath != AppRoutes.forgotPassword) {
       return AppRoutes.login;
     }
-    
+
     return null;
   }
 }

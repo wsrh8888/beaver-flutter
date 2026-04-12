@@ -1,39 +1,43 @@
 import 'package:beaver/types/business/chat.dart';
 import 'package:equatable/equatable.dart';
 
-enum ChatSettingStatus { initial, loading, success, error, deleted }
+enum PrivateSettingStatus { initial, loading, success, error, deleted, historyCleared }
 
-class ChatSettingState extends Equatable {
-  final ChatSettingStatus status;
+class PrivateSettingState extends Equatable {
+  final PrivateSettingStatus status;
   final String conversationId;
   final ChatModel? conversation;
   final bool isSaving;
   final bool showDeleteDialog;
+  final bool showClearDialog;
   final String? errorMessage;
 
-  const ChatSettingState({
-    this.status = ChatSettingStatus.initial,
+  const PrivateSettingState({
+    this.status = PrivateSettingStatus.initial,
     this.conversationId = '',
     this.conversation,
     this.isSaving = false,
     this.showDeleteDialog = false,
+    this.showClearDialog = false,
     this.errorMessage,
   });
 
-  ChatSettingState copyWith({
-    ChatSettingStatus? status,
+  PrivateSettingState copyWith({
+    PrivateSettingStatus? status,
     String? conversationId,
     ChatModel? conversation,
     bool? isSaving,
     bool? showDeleteDialog,
+    bool? showClearDialog,
     String? errorMessage,
   }) {
-    return ChatSettingState(
+    return PrivateSettingState(
       status: status ?? this.status,
       conversationId: conversationId ?? this.conversationId,
       conversation: conversation ?? this.conversation,
       isSaving: isSaving ?? this.isSaving,
       showDeleteDialog: showDeleteDialog ?? this.showDeleteDialog,
+      showClearDialog: showClearDialog ?? this.showClearDialog,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -45,6 +49,7 @@ class ChatSettingState extends Equatable {
         conversation,
         isSaving,
         showDeleteDialog,
+        showClearDialog,
         errorMessage,
       ];
 }

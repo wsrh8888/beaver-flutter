@@ -215,3 +215,28 @@ class IGroupCreateRes {
     );
   }
 }
+/// 添加群成员请求
+class IGroupAddMembersReq {
+  final String groupId;
+  final List<String> userIds;
+
+  IGroupAddMembersReq({required this.groupId, required this.userIds});
+
+  Map<String, dynamic> toJson() => {
+    'groupId': groupId,
+    'userIds': userIds,
+  };
+}
+
+/// 移除群成员请求
+class IGroupRemoveMembersReq {
+  final String groupId;
+  final List<String> userIds;
+
+  IGroupRemoveMembersReq({required this.groupId, required this.userIds});
+
+  Map<String, dynamic> toJson() => {
+    'groupId': groupId,
+    'userIds': userIds,
+  };
+}

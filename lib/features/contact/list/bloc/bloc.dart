@@ -5,6 +5,7 @@ import 'package:beaver/features/contact/list/bloc/event.dart';
 import 'package:beaver/features/contact/list/bloc/state.dart';
 import 'package:beaver/features/contact/list/data/repositories/repository.dart';
 import 'package:beaver/store/friend/friend.dart';
+import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/store/user/user.dart';
@@ -12,24 +13,36 @@ import 'package:beaver/store/user/user.dart';
 class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   final ContactListRepository _contactListRepository;
   final FriendStore _friendStore;
+  final FriendVerifyStore _friendVerifyStore;
   StreamSubscription? _friendSubscription;
+  StreamSubscription? _verifySubscription;
 
   ContactListBloc({
     ContactListRepository? contactListRepository,
     FriendStore? friendStore,
+    FriendVerifyStore? friendVerifyStore,
   }) : _contactListRepository =
            contactListRepository ?? ContactListRepository(),
        _friendStore = friendStore ?? getIt<FriendStore>(),
+       _friendVerifyStore = friendVerifyStore ?? getIt<FriendVerifyStore>(),
        super(const ContactListState()) {
     on<LoadContactListEvent>(_onLoadContactList);
     on<UpdateCurrentIndexEvent>(_onUpdateCurrentIndex);
 
     // --- 响应式联动 (Reactive Linkage) ---
-    // 监听全局 FriendStore，一旦好友列表组装完成或元数据变更，立即重新分组 UI
+    // 1. 监听全局 FriendStore，好友列表变更
     _friendSubscription = _friendStore.stream
         .map((state) => state.friends)
-        .distinct() // 只有当好友列表确实发生变化（由于 Equatable，这将按内容对比）时才触发
+        .distinct()
         .listen((friends) {
+          add(const LoadContactListEvent());
+        });
+
+    // 2. 监听全局 FriendVerifyStore，好友申请（红点）变更
+    _verifySubscription = _friendVerifyStore.stream
+        .map((state) => state.unreadCount)
+        .distinct()
+        .listen((count) {
           add(const LoadContactListEvent());
         });
   }
@@ -37,6 +50,7 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   @override
   Future<void> close() {
     _friendSubscription?.cancel();
+    _verifySubscription?.cancel();
     return super.close();
   }
 

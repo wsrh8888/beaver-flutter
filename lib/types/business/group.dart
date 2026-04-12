@@ -74,6 +74,8 @@ class GroupNotification {
 class GroupMember {
   final String groupId;
   final String userId;
+  final String? nickname;
+  final String? avatar;
   final int role;
   final int status;
   final int joinTime;
@@ -82,9 +84,33 @@ class GroupMember {
   const GroupMember({
     required this.groupId,
     required this.userId,
+    this.nickname,
+    this.avatar,
     required this.role,
     required this.status,
     required this.joinTime,
     required this.version,
   });
+
+  GroupMember copyWith({
+    String? groupId,
+    String? userId,
+    String? nickname,
+    String? avatar,
+    int? role,
+    int? status,
+    int? joinTime,
+    int? version,
+  }) {
+    return GroupMember(
+      groupId: groupId ?? this.groupId,
+      userId: userId ?? this.userId,
+      nickname: nickname ?? this.nickname,
+      avatar: avatar ?? this.avatar,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      joinTime: joinTime ?? this.joinTime,
+      version: version ?? this.version,
+    );
+  }
 }

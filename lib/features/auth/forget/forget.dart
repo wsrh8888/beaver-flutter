@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import 'package:beaver/types/api/auth.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/shared/ui/button/index.dart';
+import 'package:beaver/router/routes.dart';
 
 class ForgetPasswordPage extends StatefulWidget {
   const ForgetPasswordPage({super.key});
@@ -42,13 +45,9 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
       RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(value);
 
   bool _validatePassword(String value) =>
-      RegExp(r"^[^\s]{13,}$").hasMatch(value);
+      RegExp(r"^[^\s]{6,}$").hasMatch(value);
 
-  bool get _isFormValid =>
-      _validateEmail(_emailController.text) &&
-      _validatePassword(_passwordController.text) &&
-      _codeController.text.isNotEmpty &&
-      !_isLoading;
+  bool _validateCode(String value) => value.length == 6;
 
   void _startCountdown() {
     setState(() {
@@ -91,15 +90,31 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
       _codeTouched = true;
     });
 
-    if (!_isFormValid) return;
+    if (!_validateEmail(_emailController.text.trim())) {
+      BeaverToast.show(context, '请输入有效的邮箱地址');
+      return;
+    }
 
-    setState(() => _isLoading = true);
+    if (_codeController.text.trim().isEmpty) {
+      BeaverToast.show(context, '请输入验证码');
+      return;
+    }
+
+    if (!_validatePassword(_passwordController.text)) {
+      BeaverToast.show(context, '新密码长度不少于6位');
+      return;
+    }
+
+    if (_isLoading) return;
     try {
+      final passwordMd5 = md5
+          .convert(utf8.encode(_passwordController.text))
+          .toString();
       final res = await resetPasswordApi(
         ResetPasswordReq(
           email: _emailController.text,
-          password: _passwordController.text,
-          verifyCode: _codeController.text,
+          password: passwordMd5,
+          code: _codeController.text,
         ),
       );
 
@@ -247,13 +262,13 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
           onChanged: (v) => setState(() => {}),
           errorText:
               (_passwordTouched && !_validatePassword(_passwordController.text))
-              ? '密码长度不少于13位，且不能包含空格'
+              ? '密码长度不少于6位，且不能包含空格'
               : null,
         ),
         SizedBox(height: 24.w),
         BeaverButton(
           text: '重置密码',
-          onPressed: _isFormValid ? _handleReset : null,
+          onPressed: _handleReset,
           loading: _isLoading,
           width: double.infinity,
           height: 48.w,
@@ -372,7 +387,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
           style: TextStyle(color: const Color(0xFF636E72), fontSize: 14.sp),
         ),
         GestureDetector(
-          onTap: () => context.pop(),
+          onTap: () => context.go(AppRoutes.login),
           child: Text(
             '返回登录',
             style: TextStyle(

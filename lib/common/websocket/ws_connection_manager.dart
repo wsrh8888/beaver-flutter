@@ -1,6 +1,7 @@
 import 'package:beaver/common/websocket/index.dart';
 import 'package:beaver/core/message/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/shared/utils/storage_util.dart';
 
 /// WebSocket 连接管理器
 ///
@@ -11,10 +12,17 @@ class WsConnectionManager {
   WsClient? _wsClient;
   MessageManager get _messageManager => getIt<MessageManager>();
 
-  void connectWithToken(String token) {
+  Future<void> connectWithToken(String token) async {
     disconnect();
+    
+    // 从本地存储或硬件中提取身份和物理指纹
+    final userId = StorageUtil.getString('userId') ?? '';
+    final deviceId = await StorageUtil.getDeviceId();
+
     _wsClient = WsClient.fromEnv(
       token,
+      userId,
+      deviceId,
       onConnect: () => _messageManager.onWsConnect(),
       onMessage: (data) => _messageManager.handleMessage(data),
       onConnecting: () => _messageManager.onWsConnecting(),

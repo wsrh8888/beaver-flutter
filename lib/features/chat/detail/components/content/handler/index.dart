@@ -8,6 +8,8 @@ import 'package:beaver/features/chat/detail/components/content/handler/emoji.dar
 import 'package:beaver/features/chat/detail/components/content/handler/forward.dart';
 import 'package:beaver/types/business/message.dart';
 
+import 'package:flutter/widgets.dart';
+
 class MessageHandlerFactory {
   static BaseMessageHandler getHandler(MessageType type) {
     switch (type) {
@@ -31,8 +33,8 @@ class MessageHandlerFactory {
     }
   }
 
-  static Future<void> handleCommand(String commandId, MessageModel message) async {
+  static Future<void> handleCommand(BuildContext context, String commandId, MessageModel message) async {
     final handler = getHandler(message.type);
-    await handler.handleCommand(commandId, message);
+    await handler.handleCommand(context, commandId, message);
   }
 }

@@ -1,11 +1,12 @@
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/friend.dart';
+import 'package:beaver/common/config/env.dart';
 
 /// 批量获取好友数据
 Future<BaseResponse<IGetFriendsListByIdsRes>> getFriendsListByIdsApi(
   IGetFriendsListByIdsReq data,
 ) {
-  const url = '/api/friend/getFriendsListByIds';
+  final url = '$baseUrl/api/friend/getFriendsListByIds';
   return httpClient.post<IGetFriendsListByIdsRes>(
     url,
     data: data.toJson(),
@@ -16,7 +17,7 @@ Future<BaseResponse<IGetFriendsListByIdsRes>> getFriendsListByIdsApi(
 /// 批量获取好友验证数据
 Future<BaseResponse<IGetFriendVerifiesListByIdsRes>>
 getFriendVerifiesListByIdsApi(IGetFriendVerifiesListByIdsReq data) {
-  const url = '/api/friend/getFriendVerifiesListByIds';
+  final url = '$baseUrl/api/friend/getFriendVerifiesListByIds';
   return httpClient.post<IGetFriendVerifiesListByIdsRes>(
     url,
     data: data.toJson(),
@@ -28,7 +29,7 @@ getFriendVerifiesListByIdsApi(IGetFriendVerifiesListByIdsReq data) {
 Future<BaseResponse<IResSearchUserInfo>> getSearchFriendApi(
   ISearchUserReq data,
 ) {
-  const url = '/api/friend/search';
+  final url = '$baseUrl/api/friend/search';
   return httpClient.get<IResSearchUserInfo>(
     url,
     queryParameters: data.toJson(),
@@ -38,12 +39,13 @@ Future<BaseResponse<IResSearchUserInfo>> getSearchFriendApi(
 
 /// 申请添加好友 (对标 Desktop applyAddFriendApi)
 Future<BaseResponse<void>> applyAddFriendApi(IAddFriendReq data) {
-  const url = '/api/friend/add_friend';
+  final url = '$baseUrl/api/friend/add_friend';
   return httpClient.post<void>(url, data: data.toJson());
 }
 
 /// 验证好友申请 (对标 Desktop valiFrienddAPi)
 Future<BaseResponse<void>> valiFriendApi(IValiFriendReq data) {
-  const url = '/api/friend/valid';
+  final url = '$baseUrl/api/friend/valid';
   return httpClient.post<void>(url, data: data.toJson());
 }
+

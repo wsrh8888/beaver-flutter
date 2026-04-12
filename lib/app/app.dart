@@ -8,6 +8,7 @@ import 'package:beaver/store/user/user.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend.dart';
+import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/store/group/group.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/group/group_join_request.dart';
@@ -72,6 +73,9 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
             BlocProvider<ContactStore>(create: (_) => getIt<ContactStore>()),
             BlocProvider<ChatStore>(create: (_) => getIt<ChatStore>()),
             BlocProvider<FriendStore>(create: (_) => getIt<FriendStore>()),
+            BlocProvider<FriendVerifyStore>(
+              create: (_) => getIt<FriendVerifyStore>(),
+            ),
             BlocProvider<GroupStore>(create: (_) => getIt<GroupStore>()),
             BlocProvider<GroupMemberStore>(
               create: (_) => getIt<GroupMemberStore>(),

@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/group/group_member.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/store/contact/contact.dart';
 
 class GroupMemberStoreState extends Equatable {
   final Map<String, List<GroupMember>> memberMap;
@@ -30,23 +31,64 @@ class GroupMemberStoreState extends Equatable {
 
 class GroupMemberStore extends Cubit<GroupMemberStoreState> {
   final GroupMemberBusiness _groupMemberBusiness;
+  final ContactStore _contactStore;
+  StreamSubscription? _contactSubscription;
 
-  GroupMemberStore({GroupMemberBusiness? groupMemberBusiness})
-    : _groupMemberBusiness = groupMemberBusiness ?? getIt<GroupMemberBusiness>(),
-      super(const GroupMemberStoreState());
+  // 原始群成员记录 (对标 FriendStore _rawFriends)
+  final Map<String, List<GroupMember>> _rawMemberMap = {};
+
+  GroupMemberStore({
+    GroupMemberBusiness? groupMemberBusiness,
+    ContactStore? contactStore,
+  }) : _groupMemberBusiness =
+           groupMemberBusiness ?? getIt<GroupMemberBusiness>(),
+       _contactStore = contactStore ?? getIt<ContactStore>(),
+       super(const GroupMemberStoreState()) {
+    // 监听全局联系人变更，重组数据更新头像/昵称 (对标 FriendStore)
+    _contactSubscription = _contactStore.stream.listen((_) {
+      if (_rawMemberMap.isNotEmpty) {
+        _reassemble();
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _contactSubscription?.cancel();
+    return super.close();
+  }
+
+  /**
+   * @description: 数据重组逻辑 (Identity Resolution)
+   * 将业务原始数据 (_rawMemberMap) 与 ContactStore 里的全局最新头像/昵称进行聚合
+   */
+  void _reassemble() {
+    final userMap = _contactStore.state.userMap;
+    final nextMap = <String, List<GroupMember>>{};
+
+    _rawMemberMap.forEach((groupId, members) {
+      nextMap[groupId] = members.map((member) {
+        final userInfo = userMap[member.userId];
+        return member.copyWith(
+          nickname: userInfo?.nickname.isNotEmpty == true
+              ? userInfo!.nickname
+              : member.nickname,
+          avatar: userInfo?.avatar ?? member.avatar,
+        );
+      }).toList();
+    });
+
+    emit(state.copyWith(memberMap: nextMap, version: state.version + 1));
+  }
 
   Future<void> init(String groupId) async {
     try {
-      if (state.memberMap.containsKey(groupId)) {
+      if (_rawMemberMap.containsKey(groupId)) {
         return;
       }
       final members = await _groupMemberBusiness.getGroupMembers(groupId);
-      final newMap = Map<String, List<GroupMember>>.from(state.memberMap);
-      newMap[groupId] = members;
-      emit(state.copyWith(
-        memberMap: newMap,
-        version: state.version + 1,
-      ));
+      _rawMemberMap[groupId] = members;
+      _reassemble();
     } catch (e) {
       print('GroupMemberStore: 初始化失败: $e');
     }
@@ -68,43 +110,34 @@ class GroupMemberStore extends Cubit<GroupMemberStoreState> {
   }
 
   void addMembers(String groupId, List<GroupMember> members) {
-    final existing = state.memberMap[groupId] ?? [];
-    final newMap = Map<String, List<GroupMember>>.from(state.memberMap);
-    newMap[groupId] = [...existing, ...members];
-    emit(state.copyWith(
-      memberMap: newMap,
-      version: state.version + 1,
-    ));
+    final existing = _rawMemberMap[groupId] ?? [];
+    _rawMemberMap[groupId] = [...existing, ...members];
+    _reassemble();
   }
 
   void removeMembers(String groupId, List<String> memberIds) {
-    final existing = state.memberMap[groupId] ?? [];
-    final newMap = Map<String, List<GroupMember>>.from(state.memberMap);
-    newMap[groupId] = existing.where((member) => !memberIds.contains(member.userId)).toList();
-    emit(state.copyWith(
-      memberMap: newMap,
-      version: state.version + 1,
-    ));
+    final existing = _rawMemberMap[groupId] ?? [];
+    _rawMemberMap[groupId] =
+        existing.where((m) => !memberIds.contains(m.userId)).toList();
+    _reassemble();
   }
 
   Future<void> updateMembersByGroupIds(List<String> groupIds) async {
     if (groupIds.isEmpty) return;
     try {
-      final newMap = Map<String, List<GroupMember>>.from(state.memberMap);
       for (final groupId in groupIds) {
         final members = await _groupMemberBusiness.getGroupMembers(groupId);
-        newMap[groupId] = members;
+        _rawMemberMap[groupId] = members;
       }
-      emit(state.copyWith(
-        memberMap: newMap,
-        version: state.version + 1,
-      ));
+      _reassemble();
     } catch (e) {
       print('GroupMemberStore: 批量更新失败: $e');
     }
   }
 
   void reset() {
+    _rawMemberMap.clear();
     emit(const GroupMemberStoreState());
   }
 }
+

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:beaver/api/friend.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
@@ -6,6 +7,13 @@ import 'package:beaver/types/api/friend.dart';
 /// 好友验证业务逻辑 (对标 PC business/friend/friend-verify.ts)
 class FriendVerifyBusiness {
   final Map<String, int> _lastHandledVersionByVerifyId = {};
+  final _verifyUpdateController = StreamController<String>.broadcast();
+
+  Stream<String> get verifyUpdateStream => _verifyUpdateController.stream;
+
+  void notifyVerifyUpdate(String verifyId) {
+    _verifyUpdateController.add(verifyId);
+  }
 
   /**
    * @description 处理好友验证表更新
@@ -50,6 +58,7 @@ class FriendVerifyBusiness {
 
     // 4. 更新版本缓存
     _lastHandledVersionByVerifyId[verifyId] = version;
+    notifyVerifyUpdate(verifyId);
     print('[FriendVerifyBusiness] 好友验证表同步完成');
   }
 }

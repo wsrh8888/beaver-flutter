@@ -1,22 +1,29 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:beaver/common/logger/index.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/app/app.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'package:beaver/common/config/index.dart' as env_config;
 
-/// WebSocket 客户端服务
-///
-/// 职责：纯 WebSocket 连接管理，与业务无关
-/// - 建立/断开连接
-/// - 心跳维护
-/// - 重连机制
-/// - 原始数据收发
+/**
+ * WebSocket 客户端服务
+ *
+ * 职责：纯 WebSocket 连接管理，与业务无关
+ * - 建立/断开连接 (携带 GUID 指纹)
+ * - 401 鉴权失效自愈
+ * - 心跳维护 (PING/PONG)
+ */
 class WsClient {
   final Logger _logger = Logger('ws');
   WebSocketChannel? _channel;
   final String wsUrl;
   final String token;
+  final String userId;
+  final String deviceId;
 
   void Function()? onConnect;
   void Function(Map<String, dynamic>)? onMessage;
@@ -26,12 +33,21 @@ class WsClient {
 
   Timer? _heartbeatTimer;
   Timer? _reconnectTimer;
+  Timer? _pongTimeoutTimer;
+
   bool _isConnecting = false;
   bool _isDisposed = false;
+
+  // 心跳间隔
+  static const _heartbeatInterval = Duration(seconds: 30);
+  // PONG 超时时间
+  static const _pongTimeout = Duration(seconds: 15);
 
   WsClient({
     required this.wsUrl,
     required this.token,
+    required this.userId,
+    required this.deviceId,
     this.onConnect,
     this.onMessage,
     this.onConnecting,
@@ -40,7 +56,9 @@ class WsClient {
   });
 
   factory WsClient.fromEnv(
-    String token, {
+    String token,
+    String userId,
+    String deviceId, {
     void Function()? onConnect,
     void Function(Map<String, dynamic>)? onMessage,
     void Function()? onConnecting,
@@ -49,6 +67,8 @@ class WsClient {
   }) => WsClient(
     wsUrl: env_config.wsUrl,
     token: token,
+    userId: userId,
+    deviceId: deviceId,
     onConnect: onConnect,
     onMessage: onMessage,
     onConnecting: onConnecting,
@@ -61,40 +81,93 @@ class WsClient {
     _isConnecting = true;
     onConnecting?.call();
     try {
-      _logger.info({'text': '开始建立WS连接', 'url': wsUrl});
-      final channel = WebSocketChannel.connect(
-        Uri.parse('$wsUrl?token=$token'),
+      // 对齐大厂实践：精准识别平台
+      final String platform = Platform.isIOS ? 'ios' : 'android';
+
+      // 构造携带三方校验参数的 URI
+      final uri = Uri.parse(wsUrl).replace(
+        queryParameters: {
+          'token': token,
+          'userId': userId,
+          'platform': platform,
+          'deviceId': deviceId,
+        },
       );
 
-      // 等待握手完成 (这是大厂和标准框架最推荐的信号)
-      await channel.ready;
+      _logger.info({'text': '开始建立安全WS连接', 'url': uri.toString()});
 
-      _channel = channel;
+      final customChannel = IOWebSocketChannel.connect(uri, headers: const {});
+
+      // 等待握手完成。如果服务端返回 401，这里会抛出 Exception
+      await customChannel.ready;
+
+      _channel = customChannel;
       _channel!.stream.listen(
         _onMessageReceived,
         onDone: _onDisconnected,
         onError: _onConnectError,
       );
 
-      _startHeartbeat();
       _isConnecting = false;
-      _logger.info({'text': 'WS连接已在握手完成后确认'});
+      _startHeartbeat();
+
+      _logger.info({'text': 'WS安全连接已成功建立', 'platform': platform});
 
       // 握手成功后才触发 onConnect
       onConnect?.call();
     } catch (e) {
       _isConnecting = false;
-      _logger.error({'text': 'WS连接或握手异常', 'error': e.toString()});
+      final errorStr = e.toString();
+      _logger.error({'text': 'WS物理连接或鉴权异常', 'error': errorStr});
+
+      // 核心安全自愈逻辑：检测到 401 鉴权失效，自动强制登出
+      if (errorStr.contains('401')) {
+        _logger.warn({'text': '检测到移动端登录鉴权失效(401)，触发自动登出'});
+        _isDisposed = true; // 停止无限重连
+        getIt<AppStore>().logout();
+        return;
+      }
+
       _onConnectError(e);
     }
   }
 
   void _onMessageReceived(dynamic message) {
-    final Map<String, dynamic> data = message is String
-        ? Map<String, dynamic>.from(jsonDecode(message) as Map)
-        : Map<String, dynamic>.from(message as Map);
-    if (onMessage != null) {
-      onMessage!(data);
+    try {
+      final Map<String, dynamic> data = message is String
+          ? Map<String, dynamic>.from(jsonDecode(message) as Map)
+          : Map<String, dynamic>.from(message as Map);
+
+      final String? command = data['command'] as String?;
+
+      // 1. 处理控制帧 (服务端发来的控制帧是扁平结构)
+      if (command == 'PONG') {
+        _pongTimeoutTimer?.cancel();
+        return;
+      }
+
+      if (command == 'PING') {
+        _sendPong(
+          data['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+        );
+        return;
+      }
+
+      if (command == 'ACK') {
+        _logger.info({'text': '收到服务端回复(ACK)', 'messageId': data['messageId']});
+        return;
+      }
+
+      // 2. 业务消息转发给上层
+      if (onMessage != null) {
+        onMessage!(data);
+      }
+    } catch (e) {
+      _logger.error({
+        'text': '解析WS消息失败',
+        'error': e.toString(),
+        'raw': message,
+      });
     }
   }
 
@@ -104,40 +177,62 @@ class WsClient {
     }
   }
 
+  void _sendPing() {
+    // 客户端发出的 PING 需要符合 WsMessage 结构，因为服务端在 HandleWebSocketMessages 中解析 WsMessage
+    send({
+      'command': 'PING',
+      'content': {'timestamp': DateTime.now().millisecondsSinceEpoch},
+    });
+
+    // 开启 PONG 超时检测
+    _pongTimeoutTimer?.cancel();
+    _pongTimeoutTimer = Timer(_pongTimeout, () {
+      _logger.warn({'text': '心跳超时(PONG未收到)，主动断开并准备重连'});
+      _reconnect();
+    });
+  }
+
+  void _sendPong(int timestamp) {
+    // 回复服务端的 PING，使用扁平的 WsControlFrame 结构
+    send({'command': 'PONG', 'timestamp': timestamp});
+  }
+
   void _onDisconnected() {
     _logger.info({'text': 'WS连接断开'});
-    onDisconnect?.call();
+    _reconnect();
+  }
+
+  void _reconnect() {
+    _channel?.sink.close();
     _channel = null;
     _stopHeartbeat();
-    _reconnectTimer?.cancel();
+    _pongTimeoutTimer?.cancel();
+
+    onDisconnect?.call();
+
     if (_isDisposed) return;
+
+    _reconnectTimer?.cancel();
     _logger.info({'text': '5秒后尝试重连'});
     _reconnectTimer = Timer(const Duration(seconds: 5), () => connect());
   }
 
   void _onConnectError(dynamic error) {
     _logger.error({'text': 'WS流错误', 'error': error.toString()});
-    // 只有在 channel 还没关闭前报的错才处理，防止循环
-    if (_channel != null) {
-      _onDisconnected();
-    } else {
-      _isConnecting = false;
-    }
+    _reconnect();
     onError?.call(error);
   }
 
   void _startHeartbeat() {
     _heartbeatTimer?.cancel();
-    _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      send({
-        'command': 'HEARTBEAT',
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      });
+    _heartbeatTimer = Timer.periodic(_heartbeatInterval, (timer) {
+      _sendPing();
     });
   }
 
   void _stopHeartbeat() {
     _heartbeatTimer?.cancel();
+    _pongTimeoutTimer?.cancel();
   }
 
   void dispose() {
@@ -152,16 +247,8 @@ class WsClient {
     if (_channel == null) {
       connect();
     } else {
-      // 尝试发送立即心跳，如果连接已断开但系统还未上报，报错会触发重连逻辑
-      try {
-        send({
-          'command': 'HEARTBEAT',
-          'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'action': 'RESUME',
-        });
-      } catch (_) {
-        _onDisconnected();
-      }
+      // 立即发送一个心跳，检查连接是否依然可用
+      _sendPing();
     }
   }
 }

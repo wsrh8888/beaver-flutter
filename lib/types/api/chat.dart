@@ -20,6 +20,19 @@ class IChatSyncReq {
   };
 }
 
+/// 消息发送者简要信息
+class IMessageSender {
+  final String nickName;
+  final String? avatar;
+
+  IMessageSender({required this.nickName, this.avatar});
+
+  factory IMessageSender.fromJson(Map<String, dynamic> json) => IMessageSender(
+        nickName: json['nickName'] ?? (json['nickname'] ?? '用户'),
+        avatar: json['avatar'],
+      );
+}
+
 /// 消息项
 class IChatMessageItem {
   final String messageId;
@@ -32,6 +45,7 @@ class IChatMessageItem {
   final String msg;
   final int seq;
   final int createdAt;
+  final IMessageSender sender; // 新增发送者信息
 
   IChatMessageItem({
     required this.messageId,
@@ -44,6 +58,7 @@ class IChatMessageItem {
     required this.msg,
     required this.seq,
     required this.createdAt,
+    required this.sender,
   });
 
   factory IChatMessageItem.fromJson(Map<String, dynamic> json) =>
@@ -58,6 +73,7 @@ class IChatMessageItem {
         msg: json['msg'] ?? '',
         seq: json['seq'] ?? 0,
         createdAt: json['createdAt'] ?? 0,
+        sender: IMessageSender.fromJson(json['sender'] ?? {}),
       );
 }
 
@@ -252,4 +268,61 @@ class IPinnedChatRes {
 
   factory IPinnedChatRes.fromJson(Map<String, dynamic> json) =>
       IPinnedChatRes(success: json['success'] ?? (json['code'] == 0));
+}
+
+/// 获取合并转发详情请求
+class IGetForwardDetailsReq {
+  final String recordId;
+
+  IGetForwardDetailsReq({required this.recordId});
+
+  Map<String, dynamic> toJson() => {'recordId': recordId};
+}
+
+/// 获取合并转发详情响应
+class IGetForwardDetailsRes {
+  final String title;
+  final List<IChatMessageItem> list;
+
+  IGetForwardDetailsRes({required this.title, required this.list});
+
+  factory IGetForwardDetailsRes.fromJson(Map<String, dynamic> json) =>
+      IGetForwardDetailsRes(
+        title: json['title'] ?? '聊天记录',
+        list: (json['list'] as List?)
+            ?.map((e) => IChatMessageItem.fromJson(e))
+            .toList() ?? [],
+      );
+}
+
+/// 转发消息请求
+class IForwardMessageReq {
+  final List<String> messageIds; // 要转发的消息ID列表
+  final String targetId; // 目标会话ID
+  final int forwardMode; // 1:逐条转发 2:合并转发
+  final int forwardType; // 1:单聊 2:群聊
+
+  IForwardMessageReq({
+    required this.messageIds,
+    required this.targetId,
+    required this.forwardMode,
+    required this.forwardType,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'messageIds': messageIds,
+        'targetId': targetId,
+        'forwardMode': forwardMode,
+        'forwardType': forwardType,
+      };
+}
+
+/// 转发消息响应
+class IForwardMessageRes {
+  final String? messageId; // 合并转发时返回的新消息ID
+
+  IForwardMessageRes({this.messageId});
+
+  factory IForwardMessageRes.fromJson(Map<String, dynamic> json) =>
+      IForwardMessageRes(messageId: json['messageId']);
 }

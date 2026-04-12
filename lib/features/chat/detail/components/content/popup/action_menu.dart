@@ -2,6 +2,7 @@ import 'package:beaver/features/chat/detail/bloc/bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/components/content/handler/base.dart';
 import 'package:beaver/features/chat/detail/components/content/handler/index.dart';
+import 'package:beaver/features/chat/detail/components/content/handler/forward.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,13 +48,15 @@ class MessageActionMenu extends StatelessWidget {
   ) {
     return _buildMenuItem(context, action.icon, action.label, () async {
       Navigator.pop(context);
-      // 特殊处理多选逻辑，因为它涉及 UI 跳转
+      // 特殊处理跳转逻辑
       if (action.id == 'multiSelect') {
         context.read<ChatBloc>().add(
           EnterMultiSelectEvent(initialMessageId: message.id),
         );
+      } else if (action.id == 'forward') {
+        ForwardHandler.navigateToPicker(context, messageIds: [message.id]);
       } else {
-        await handler.handleCommand(action.id, message);
+        await handler.handleCommand(context, action.id, message);
       }
     }, isDestructive: action.isDestructive);
   }

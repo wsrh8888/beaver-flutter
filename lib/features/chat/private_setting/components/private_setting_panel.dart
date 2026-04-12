@@ -3,23 +3,23 @@ import 'package:beaver/types/cache.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class GroupSettingPanel extends StatelessWidget {
-  final String title;
-  final String groupId;
-  final int memberCount;
+class PrivateSettingPanel extends StatelessWidget {
+  final String nickname;
+  final String userId;
   final String avatar;
   final bool isTop;
   final VoidCallback onToggleTop;
+  final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
 
-  const GroupSettingPanel({
+  const PrivateSettingPanel({
     super.key,
-    required this.title,
-    required this.groupId,
-    required this.memberCount,
+    required this.nickname,
+    required this.userId,
     required this.avatar,
     required this.isTop,
     required this.onToggleTop,
+    required this.onClearHistory,
     required this.onDeleteConversation,
   });
 
@@ -49,7 +49,7 @@ class GroupSettingPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      nickname,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
@@ -58,7 +58,7 @@ class GroupSettingPanel extends StatelessWidget {
                     ),
                     SizedBox(height: 4.w),
                     Text(
-                      '群ID: $groupId  ·  ${memberCount}人',
+                      'ID: $userId',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: const Color(0xFF636E72),
@@ -87,6 +87,25 @@ class GroupSettingPanel extends StatelessWidget {
               onChanged: (_) => onToggleTop(),
               activeColor: const Color(0xFFFF7D45),
             ),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '清空聊天记录',
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: const Color(0xFFF44336),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: onClearHistory,
           ),
         ),
         Container(

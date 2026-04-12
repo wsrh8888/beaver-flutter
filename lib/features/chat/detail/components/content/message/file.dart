@@ -31,7 +31,7 @@ class FileMessage extends StatelessWidget {
           ),
         ),
         SizedBox(width: 12.w),
-        Icon(Icons.description, size: 32.w, color: isSelf ? Colors.white : const Color(0xFF2196F3)),
+        Icon(Icons.description, size: 32.w, color: const Color(0xFF2196F3)),
       ],
     );
   }

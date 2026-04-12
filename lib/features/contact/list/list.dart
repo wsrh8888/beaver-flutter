@@ -33,7 +33,6 @@ class ContactListView extends StatefulWidget {
 class _ContactListViewState extends State<ContactListView> {
   final ScrollController _scrollController = ScrollController();
 
-
   @override
   void dispose() {
     _scrollController.dispose();
@@ -64,7 +63,6 @@ class _ContactListViewState extends State<ContactListView> {
           if (state.status == ContactListStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
-
 
           return Stack(
             children: [
@@ -130,12 +128,6 @@ class _ContactListViewState extends State<ContactListView> {
         'route': AppRoutes.groupList,
         'count': 0,
       },
-      {
-        'title': 'AI助手',
-        'icon': 'assets/icons/friend/ai-icon.svg',
-        'route': '/ai',
-        'count': 0,
-      },
     ];
 
     return Container(
@@ -185,11 +177,17 @@ class _ContactListViewState extends State<ContactListView> {
                       Transform.translate(
                         offset: Offset(4.w, -4.w),
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.w),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4.w,
+                            vertical: 2.w,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFF5252),
                             borderRadius: BorderRadius.circular(10.w),
-                            border: Border.all(color: Colors.white, width: 1.5.w),
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 1.5.w,
+                            ),
                           ),
                           child: Text(
                             count > 99 ? '99+' : count.toString(),
