@@ -9,8 +9,8 @@ class ReplyMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = const Color(0xFF2D3436);
-    final subColor = const Color(0xFF636E72);
+    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
+    final subColor = isSelf ? Colors.white70 : const Color(0xFF636E72);
     final replyBg = Colors.black.withOpacity(0.05);
 
     return Column(

@@ -1,6 +1,7 @@
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/store/contact/contact.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -12,6 +13,7 @@ class GroupSettingPanel extends StatelessWidget {
   final bool isTop;
   final List<GroupMember> members;
   final bool isAdmin;
+  final ContactStore contactStore; // 新增：全局联系人仓库
   final VoidCallback onToggleTop;
   final VoidCallback onDeleteConversation;
   final VoidCallback onAddMember;
@@ -26,6 +28,7 @@ class GroupSettingPanel extends StatelessWidget {
     required this.isTop,
     required this.members,
     required this.isAdmin,
+    required this.contactStore,
     required this.onToggleTop,
     required this.onDeleteConversation,
     required this.onAddMember,
@@ -90,6 +93,7 @@ class GroupSettingPanel extends StatelessWidget {
     );
   }
 
+
   Widget _buildMembersSection() {
     // Show top members
     final displayMembers = members.take(isAdmin ? 19 : 20).toList();
@@ -144,13 +148,18 @@ class GroupSettingPanel extends StatelessWidget {
   }
 
   Widget _buildMemberItem(BuildContext context, GroupMember member) {
+    // 从 ContactStore 获取最新的用户头像和昵称 (对标 PC 响应式逻辑)
+    final contactInfo = contactStore.getContact(member.userId);
+    final displayAvatar = contactInfo?.avatar ?? member.avatar ?? '';
+    final displayNickname = contactInfo?.nickname ?? member.nickname ?? member.userId.substring(0, 4);
+
     return Column(
       children: [
         Stack(
           clipBehavior: Clip.none,
           children: [
             BeaverCachedImage(
-              fileKey: member.avatar ?? '',
+              fileKey: displayAvatar,
               type: CacheType.avatar,
               width: 44.w,
               height: 44.w,
@@ -176,7 +185,7 @@ class GroupSettingPanel extends StatelessWidget {
         ),
         SizedBox(height: 4.w),
         Text(
-          member.nickname ?? member.userId.substring(0, 4),
+          displayNickname,
           style: TextStyle(fontSize: 11.sp, color: const Color(0xFF636E72)),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -294,3 +303,4 @@ class GroupSettingPanel extends StatelessWidget {
     );
   }
 }
+

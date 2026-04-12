@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:beaver/common/logger/index.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
@@ -58,8 +59,9 @@ class HttpClient {
             'source': AppConfig.source,
             'version': AppConfig.version,
             'timestamp': timestamp,
-            'env': currentEnv.name,
+            'env': AppConfig.env,
             'deviceId': AppConfig.deviceId,
+            'platform': Platform.isIOS ? 'ios' : 'android',
             if (token != null && token.isNotEmpty) 'token': token,
           });
 

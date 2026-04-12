@@ -149,7 +149,7 @@ class ChatContent extends StatelessWidget {
             ? null
             : BoxDecoration(
                 color: isSelf
-                    ? const Color(0xFFFFE6D9) // #FFE6D9 (Self)
+                    ? const Color(0xFFFF7D45) // Beaver Brand Orange (#FF7D45) (Self)
                     : const Color(0xFFF9FAFB), // #F9FAFB (Other)
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(12.w),
@@ -162,10 +162,17 @@ class ChatContent extends StatelessWidget {
                       : Radius.circular(12.w),
                 ),
               ),
-        child: _resolveMessageWidget(message, isSelf),
+        child: DefaultTextStyle.merge(
+          style: TextStyle(
+            color: isSelf ? Colors.white : const Color(0xFF2D3436),
+          ),
+          child: _resolveMessageWidget(message, isSelf),
+        ),
       ),
     );
   }
+
+
 
   Widget _resolveMessageWidget(MessageModel message, bool isSelf) {
     final m = message.msg;

@@ -10,6 +10,9 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:beaver/store/group/group.dart';
+import 'package:beaver/store/group/group_member.dart';
+import 'package:beaver/store/contact/contact.dart';
 
 class GroupSettingPage extends StatelessWidget {
   final String? conversationId;
@@ -104,17 +107,36 @@ class _GroupSettingView extends StatelessWidget {
   }
 
   Widget _buildPanel(BuildContext context, GroupSettingState state) {
-    final conversation = state.conversation!;
+    // 监听全局 Store 以获取最新资料 (对标 PC Pinia 响应式)
+    final groupStore = context.watch<GroupStore>();
+    final contactStore = context.watch<ContactStore>();
+    final memberStore = context.watch<GroupMemberStore>();
+    
+    // 获取最新的群组信息
+    final groupInfo = groupStore.getGroup(state.conversationId);
+    final groupName = groupInfo?.title ?? state.conversation?.nickname ?? '群聊';
+    final groupAvatar = groupInfo?.avatar ?? state.conversation?.avatar ?? '';
+
+    // 获取最新的群成员 (从 GroupMemberStore 拿，它已经通过 ContactStore 重组了头像和昵称)
+    final groupId = state.conversationId.replaceFirst('group_', '');
+    final members = memberStore.getMembersByGroupId(groupId);
+
+    // 重新计算 isAdmin (对标 PC 响应式逻辑)
+    final selfInGroup = members.where((m) => m.userId == state.currentUserId).firstOrNull;
+    final isActualAdmin = selfInGroup != null && (selfInGroup.role == 1 || selfInGroup.role == 2);
+
     return GroupSettingPanel(
-      title: conversation.nickname,
-      groupId: state.conversationId.replaceFirst('group_', ''),
-      memberCount: state.groupMembers.length,
-      avatar: conversation.avatar ?? '',
-      isTop: conversation.isTop,
-      members: state.groupMembers,
-      isAdmin: state.isAdmin,
+      title: groupName,
+      groupId: groupId,
+      memberCount: members.length,
+      avatar: groupAvatar,
+      isTop: state.conversation?.isTop ?? false,
+      members: members,
+      isAdmin: isActualAdmin,
+      contactStore: contactStore,
       onToggleTop: () =>
           context.read<GroupSettingBloc>().add(const TogglePinGroupChatEvent()),
+
       onDeleteConversation: () => context.read<GroupSettingBloc>().add(
         const ShowDeleteGroupDialogEvent(true),
       ),
@@ -123,7 +145,7 @@ class _GroupSettingView extends StatelessWidget {
           MaterialPageRoute(
             builder: (context) => ContactSelectorPage(
               title: '添加群成员',
-              disabledUserIds: state.groupMembers.map((m) => m.userId).toList(),
+              disabledUserIds: members.map((m) => m.userId).toList(),
             ),
           ),
         );

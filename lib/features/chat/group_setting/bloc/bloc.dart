@@ -1,16 +1,16 @@
 import 'package:beaver/api/group.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
-import 'package:beaver/core/business/group/group_member.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/chat/group_setting/bloc/event.dart';
 import 'package:beaver/features/chat/group_setting/bloc/state.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/store/group/group_member.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   final _conversationBusiness = getIt<ConversationBusiness>();
-  final _groupMemberBusiness = getIt<GroupMemberBusiness>();
+  final _groupMemberStore = getIt<GroupMemberStore>();
 
   GroupSettingBloc() : super(const GroupSettingState()) {
     on<InitGroupSettingEvent>(_onInit);
@@ -27,31 +27,52 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     Emitter<GroupSettingState> emit,
   ) async {
     final currentUserId = DatabaseManager.currentUserId ?? '';
-    emit(state.copyWith(
-      status: GroupSettingStatus.loading,
-      conversationId: event.conversationId,
-      currentUserId: currentUserId,
-    ));
+    emit(
+      state.copyWith(
+        status: GroupSettingStatus.loading,
+        conversationId: event.conversationId,
+        currentUserId: currentUserId,
+      ),
+    );
 
     try {
       final chatList = await _conversationBusiness.getChatList();
-      final conversation = chatList.where((c) => c.conversationId == event.conversationId).firstOrNull;
+      final conversation = chatList
+          .where((c) => c.conversationId == event.conversationId)
+          .firstOrNull;
 
       if (conversation == null) {
-        emit(state.copyWith(status: GroupSettingStatus.error, errorMessage: '会话不存在'));
+        emit(
+          state.copyWith(
+            status: GroupSettingStatus.error,
+            errorMessage: '会话不存在',
+          ),
+        );
         return;
       }
 
       final groupId = event.conversationId.replaceFirst('group_', '');
-      final members = await _groupMemberBusiness.getGroupMembers(groupId);
 
-      emit(state.copyWith(
-        status: GroupSettingStatus.success,
-        conversation: conversation,
-        groupMembers: members,
-      ));
+      // 1. 初始化 Store (如果尚未加载)
+      await _groupMemberStore.init(groupId);
+
+      // 2. 从 Store 获取重组后的成员列表进行一次初始同步 (给 Bloc 内部逻辑用，如 isAdmin 判断)
+      final members = _groupMemberStore.getMembersByGroupId(groupId);
+
+      emit(
+        state.copyWith(
+          status: GroupSettingStatus.success,
+          conversation: conversation,
+          groupMembers: members,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: GroupSettingStatus.error, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          status: GroupSettingStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
@@ -64,12 +85,17 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     emit(state.copyWith(isSaving: true));
     try {
       final newIsPinned = !state.conversation!.isTop;
-      await _conversationBusiness.togglePinChat(state.conversationId, newIsPinned);
-      
-      emit(state.copyWith(
-        isSaving: false,
-        conversation: state.conversation!.copyWith(isTop: newIsPinned),
-      ));
+      await _conversationBusiness.togglePinChat(
+        state.conversationId,
+        newIsPinned,
+      );
+
+      emit(
+        state.copyWith(
+          isSaving: false,
+          conversation: state.conversation!.copyWith(isTop: newIsPinned),
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
@@ -102,21 +128,22 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     Emitter<GroupSettingState> emit,
   ) async {
     if (state.isSaving || !state.isAdmin) return;
-    
+
     emit(state.copyWith(isSaving: true));
     try {
       final groupId = state.conversationId.replaceFirst('group_', '');
-      final response = await addGroupMemberApi(IGroupAddMembersReq(
-        groupId: groupId, 
-        userIds: event.userIds,
-      ));
-      
+      final response = await addGroupMemberApi(
+        IGroupAddMembersReq(groupId: groupId, userIds: event.userIds),
+      );
+
       if (response.code != 0) {
         throw Exception(response.msg);
       }
-      
-      // Reload members (WS will eventually trigger sync, but we reload here for immediate UI feedback)
-      final members = await _groupMemberBusiness.getGroupMembers(groupId);
+
+      // 实时更新 Store (对标 PC Pinia 流程)
+      await _groupMemberStore.updateMembersByGroupIds([groupId]);
+      final members = _groupMemberStore.getMembersByGroupId(groupId);
+
       emit(state.copyWith(isSaving: false, groupMembers: members));
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
@@ -133,17 +160,18 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     emit(state.copyWith(isSaving: true));
     try {
       final groupId = state.conversationId.replaceFirst('group_', '');
-      final response = await removeGroupMemberApi(IGroupRemoveMembersReq(
-        groupId: groupId, 
-        userIds: [event.userId],
-      ));
+      final response = await removeGroupMemberApi(
+        IGroupRemoveMembersReq(groupId: groupId, userIds: [event.userId]),
+      );
 
       if (response.code != 0) {
         throw Exception(response.msg);
       }
-      
-      // Reload members
-      final members = await _groupMemberBusiness.getGroupMembers(groupId);
+
+      // 同步更新 Store
+      await _groupMemberStore.updateMembersByGroupIds([groupId]);
+      final members = _groupMemberStore.getMembersByGroupId(groupId);
+
       emit(state.copyWith(isSaving: false, groupMembers: members));
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));

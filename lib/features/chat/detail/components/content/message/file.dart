@@ -9,8 +9,8 @@ class FileMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textColor = Color(0xFF2D3436);
-    const subColor = Color(0xFF636E72);
+    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
+    final subColor = isSelf ? Colors.white70 : const Color(0xFF636E72);
 
     return Row(
       children: [

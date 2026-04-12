@@ -10,8 +10,8 @@ class EnvConfig {
 
 const _configs = <Env, EnvConfig>{
   Env.dev: EnvConfig(
-    baseUrl: 'http://172.30.96.1:20800',
-    wsUrl: 'ws://172.30.96.1:20800/api/ws/ws',
+    baseUrl: 'http://192.168.3.4:20800',
+    wsUrl: 'ws://192.168.3.4:20800/api/ws/ws',
   ),
   Env.test: EnvConfig(
     baseUrl: 'https://server.wsrh8888.com/beaver/',
@@ -23,7 +23,7 @@ const _configs = <Env, EnvConfig>{
   ),
 };
 
-Env _currentEnv = Env.prod;
+Env _currentEnv = Env.dev;
 
 /// 当前环境 (可通过 AppConfig.init 或 --dart-define 设置)
 Env get currentEnv => _currentEnv;
