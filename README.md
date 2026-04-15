@@ -118,8 +118,8 @@
 如果这个项目对你有帮助，欢迎请作者喝杯茶 ☕
 
 <div align="center">
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=wechat%20payment%20qr%20code&image_size=square" width="200" alt="微信赞助码"/>
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=alipay%20payment%20qr%20code&image_size=square" width="200" alt="支付宝赞助码"/>
+  <img src="./static/sponsor/wechat.jpg" width="200" alt="微信赞助码"/>
+  <img src="./static/sponsor/zhifubao.jpg" width="200" alt="支付宝赞助码"/>
 </div>
 
 ## 📄 开源协议

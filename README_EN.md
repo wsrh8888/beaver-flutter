@@ -120,8 +120,8 @@ If this project helps you, please give us a ⭐ Star!
 If this project helps you, welcome to buy me a coffee ☕
 
 <div align="center">
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=wechat%20payment%20qr%20code&image_size=square" width="200" alt="WeChat Sponsor Code"/>
-  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=alipay%20payment%20qr%20code&image_size=square" width="200" alt="Alipay Sponsor Code"/>
+  <img src="./static/sponsor/wechat.jpg" width="200" alt="WeChat Sponsor Code"/>
+  <img src="./static/sponsor/zhifubao.jpg" width="200" alt="Alipay Sponsor Code"/>
 </div>
 
 ## 📄 License
