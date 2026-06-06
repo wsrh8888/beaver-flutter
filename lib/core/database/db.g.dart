@@ -89,6 +89,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     requiredDuringInsert: false,
     defaultValue: const Constant(3),
   );
+  static const VerificationMeta _userTypeMeta = const VerificationMeta(
+    'userType',
+  );
+  @override
+  late final GeneratedColumn<int> userType = GeneratedColumn<int>(
+    'user_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<int> status = GeneratedColumn<int>(
@@ -143,6 +155,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     avatar,
     abstract,
     gender,
+    userType,
     status,
     version,
     createdAt,
@@ -207,6 +220,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       context.handle(
         _genderMeta,
         gender.isAcceptableOrUnknown(data['gender']!, _genderMeta),
+      );
+    }
+    if (data.containsKey('user_type')) {
+      context.handle(
+        _userTypeMeta,
+        userType.isAcceptableOrUnknown(data['user_type']!, _userTypeMeta),
       );
     }
     if (data.containsKey('status')) {
@@ -274,6 +293,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.int,
         data['${effectivePrefix}gender'],
       )!,
+      userType: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_type'],
+      )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}status'],
@@ -308,6 +331,7 @@ class User extends DataClass implements Insertable<User> {
   final String? avatar;
   final String? abstract;
   final int gender;
+  final int userType;
   final int status;
   final int version;
   final int? createdAt;
@@ -321,6 +345,7 @@ class User extends DataClass implements Insertable<User> {
     this.avatar,
     this.abstract,
     required this.gender,
+    required this.userType,
     required this.status,
     required this.version,
     this.createdAt,
@@ -345,6 +370,7 @@ class User extends DataClass implements Insertable<User> {
       map['abstract'] = Variable<String>(abstract);
     }
     map['gender'] = Variable<int>(gender);
+    map['user_type'] = Variable<int>(userType);
     map['status'] = Variable<int>(status);
     map['version'] = Variable<int>(version);
     if (!nullToAbsent || createdAt != null) {
@@ -374,6 +400,7 @@ class User extends DataClass implements Insertable<User> {
           ? const Value.absent()
           : Value(abstract),
       gender: Value(gender),
+      userType: Value(userType),
       status: Value(status),
       version: Value(version),
       createdAt: createdAt == null && nullToAbsent
@@ -399,6 +426,7 @@ class User extends DataClass implements Insertable<User> {
       avatar: serializer.fromJson<String?>(json['avatar']),
       abstract: serializer.fromJson<String?>(json['abstract']),
       gender: serializer.fromJson<int>(json['gender']),
+      userType: serializer.fromJson<int>(json['userType']),
       status: serializer.fromJson<int>(json['status']),
       version: serializer.fromJson<int>(json['version']),
       createdAt: serializer.fromJson<int?>(json['createdAt']),
@@ -417,6 +445,7 @@ class User extends DataClass implements Insertable<User> {
       'avatar': serializer.toJson<String?>(avatar),
       'abstract': serializer.toJson<String?>(abstract),
       'gender': serializer.toJson<int>(gender),
+      'userType': serializer.toJson<int>(userType),
       'status': serializer.toJson<int>(status),
       'version': serializer.toJson<int>(version),
       'createdAt': serializer.toJson<int?>(createdAt),
@@ -433,6 +462,7 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> avatar = const Value.absent(),
     Value<String?> abstract = const Value.absent(),
     int? gender,
+    int? userType,
     int? status,
     int? version,
     Value<int?> createdAt = const Value.absent(),
@@ -446,6 +476,7 @@ class User extends DataClass implements Insertable<User> {
     avatar: avatar.present ? avatar.value : this.avatar,
     abstract: abstract.present ? abstract.value : this.abstract,
     gender: gender ?? this.gender,
+    userType: userType ?? this.userType,
     status: status ?? this.status,
     version: version ?? this.version,
     createdAt: createdAt.present ? createdAt.value : this.createdAt,
@@ -461,6 +492,7 @@ class User extends DataClass implements Insertable<User> {
       avatar: data.avatar.present ? data.avatar.value : this.avatar,
       abstract: data.abstract.present ? data.abstract.value : this.abstract,
       gender: data.gender.present ? data.gender.value : this.gender,
+      userType: data.userType.present ? data.userType.value : this.userType,
       status: data.status.present ? data.status.value : this.status,
       version: data.version.present ? data.version.value : this.version,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -479,6 +511,7 @@ class User extends DataClass implements Insertable<User> {
           ..write('avatar: $avatar, ')
           ..write('abstract: $abstract, ')
           ..write('gender: $gender, ')
+          ..write('userType: $userType, ')
           ..write('status: $status, ')
           ..write('version: $version, ')
           ..write('createdAt: $createdAt, ')
@@ -497,6 +530,7 @@ class User extends DataClass implements Insertable<User> {
     avatar,
     abstract,
     gender,
+    userType,
     status,
     version,
     createdAt,
@@ -514,6 +548,7 @@ class User extends DataClass implements Insertable<User> {
           other.avatar == this.avatar &&
           other.abstract == this.abstract &&
           other.gender == this.gender &&
+          other.userType == this.userType &&
           other.status == this.status &&
           other.version == this.version &&
           other.createdAt == this.createdAt &&
@@ -529,6 +564,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String?> avatar;
   final Value<String?> abstract;
   final Value<int> gender;
+  final Value<int> userType;
   final Value<int> status;
   final Value<int> version;
   final Value<int?> createdAt;
@@ -542,6 +578,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.avatar = const Value.absent(),
     this.abstract = const Value.absent(),
     this.gender = const Value.absent(),
+    this.userType = const Value.absent(),
     this.status = const Value.absent(),
     this.version = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -556,6 +593,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.avatar = const Value.absent(),
     this.abstract = const Value.absent(),
     this.gender = const Value.absent(),
+    this.userType = const Value.absent(),
     this.status = const Value.absent(),
     this.version = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -571,6 +609,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? avatar,
     Expression<String>? abstract,
     Expression<int>? gender,
+    Expression<int>? userType,
     Expression<int>? status,
     Expression<int>? version,
     Expression<int>? createdAt,
@@ -585,6 +624,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (avatar != null) 'avatar': avatar,
       if (abstract != null) 'abstract': abstract,
       if (gender != null) 'gender': gender,
+      if (userType != null) 'user_type': userType,
       if (status != null) 'status': status,
       if (version != null) 'version': version,
       if (createdAt != null) 'created_at': createdAt,
@@ -601,6 +641,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String?>? avatar,
     Value<String?>? abstract,
     Value<int>? gender,
+    Value<int>? userType,
     Value<int>? status,
     Value<int>? version,
     Value<int?>? createdAt,
@@ -615,6 +656,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       avatar: avatar ?? this.avatar,
       abstract: abstract ?? this.abstract,
       gender: gender ?? this.gender,
+      userType: userType ?? this.userType,
       status: status ?? this.status,
       version: version ?? this.version,
       createdAt: createdAt ?? this.createdAt,
@@ -649,6 +691,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (gender.present) {
       map['gender'] = Variable<int>(gender.value);
     }
+    if (userType.present) {
+      map['user_type'] = Variable<int>(userType.value);
+    }
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
@@ -675,6 +720,7 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('avatar: $avatar, ')
           ..write('abstract: $abstract, ')
           ..write('gender: $gender, ')
+          ..write('userType: $userType, ')
           ..write('status: $status, ')
           ..write('version: $version, ')
           ..write('createdAt: $createdAt, ')
@@ -10017,17 +10063,24 @@ class $MediaTableTable extends MediaTable
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _fileKeyMeta = const VerificationMeta(
-    'fileKey',
-  );
+  static const VerificationMeta _urlMeta = const VerificationMeta('url');
   @override
-  late final GeneratedColumn<String> fileKey = GeneratedColumn<String>(
-    'file_key',
+  late final GeneratedColumn<String> url = GeneratedColumn<String>(
+    'url',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
+  @override
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
@@ -10095,7 +10148,8 @@ class $MediaTableTable extends MediaTable
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    fileKey,
+    url,
+    md5,
     path,
     type,
     size,
@@ -10118,13 +10172,19 @@ class $MediaTableTable extends MediaTable
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('file_key')) {
+    if (data.containsKey('url')) {
       context.handle(
-        _fileKeyMeta,
-        fileKey.isAcceptableOrUnknown(data['file_key']!, _fileKeyMeta),
+        _urlMeta,
+        url.isAcceptableOrUnknown(data['url']!, _urlMeta),
       );
     } else if (isInserting) {
-      context.missing(_fileKeyMeta);
+      context.missing(_urlMeta);
+    }
+    if (data.containsKey('md5')) {
+      context.handle(
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
+      );
     }
     if (data.containsKey('path')) {
       context.handle(
@@ -10179,10 +10239,14 @@ class $MediaTableTable extends MediaTable
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      fileKey: attachedDatabase.typeMapping.read(
+      url: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}file_key'],
+        data['${effectivePrefix}url'],
       )!,
+      md5: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}md5'],
+      ),
       path: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}path'],
@@ -10218,7 +10282,8 @@ class $MediaTableTable extends MediaTable
 
 class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   final int id;
-  final String fileKey;
+  final String url;
+  final String? md5;
   final String path;
   final String type;
   final int? size;
@@ -10227,7 +10292,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   final int isDeleted;
   const MediaTableData({
     required this.id,
-    required this.fileKey,
+    required this.url,
+    this.md5,
     required this.path,
     required this.type,
     this.size,
@@ -10239,7 +10305,10 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['file_key'] = Variable<String>(fileKey);
+    map['url'] = Variable<String>(url);
+    if (!nullToAbsent || md5 != null) {
+      map['md5'] = Variable<String>(md5);
+    }
     map['path'] = Variable<String>(path);
     map['type'] = Variable<String>(type);
     if (!nullToAbsent || size != null) {
@@ -10254,7 +10323,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   MediaTableCompanion toCompanion(bool nullToAbsent) {
     return MediaTableCompanion(
       id: Value(id),
-      fileKey: Value(fileKey),
+      url: Value(url),
+      md5: md5 == null && nullToAbsent ? const Value.absent() : Value(md5),
       path: Value(path),
       type: Value(type),
       size: size == null && nullToAbsent ? const Value.absent() : Value(size),
@@ -10271,7 +10341,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MediaTableData(
       id: serializer.fromJson<int>(json['id']),
-      fileKey: serializer.fromJson<String>(json['fileKey']),
+      url: serializer.fromJson<String>(json['url']),
+      md5: serializer.fromJson<String?>(json['md5']),
       path: serializer.fromJson<String>(json['path']),
       type: serializer.fromJson<String>(json['type']),
       size: serializer.fromJson<int?>(json['size']),
@@ -10285,7 +10356,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'fileKey': serializer.toJson<String>(fileKey),
+      'url': serializer.toJson<String>(url),
+      'md5': serializer.toJson<String?>(md5),
       'path': serializer.toJson<String>(path),
       'type': serializer.toJson<String>(type),
       'size': serializer.toJson<int?>(size),
@@ -10297,7 +10369,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 
   MediaTableData copyWith({
     int? id,
-    String? fileKey,
+    String? url,
+    Value<String?> md5 = const Value.absent(),
     String? path,
     String? type,
     Value<int?> size = const Value.absent(),
@@ -10306,7 +10379,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
     int? isDeleted,
   }) => MediaTableData(
     id: id ?? this.id,
-    fileKey: fileKey ?? this.fileKey,
+    url: url ?? this.url,
+    md5: md5.present ? md5.value : this.md5,
     path: path ?? this.path,
     type: type ?? this.type,
     size: size.present ? size.value : this.size,
@@ -10317,7 +10391,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   MediaTableData copyWithCompanion(MediaTableCompanion data) {
     return MediaTableData(
       id: data.id.present ? data.id.value : this.id,
-      fileKey: data.fileKey.present ? data.fileKey.value : this.fileKey,
+      url: data.url.present ? data.url.value : this.url,
+      md5: data.md5.present ? data.md5.value : this.md5,
       path: data.path.present ? data.path.value : this.path,
       type: data.type.present ? data.type.value : this.type,
       size: data.size.present ? data.size.value : this.size,
@@ -10331,7 +10406,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   String toString() {
     return (StringBuffer('MediaTableData(')
           ..write('id: $id, ')
-          ..write('fileKey: $fileKey, ')
+          ..write('url: $url, ')
+          ..write('md5: $md5, ')
           ..write('path: $path, ')
           ..write('type: $type, ')
           ..write('size: $size, ')
@@ -10345,7 +10421,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
   @override
   int get hashCode => Object.hash(
     id,
-    fileKey,
+    url,
+    md5,
     path,
     type,
     size,
@@ -10358,7 +10435,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
       identical(this, other) ||
       (other is MediaTableData &&
           other.id == this.id &&
-          other.fileKey == this.fileKey &&
+          other.url == this.url &&
+          other.md5 == this.md5 &&
           other.path == this.path &&
           other.type == this.type &&
           other.size == this.size &&
@@ -10369,7 +10447,8 @@ class MediaTableData extends DataClass implements Insertable<MediaTableData> {
 
 class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   final Value<int> id;
-  final Value<String> fileKey;
+  final Value<String> url;
+  final Value<String?> md5;
   final Value<String> path;
   final Value<String> type;
   final Value<int?> size;
@@ -10378,7 +10457,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   final Value<int> isDeleted;
   const MediaTableCompanion({
     this.id = const Value.absent(),
-    this.fileKey = const Value.absent(),
+    this.url = const Value.absent(),
+    this.md5 = const Value.absent(),
     this.path = const Value.absent(),
     this.type = const Value.absent(),
     this.size = const Value.absent(),
@@ -10388,19 +10468,21 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   });
   MediaTableCompanion.insert({
     this.id = const Value.absent(),
-    required String fileKey,
+    required String url,
+    this.md5 = const Value.absent(),
     required String path,
     required String type,
     this.size = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
-  }) : fileKey = Value(fileKey),
+  }) : url = Value(url),
        path = Value(path),
        type = Value(type);
   static Insertable<MediaTableData> custom({
     Expression<int>? id,
-    Expression<String>? fileKey,
+    Expression<String>? url,
+    Expression<String>? md5,
     Expression<String>? path,
     Expression<String>? type,
     Expression<int>? size,
@@ -10410,7 +10492,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (fileKey != null) 'file_key': fileKey,
+      if (url != null) 'url': url,
+      if (md5 != null) 'md5': md5,
       if (path != null) 'path': path,
       if (type != null) 'type': type,
       if (size != null) 'size': size,
@@ -10422,7 +10505,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
 
   MediaTableCompanion copyWith({
     Value<int>? id,
-    Value<String>? fileKey,
+    Value<String>? url,
+    Value<String?>? md5,
     Value<String>? path,
     Value<String>? type,
     Value<int?>? size,
@@ -10432,7 +10516,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   }) {
     return MediaTableCompanion(
       id: id ?? this.id,
-      fileKey: fileKey ?? this.fileKey,
+      url: url ?? this.url,
+      md5: md5 ?? this.md5,
       path: path ?? this.path,
       type: type ?? this.type,
       size: size ?? this.size,
@@ -10448,8 +10533,11 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (fileKey.present) {
-      map['file_key'] = Variable<String>(fileKey.value);
+    if (url.present) {
+      map['url'] = Variable<String>(url.value);
+    }
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
     }
     if (path.present) {
       map['path'] = Variable<String>(path.value);
@@ -10476,7 +10564,8 @@ class MediaTableCompanion extends UpdateCompanion<MediaTableData> {
   String toString() {
     return (StringBuffer('MediaTableCompanion(')
           ..write('id: $id, ')
-          ..write('fileKey: $fileKey, ')
+          ..write('url: $url, ')
+          ..write('md5: $md5, ')
           ..write('path: $path, ')
           ..write('type: $type, ')
           ..write('size: $size, ')
@@ -12546,6 +12635,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<String?> avatar,
       Value<String?> abstract,
       Value<int> gender,
+      Value<int> userType,
       Value<int> status,
       Value<int> version,
       Value<int?> createdAt,
@@ -12561,6 +12651,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String?> avatar,
       Value<String?> abstract,
       Value<int> gender,
+      Value<int> userType,
       Value<int> status,
       Value<int> version,
       Value<int?> createdAt,
@@ -12612,6 +12703,11 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<int> get gender => $composableBuilder(
     column: $table.gender,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userType => $composableBuilder(
+    column: $table.userType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12685,6 +12781,11 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get userType => $composableBuilder(
+    column: $table.userType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -12739,6 +12840,9 @@ class $$UsersTableAnnotationComposer
   GeneratedColumn<int> get gender =>
       $composableBuilder(column: $table.gender, builder: (column) => column);
 
+  GeneratedColumn<int> get userType =>
+      $composableBuilder(column: $table.userType, builder: (column) => column);
+
   GeneratedColumn<int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -12788,6 +12892,7 @@ class $$UsersTableTableManager
                 Value<String?> avatar = const Value.absent(),
                 Value<String?> abstract = const Value.absent(),
                 Value<int> gender = const Value.absent(),
+                Value<int> userType = const Value.absent(),
                 Value<int> status = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
@@ -12801,6 +12906,7 @@ class $$UsersTableTableManager
                 avatar: avatar,
                 abstract: abstract,
                 gender: gender,
+                userType: userType,
                 status: status,
                 version: version,
                 createdAt: createdAt,
@@ -12816,6 +12922,7 @@ class $$UsersTableTableManager
                 Value<String?> avatar = const Value.absent(),
                 Value<String?> abstract = const Value.absent(),
                 Value<int> gender = const Value.absent(),
+                Value<int> userType = const Value.absent(),
                 Value<int> status = const Value.absent(),
                 Value<int> version = const Value.absent(),
                 Value<int?> createdAt = const Value.absent(),
@@ -12829,6 +12936,7 @@ class $$UsersTableTableManager
                 avatar: avatar,
                 abstract: abstract,
                 gender: gender,
+                userType: userType,
                 status: status,
                 version: version,
                 createdAt: createdAt,
@@ -17590,7 +17698,8 @@ typedef $$EmojiPackageEmojiTableTableProcessedTableManager =
 typedef $$MediaTableTableCreateCompanionBuilder =
     MediaTableCompanion Function({
       Value<int> id,
-      required String fileKey,
+      required String url,
+      Value<String?> md5,
       required String path,
       required String type,
       Value<int?> size,
@@ -17601,7 +17710,8 @@ typedef $$MediaTableTableCreateCompanionBuilder =
 typedef $$MediaTableTableUpdateCompanionBuilder =
     MediaTableCompanion Function({
       Value<int> id,
-      Value<String> fileKey,
+      Value<String> url,
+      Value<String?> md5,
       Value<String> path,
       Value<String> type,
       Value<int?> size,
@@ -17624,8 +17734,13 @@ class $$MediaTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get fileKey => $composableBuilder(
-    column: $table.fileKey,
+  ColumnFilters<String> get url => $composableBuilder(
+    column: $table.url,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17674,8 +17789,13 @@ class $$MediaTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get fileKey => $composableBuilder(
-    column: $table.fileKey,
+  ColumnOrderings<String> get url => $composableBuilder(
+    column: $table.url,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17722,8 +17842,11 @@ class $$MediaTableTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get fileKey =>
-      $composableBuilder(column: $table.fileKey, builder: (column) => column);
+  GeneratedColumn<String> get url =>
+      $composableBuilder(column: $table.url, builder: (column) => column);
+
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
 
   GeneratedColumn<String> get path =>
       $composableBuilder(column: $table.path, builder: (column) => column);
@@ -17776,7 +17899,8 @@ class $$MediaTableTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<String> fileKey = const Value.absent(),
+                Value<String> url = const Value.absent(),
+                Value<String?> md5 = const Value.absent(),
                 Value<String> path = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<int?> size = const Value.absent(),
@@ -17785,7 +17909,8 @@ class $$MediaTableTableTableManager
                 Value<int> isDeleted = const Value.absent(),
               }) => MediaTableCompanion(
                 id: id,
-                fileKey: fileKey,
+                url: url,
+                md5: md5,
                 path: path,
                 type: type,
                 size: size,
@@ -17796,7 +17921,8 @@ class $$MediaTableTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required String fileKey,
+                required String url,
+                Value<String?> md5 = const Value.absent(),
                 required String path,
                 required String type,
                 Value<int?> size = const Value.absent(),
@@ -17805,7 +17931,8 @@ class $$MediaTableTableTableManager
                 Value<int> isDeleted = const Value.absent(),
               }) => MediaTableCompanion.insert(
                 id: id,
-                fileKey: fileKey,
+                url: url,
+                md5: md5,
                 path: path,
                 type: type,
                 size: size,

@@ -10,6 +10,7 @@ class Users extends Table {
   TextColumn get avatar => text().named('avatar').nullable()();
   TextColumn get abstract => text().named('abstract').nullable()();
   IntColumn get gender => integer().named('gender').withDefault(const Constant(3))();
+  IntColumn get userType => integer().named('user_type').withDefault(const Constant(1))(); // 1普通用户 2bot 3robot
   IntColumn get status => integer().named('status').withDefault(const Constant(1))();
   IntColumn get version => integer().named('version').withDefault(const Constant(0))();
   IntColumn get createdAt => integer().named('created_at').nullable()();

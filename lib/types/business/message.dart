@@ -14,6 +14,7 @@ enum MessageType {
   recalled, // 10
   reply, // 11
   mergedForward, // 12
+  markdown, // 13
   system,
 }
 
@@ -46,6 +47,7 @@ class MessageContentModel {
   final ReplyMsg? replyMsg;
   final ForwardMsg? forwardMsg;
   final NotificationMsg? notificationMsg;
+  final MarkdownMsg? markdownMsg;
 
   MessageContentModel({
     required this.type,
@@ -59,6 +61,7 @@ class MessageContentModel {
     this.replyMsg,
     this.forwardMsg,
     this.notificationMsg,
+    this.markdownMsg,
   });
 
   factory MessageContentModel.fromJson(Map<String, dynamic> json) {
@@ -96,6 +99,9 @@ class MessageContentModel {
       notificationMsg: json['notificationMsg'] != null
           ? NotificationMsg.fromJson(json['notificationMsg'])
           : null,
+      markdownMsg: json['markdownMsg'] != null
+          ? MarkdownMsg.fromJson(json['markdownMsg'])
+          : null,
     );
   }
 
@@ -112,6 +118,7 @@ class MessageContentModel {
       'replyMsg': replyMsg?.toJson(),
       'forwardMsg': forwardMsg?.toJson(),
       'notificationMsg': notificationMsg?.toJson(),
+      'markdownMsg': markdownMsg?.toJson(),
     };
   }
 
@@ -141,6 +148,8 @@ class MessageContentModel {
         return 11;
       case MessageType.mergedForward:
         return 12;
+      case MessageType.markdown:
+        return 13;
       default:
         return 1;
     }
@@ -172,6 +181,8 @@ class MessageContentModel {
         return MessageType.reply;
       case 12:
         return MessageType.mergedForward;
+      case 13:
+        return MessageType.markdown;
       default:
         return MessageType.text;
     }
@@ -356,6 +367,23 @@ class NotificationMsg {
   Map<String, dynamic> toJson() => {'type': type, 'actors': actors};
 }
 
+class MarkdownMsg {
+  final String content;
+  final String? title;
+
+  MarkdownMsg({required this.content, this.title});
+
+  factory MarkdownMsg.fromJson(Map<String, dynamic> json) => MarkdownMsg(
+        content: json['content'] ?? '',
+        title: json['title'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'content': content,
+        if (title != null) 'title': title,
+      };
+}
+
 class ChatMessageSendBody {
   final String conversationId;
   final String messageId;
@@ -408,6 +436,7 @@ class MessageModel {
   // For compatibility during transition, we keep content getter if needed
   String get content {
     if (type == MessageType.text) return msg.textMsg?.content ?? '';
+    if (type == MessageType.markdown) return msg.markdownMsg?.content ?? '';
     return '[Type: ${type.name}]';
   }
 

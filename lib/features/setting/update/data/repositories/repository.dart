@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:beaver/api/update.dart';
-import 'package:beaver/api/file.dart'; // For previewOnlineFileApi
 import 'package:beaver/types/api/update.dart';
 import 'package:beaver/common/config/config.dart';
 import 'package:beaver/features/setting/update/data/models/update.dart';
@@ -25,7 +24,7 @@ class UpdateRepository {
           version: latest.version ?? '',
           size: '${(latest.size / 1024 / 1024).toStringAsFixed(1)}MB',
           releaseNotes: latest.releaseNotes ?? '',
-          downloadUrl: previewOnlineFileApi(latest.fileKey),
+          downloadUrl: latest.fileKey,
           isForce: false, // 服务端目前没有明确的 isForce 字段，默认为 false
         ),
         isChecking: false,

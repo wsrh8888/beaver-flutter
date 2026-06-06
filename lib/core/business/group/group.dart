@@ -9,11 +9,11 @@ import 'package:drift/drift.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/api/group.dart';
 import 'package:beaver/core/business/group/group_join_request.dart';
+import 'package:beaver/core/business/group/group_member.dart';
 
 /// Group business logic.
 class GroupBusiness implements GroupRepositoryInterface {
   final _groupService = getIt<GroupService>();
-  final _groupMemberService = getIt<GroupMemberService>();
   final _friendBusiness = getIt<FriendBusiness>();
 
   // 响应式数据流 (对标 PC 的 Notification 机制)
@@ -78,7 +78,8 @@ class GroupBusiness implements GroupRepositoryInterface {
 
     final result = <GroupInfo>[];
     for (final group in groups) {
-      final members = await _groupMemberService.getGroupMembers(group.groupId);
+      final memberCount =
+          await getIt<GroupMemberBusiness>().countHumanMembers(group.groupId);
       result.add(
         GroupInfo(
           conversationId: 'group_${group.groupId}',
@@ -86,7 +87,7 @@ class GroupBusiness implements GroupRepositoryInterface {
           avatar: group.avatar,
           fileName: group.avatar,
           lastMessage: group.notice ?? '',
-          memberCount: members.length,
+          memberCount: memberCount,
           version: group.version,
         ),
       );
@@ -114,7 +115,8 @@ class GroupBusiness implements GroupRepositoryInterface {
       final groups = await _groupService.getGroupsByIds(groupIds);
       final List<GroupInfo> result = [];
       for (final g in groups) {
-        final members = await _groupMemberService.getGroupMembers(g.groupId);
+        final memberCount =
+            await getIt<GroupMemberBusiness>().countHumanMembers(g.groupId);
         result.add(
           GroupInfo(
             conversationId: 'group_${g.groupId}',
@@ -122,7 +124,7 @@ class GroupBusiness implements GroupRepositoryInterface {
             avatar: g.avatar,
             fileName: g.avatar,
             lastMessage: '',
-            memberCount: members.length,
+            memberCount: memberCount,
             version: g.version,
           ),
         );

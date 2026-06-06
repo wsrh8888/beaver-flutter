@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
-import 'package:beaver/api/file.dart';
+import 'package:beaver/shared/utils/file/cache.dart';
 import 'config.dart';
 
 /// 媒体缓存管理器 - 对标 Desktop MediaManager
@@ -20,142 +20,132 @@ class MediaManager {
   String? _userId;
   String? _cacheRoot;
   final Map<String, Future<String?>> _downloadFutures = {};
-  final Set<String> _downloadingFiles = {}; // Keep for backward compatibility or remove
   final Map<String, String> _cacheFile = {};
   bool _initialized = false;
   late Dio _dio;
 
-  /// 初始化 Dio 并配置大厂开发环境通用的 SSL 绕过逻辑
   void _initDio() {
     _dio = Dio();
-    // 适配 HTTPS 证书校验报错 (Hostname mismatch 等)
     (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
       final client = HttpClient();
-      client.badCertificateCallback = (cert, host, port) => true; // 开发环境允许所有证书
+      client.badCertificateCallback = (cert, host, port) => true;
       return client;
     };
   }
 
-  /// 初始化
   Future<void> init(String? userId) async {
     _userId = userId;
     final appDir = await getApplicationDocumentsDirectory();
     _cacheRoot = appDir.path;
     _cacheFile.clear();
-    _downloadingFiles.clear();
     _initialized = true;
   }
 
-  /// 确保已初始化 (懒加载保护)
   Future<void> _ensureInitialized() async {
     if (!_initialized || _cacheRoot == null) {
       await init(_userId);
     }
   }
 
-  /// 获取媒体数据库服务
   MediaService get _mediaService => getIt<MediaService>();
 
-  /// 添加缓存记录并执行下载 (支持并发等待)
-  Future<String?> add(CacheType type, String fileKey) async {
-    await _ensureInitialized();
+  String _resolveCacheDir(CacheType type) {
+    final userId = _userId ?? 'public';
+    final subPath = CachePathConfig.getRelativePath(type, userId);
+    return p.join(_cacheRoot!, subPath);
+  }
 
-    // 如果已经在下载中，等待之前的 Future
-    if (_downloadFutures.containsKey(fileKey)) {
-      return _downloadFutures[fileKey];
+  String _resolveOutputPath(CacheType type, String contentMd5, String fileUrl) {
+    return p.join(_resolveCacheDir(type), getCacheLocalFileName(contentMd5, fileUrl));
+  }
+
+  String _createTempPath(CacheType type) {
+    return p.join(_resolveCacheDir(type), '.tmp', '${DateTime.now().millisecondsSinceEpoch}');
+  }
+
+  /// [fileUrl] 完整远程 URL（与 media.url 一致）
+  Future<String?> add(CacheType type, String fileUrl) async {
+    await _ensureInitialized();
+    if (fileUrl.isEmpty) return null;
+
+    if (_downloadFutures.containsKey(fileUrl)) {
+      return _downloadFutures[fileUrl];
     }
 
-    final downloadFuture = _doAdd(type, fileKey);
-    _downloadFutures[fileKey] = downloadFuture;
+    final downloadFuture = _doAdd(type, fileUrl);
+    _downloadFutures[fileUrl] = downloadFuture;
 
     try {
       return await downloadFuture;
     } finally {
-      _downloadFutures.remove(fileKey);
+      _downloadFutures.remove(fileUrl);
     }
   }
 
-  Future<String?> _doAdd(CacheType type, String fileKey) async {
-    final fileUrl = previewOnlineFileApi(fileKey);
-
+  Future<String?> _doAdd(CacheType type, String fileUrl) async {
     try {
-      final subPath = CachePathConfig.getRelativePath(type, _userId ?? 'public');
-      final outputPath = p.join(_cacheRoot!, subPath, fileKey);
-      print('[MediaFlow] [MediaManager] outputPath: $outputPath');
-
-      final file = File(outputPath);
-      if (await file.exists()) {
-        await _mediaService.batchCreate({
-          'mediaList': [
-            {
-              'fileKey': fileKey,
-              'path': outputPath,
-              'type': type.name,
-              'size': await file.length(),
-            },
-          ],
-        });
-        return outputPath;
+      final cacheInfo = await _mediaService.getMediaByUrl(fileUrl);
+      if (cacheInfo != null && cacheInfo['isDeleted'] == 0) {
+        final path = cacheInfo['path'] as String;
+        if (await File(path).exists()) {
+          return path;
+        }
       }
 
-      // 创建目录
-      await Directory(p.dirname(outputPath)).create(recursive: true);
+      final tempPath = _createTempPath(type);
+      await Directory(p.dirname(tempPath)).create(recursive: true);
+      await _dio.download(fileUrl, tempPath);
 
-      // 下载文件 (这里已经绕过了证书限制)
-      await _dio.download(fileUrl, outputPath);
+      final contentMd5 = await calculateFileMD5(tempPath);
+      final finalPath = _resolveOutputPath(type, contentMd5, fileUrl);
+      final savedPath = await moveDownloadToCache(tempPath, finalPath);
+      final size = await File(savedPath).length();
 
-      // 保存到数据库
-      await _mediaService.batchCreate({
-        'mediaList': [
-          {
-            'fileKey': fileKey,
-            'path': outputPath,
-            'type': type.name,
-            'size': await File(outputPath).length(),
-          },
-        ],
+      await _mediaService.upsert({
+        'url': fileUrl,
+        'md5': contentMd5,
+        'path': savedPath,
+        'type': type.name,
+        'size': size,
       });
 
-      return outputPath;
+      return savedPath;
     } catch (e) {
-      print('[MediaFlow] [MediaManager] Error in _doAdd($fileKey): $e');
-      return null; // 返回 null 表示下载失败
+      print('[MediaManager] download failed: $fileUrl, error: $e');
+      return null;
     }
   }
 
-  Future<String> get(CacheType type, String fileKey) async {
-    if (fileKey.startsWith('http') ||
-        fileKey.startsWith('file://') ||
-        fileKey.startsWith('assets/')) {
-      return fileKey;
+  /// [fileUrl] 完整远程 URL，先查 media 表再决定返回本地路径或远程 URL
+  Future<String> get(CacheType type, String fileUrl) async {
+    if (fileUrl.startsWith('file://') || fileUrl.startsWith('assets/')) {
+      return fileUrl;
     }
+
+    if (fileUrl.isEmpty) return fileUrl;
+
+    if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
+      return fileUrl;
+    }
+
     await _ensureInitialized();
-    
-    final fileUrl = previewOnlineFileApi(fileKey);
 
-    if (_cacheFile.containsKey(fileKey)) {
-      print('[MediaFlow] [MediaManager] memory cache hit: $fileKey');
-      return _cacheFile[fileKey]!;
+    if (_cacheFile.containsKey(fileUrl)) {
+      return _cacheFile[fileUrl]!;
     }
 
-    // 先查数据库
-    final cacheInfo = await _mediaService.getMediaByFileKey({'fileKey': fileKey});
-    
+    final cacheInfo = await _mediaService.getMediaByUrl(fileUrl);
     if (cacheInfo != null && cacheInfo['isDeleted'] == 0) {
       final path = cacheInfo['path'] as String;
       if (await File(path).exists()) {
-        _cacheFile[fileKey] = 'file://$path';
-        return 'file://$path';
-      } else {
-        print('[MediaFlow] [MediaManager] DB points to file that does NOT exist: $path');
+        final localPath = 'file://$path';
+        _cacheFile[fileUrl] = localPath;
+        return localPath;
       }
-    } else {
-      print('[MediaFlow] [MediaManager] No DB record for: $fileKey');
     }
 
-    // 没有缓存，异步下载
-    add(type, fileKey).catchError((e) {
-    });
+    _cacheFile[fileUrl] = fileUrl;
+    add(type, fileUrl).catchError((_) => null);
 
     return fileUrl;
   }

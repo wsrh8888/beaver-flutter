@@ -12,6 +12,7 @@ import 'package:beaver/features/chat/detail/components/content/message/recalled.
 import 'package:beaver/features/chat/detail/components/content/message/reply.dart';
 import 'package:beaver/features/chat/detail/components/content/message/forward.dart';
 import 'package:beaver/features/chat/detail/components/content/message/call.dart';
+import 'package:beaver/features/chat/detail/components/content/message/markdown.dart';
 import 'package:beaver/features/chat/detail/components/content/popup/action_menu.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
@@ -195,6 +196,10 @@ class ChatContent extends StatelessWidget {
         return m.forwardMsg == null ? const SizedBox() : ForwardMessage(msg: m.forwardMsg!, isSelf: isSelf);
       case MessageType.call:
         return CallMessage(message: message, isSelf: isSelf);
+      case MessageType.markdown:
+        return m.markdownMsg == null
+            ? const SizedBox()
+            : MarkdownMessage(msg: m.markdownMsg!, isSelf: isSelf);
       default:
         return TextMessage(msg: m.textMsg ?? TextMsg(content: '未知消息'), isSelf: isSelf);
     }

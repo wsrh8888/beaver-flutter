@@ -47,6 +47,7 @@ dependencies:
   # UI 组件与资源
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.0.10+1
+  flutter_markdown: ^0.7.7+1
   shimmer: ^3.0.0
   cached_network_image: ^3.4.1
 

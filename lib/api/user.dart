@@ -4,19 +4,19 @@ import 'package:beaver/common/config/env.dart';
 
 /// 用户数据同步
 Future<BaseResponse<IUserSyncRes>> userSyncApi(IUserSyncReq data) {
-  final url = '$baseUrl/api/user/sync';
+  final url = '$baseUrl/api/user/v1/sync';
   return httpClient.post<IUserSyncRes>(url, data: data.toJson(), fromJsonT: (json) => IUserSyncRes.fromJson(json));
 }
 
 /// 更新用户信息
 Future<BaseResponse<UpdateInfoRes>> updateInfoApi(IUpdateInfoReq data) {
-  final url = '$baseUrl/api/user/update_info';
+  final url = '$baseUrl/api/user/v1/update_info';
   return httpClient.post<UpdateInfoRes>(url, data: data.toJson(), fromJsonT: (json) => UpdateInfoRes());
 }
 
 /// 修改邮箱
 Future<BaseResponse<UpdateEmailRes>> updateEmailApi(IUpdateEmailReq data) {
-  final url = '$baseUrl/api/user/update_email';
+  final url = '$baseUrl/api/user/v1/update_email';
   return httpClient.post<UpdateEmailRes>(url, data: data.toJson(), fromJsonT: (json) => UpdateEmailRes());
 }
 

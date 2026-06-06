@@ -11,15 +11,15 @@ class EnvConfig {
 const _configs = <Env, EnvConfig>{
   Env.dev: EnvConfig(
     baseUrl: 'http://192.168.3.4:20800',
-    wsUrl: 'ws://192.168.3.4:20800/api/ws/ws',
+    wsUrl: 'ws://192.168.3.4:20800/api/ws/v1/ws',
   ),
   Env.test: EnvConfig(
     baseUrl: 'https://server.wsrh8888.com/beaver/',
-    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/ws',
+    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/v1/ws',
   ),
   Env.prod: EnvConfig(
     baseUrl: 'https://server.wsrh8888.com/beaver/',
-    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/ws',
+    wsUrl: 'wss://server.wsrh8888.com/beaver/api/ws/v1/ws',
   ),
 };
 

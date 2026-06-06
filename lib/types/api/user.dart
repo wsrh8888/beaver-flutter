@@ -20,6 +20,7 @@ class IUserSyncItem {
   final String? avatar;
   final String? abstract;
   final int gender;
+  final int userType;
   final int status;
   final int version;
   final int? createdAt;
@@ -33,6 +34,7 @@ class IUserSyncItem {
     this.avatar,
     this.abstract,
     required this.gender,
+    required this.userType,
     required this.status,
     required this.version,
     this.createdAt,
@@ -47,6 +49,7 @@ class IUserSyncItem {
     avatar: json['avatar'],
     abstract: json['abstract'],
     gender: json['gender'] ?? 3,
+    userType: json['userType'] ?? 1,
     status: json['status'] ?? 1,
     version: json['version'] ?? 0,
     createdAt: json['createdAt'],

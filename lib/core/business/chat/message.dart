@@ -146,6 +146,10 @@ class MessageBusiness implements MessageRepositoryInterface {
         return '[文件]';
       case MessageType.voice:
         return '[语音]';
+      case MessageType.markdown:
+        return msg.markdownMsg?.title?.isNotEmpty == true
+            ? msg.markdownMsg!.title!
+            : (msg.markdownMsg?.content ?? '[Markdown]');
       default:
         return '[消息]';
     }
@@ -407,8 +411,26 @@ class MessageBusiness implements MessageRepositoryInterface {
         return MessageType.image;
       case 3:
         return MessageType.video;
+      case 4:
+        return MessageType.file;
+      case 5:
+        return MessageType.voice;
       case 6:
         return MessageType.emoji;
+      case 7:
+        return MessageType.notification;
+      case 8:
+        return MessageType.audio;
+      case 9:
+        return MessageType.call;
+      case 10:
+        return MessageType.recalled;
+      case 11:
+        return MessageType.reply;
+      case 12:
+        return MessageType.mergedForward;
+      case 13:
+        return MessageType.markdown;
       default:
         return MessageType.text;
     }
@@ -422,8 +444,26 @@ class MessageBusiness implements MessageRepositoryInterface {
         return 2;
       case MessageType.video:
         return 3;
+      case MessageType.file:
+        return 4;
+      case MessageType.voice:
+        return 5;
       case MessageType.emoji:
         return 6;
+      case MessageType.notification:
+        return 7;
+      case MessageType.audio:
+        return 8;
+      case MessageType.call:
+        return 9;
+      case MessageType.recalled:
+        return 10;
+      case MessageType.reply:
+        return 11;
+      case MessageType.mergedForward:
+        return 12;
+      case MessageType.markdown:
+        return 13;
       default:
         return 1;
     }

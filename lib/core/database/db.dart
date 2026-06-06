@@ -62,22 +62,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (m) async {
         await m.createAll();
-      },
-      onUpgrade: (m, from, to) async {
-        if (from < 5) {
-          await m.createAll();
-        }
-      },
-      beforeOpen: (details) async {
-        if (details.wasCreated) {
-        } else if (details.hadUpgrade) {}
       },
     );
   }
