@@ -198,102 +198,107 @@ class TextMsg {
 }
 
 class ImageMsg {
-  final String fileKey;
+  final String fileUrl;
   final double? width;
   final double? height;
   final int? size;
-  ImageMsg({required this.fileKey, this.width, this.height, this.size});
+  ImageMsg({required this.fileUrl, this.width, this.height, this.size});
   factory ImageMsg.fromJson(Map<String, dynamic> json) => ImageMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     width: (json['width'] as num?)?.toDouble(),
     height: (json['height'] as num?)?.toDouble(),
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'width': width,
-    'height': height,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (size != null) 'size': size,
   };
 }
 
 class VideoMsg {
-  final String fileKey;
-  final String? thumbnailKey;
+  final String fileUrl;
+  final String? thumbnailUrl;
   final double? width;
   final double? height;
   final int? duration;
   VideoMsg({
-    required this.fileKey,
-    this.thumbnailKey,
+    required this.fileUrl,
+    this.thumbnailUrl,
     this.width,
     this.height,
     this.duration,
   });
   factory VideoMsg.fromJson(Map<String, dynamic> json) => VideoMsg(
-    fileKey: json['fileKey'] ?? '',
-    thumbnailKey: json['thumbnailKey'],
+    fileUrl: json['fileUrl']?.toString() ?? '',
+    thumbnailUrl: json['thumbnailUrl']?.toString(),
     width: (json['width'] as num?)?.toDouble(),
     height: (json['height'] as num?)?.toDouble(),
     duration: json['duration'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'thumbnailKey': thumbnailKey,
-    'width': width,
-    'height': height,
-    'duration': duration,
+    'fileUrl': fileUrl,
+    if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (duration != null) 'duration': duration,
   };
 }
 
 class FileMsg {
-  final String fileKey;
+  final String fileUrl;
   final String? fileName;
   final int? size;
-  FileMsg({required this.fileKey, this.fileName, this.size});
+  FileMsg({required this.fileUrl, this.fileName, this.size});
   factory FileMsg.fromJson(Map<String, dynamic> json) => FileMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     fileName: json['fileName'],
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'fileName': fileName,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (fileName != null) 'fileName': fileName,
+    if (size != null) 'size': size,
   };
 }
 
 class VoiceMsg {
-  final String fileKey;
+  final String fileUrl;
   final int? duration;
-  VoiceMsg({required this.fileKey, this.duration});
-  factory VoiceMsg.fromJson(Map<String, dynamic> json) =>
-      VoiceMsg(fileKey: json['fileKey'] ?? '', duration: json['duration']);
-  Map<String, dynamic> toJson() => {'fileKey': fileKey, 'duration': duration};
+  VoiceMsg({required this.fileUrl, this.duration});
+  factory VoiceMsg.fromJson(Map<String, dynamic> json) => VoiceMsg(
+    fileUrl: json['fileUrl']?.toString() ?? '',
+    duration: json['duration'],
+  );
+  Map<String, dynamic> toJson() => {
+        'fileUrl': fileUrl,
+        if (duration != null) 'duration': duration,
+      };
 }
 
 class EmojiMsg {
-  final String fileKey;
+  final String fileUrl;
   final String emojiId;
   final String packageId;
   final int? width;
   final int? height;
   EmojiMsg({
-    required this.fileKey,
+    required this.fileUrl,
     required this.emojiId,
     required this.packageId,
     this.width,
     this.height,
   });
   factory EmojiMsg.fromJson(Map<String, dynamic> json) => EmojiMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     emojiId: json['emojiId'] ?? '',
     packageId: json['packageId'] ?? '',
     width: json['width'],
     height: json['height'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
+    'fileUrl': fileUrl,
     'emojiId': emojiId,
     'packageId': packageId,
     if (width != null) 'width': width,
@@ -302,19 +307,19 @@ class EmojiMsg {
 }
 
 class AudioFileMsg {
-  final String fileKey;
+  final String fileUrl;
   final String? fileName;
   final int? size;
-  AudioFileMsg({required this.fileKey, this.fileName, this.size});
+  AudioFileMsg({required this.fileUrl, this.fileName, this.size});
   factory AudioFileMsg.fromJson(Map<String, dynamic> json) => AudioFileMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     fileName: json['fileName'],
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'fileName': fileName,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (fileName != null) 'fileName': fileName,
+    if (size != null) 'size': size,
   };
 }
 

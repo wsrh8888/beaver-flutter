@@ -273,7 +273,7 @@ class _MomentListViewState extends State<MomentListView> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(6.w),
                         child: BeaverCachedImage(
-                          fileKey: userInfo?.avatar,
+                          fileUrl: userInfo?.avatar,
                           type: CacheType.avatar,
                           fit: BoxFit.cover,
                         ),
@@ -319,7 +319,7 @@ class _MomentListViewState extends State<MomentListView> {
                   color: Colors.grey[200],
                   child: item.avatar?.isNotEmpty == true
                       ? BeaverCachedImage(
-                          fileKey: item.avatar!,
+                          fileUrl: item.avatar!,
                           type: CacheType.avatar,
                           width: 32.w,
                           height: 32.w,
@@ -512,7 +512,7 @@ class _MomentListViewState extends State<MomentListView> {
                     children: [
                       if (file.type == 2)
                         BeaverCachedImage(
-                          fileKey: file.fileKey,
+                          fileUrl: file.fileKey,
                           type: CacheType.image,
                           fit: BoxFit.cover,
                         )

@@ -114,6 +114,9 @@ class MessageBusiness implements MessageRepositoryInterface {
         },
       },
     });
+    print(
+      '[MessageBusiness] WS 已发送: type=$wsType, msgType=${msg.type.name}, messageId=$messageId',
+    );
 
     // 3. 开启超时处理
     _sendingTimers[messageId] = Timer(const Duration(seconds: 10), () {

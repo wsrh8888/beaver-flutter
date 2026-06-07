@@ -12,6 +12,9 @@ class AppConfig {
 
   static const String source = 'beaver-flutter';
 
+  /// 升级服务应用 ID，与后台默认种子及 Desktop 端一致
+  static const String updateAppId = '87c9dc499cc34f32896a4537e66cf65e';
+
   /**
    * 生成标准 User-Agent
    */

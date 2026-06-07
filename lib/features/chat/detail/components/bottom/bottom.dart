@@ -1,3 +1,4 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/features/chat/detail/components/bottom/bar.dart';
 import 'package:beaver/features/chat/detail/components/bottom/action.dart';
 import 'package:beaver/features/chat/detail/components/bottom/panels/emoji/index.dart';
@@ -7,12 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ChatBottom extends StatefulWidget {
+  final String conversationId;
   final String draft;
   final ComposerPanelType activePanel;
   final bool isVoiceMode;
   final bool isSending;
   final bool isMultiSelect;
-  const ChatBottom({super.key, required this.draft, required this.activePanel, required this.isVoiceMode, required this.isSending, required this.isMultiSelect});
+  const ChatBottom({super.key, required this.conversationId, required this.draft, required this.activePanel, required this.isVoiceMode, required this.isSending, required this.isMultiSelect});
   @override
   State<ChatBottom> createState() => _ChatBottomState();
 }
@@ -49,10 +51,11 @@ class _ChatBottomState extends State<ChatBottom> {
     final currentInsets = MediaQuery.of(context).viewInsets.bottom;
     if (currentInsets > 0) _keyboardHeight = currentInsets;
     return Container(
-      color: Colors.white,
+      color: AppColors.chatInputBackground,
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         ChatBar(
+          conversationId: widget.conversationId,
           activePanel: widget.activePanel, 
           isVoiceMode: widget.isVoiceMode, 
           isSending: widget.isSending, 
@@ -69,8 +72,8 @@ class _ChatBottomState extends State<ChatBottom> {
   }
   Widget _resolvePanel() {
     switch (widget.activePanel) {
-      case ComposerPanelType.emoji: return EmojiPanel(controller: _controller);
-      case ComposerPanelType.package: return const ToolMenu();
+      case ComposerPanelType.emoji: return EmojiPanel(controller: _controller, conversationId: widget.conversationId);
+      case ComposerPanelType.package: return ToolMenu(conversationId: widget.conversationId);
       default: return const SizedBox.shrink();
     }
   }

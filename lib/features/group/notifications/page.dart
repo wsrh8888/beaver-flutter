@@ -85,7 +85,7 @@ class GroupNotificationsView extends StatelessWidget {
           Stack(
             children: [
               BeaverCachedImage(
-                fileKey: notification.groupAvatar,
+                fileUrl: notification.groupAvatar,
                 type: CacheType.avatar,
                 width: 48.w,
                 height: 48.w,
@@ -105,7 +105,7 @@ class GroupNotificationsView extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10.w),
                     child: BeaverCachedImage(
-                      fileKey: notification.applicantAvatar,
+                      fileUrl: notification.applicantAvatar,
                       type: CacheType.avatar,
                       width: 18.w,
                       height: 18.w,

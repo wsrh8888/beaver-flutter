@@ -21,4 +21,13 @@ class AppColors {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+
+  /// 聊天页（对标微信）
+  static const Color chatBackground = Color(0xFFEDEDED);
+  static const Color chatBubbleSelf = primary;
+  static const Color chatBubbleSelfText = Colors.white;
+  static const Color chatBubbleOther = Color(0xFFFFFFFF);
+  static const Color chatBubbleOtherText = Color(0xFF191919);
+  static const Color chatBubbleOtherSubText = Color(0xFF888888);
+  static const Color chatInputBackground = Color(0xFFF7F7F7);
 }

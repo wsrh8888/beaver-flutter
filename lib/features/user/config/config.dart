@@ -108,7 +108,7 @@ class _UserConfigPageState extends State<UserConfigPage> {
                               Stack(
                                 children: [
                                   BeaverCachedImage(
-                                    fileKey: friendInfo.fileName,
+                                    fileUrl: friendInfo.fileName,
                                     type: CacheType.avatar,
                                     width: 64.w,
                                     height: 64.w,

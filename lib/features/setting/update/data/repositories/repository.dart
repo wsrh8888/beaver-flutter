@@ -1,38 +1,64 @@
-import 'dart:io';
 import 'package:beaver/api/update.dart';
 import 'package:beaver/types/api/update.dart';
 import 'package:beaver/common/config/config.dart';
 import 'package:beaver/features/setting/update/data/models/update.dart';
+import 'package:beaver/features/setting/update/data/platform_info.dart';
 
 class UpdateRepository {
-  Future<UpdateInfo?> checkUpdate(String currentVersion) async {
-    // 1. 获取最新版本信息
-    final response = await getLatestVersionApi(GetLatestVersionReq(
-      userId: '', // 当前可为空或从 UserStore 取
+  Future<UpdateCheckResult> checkUpdate() async {
+    final platform = UpdatePlatformInfo.current();
+    if (platform.platformId == 0) {
+      return const UpdateCheckResult.failure('当前平台不支持检查更新');
+    }
+
+    final response = await getLatestVersionApi(IGetLatestVersionReq(
       deviceId: AppConfig.deviceId,
-      version: currentVersion,
-      appId: 'beaver-flutter',
-      platformId: Platform.isAndroid ? 4 : 3,
-      archId: Platform.isAndroid ? 6 : 5,
+      version: AppConfig.version,
+      appId: AppConfig.updateAppId,
+      platformId: platform.platformId,
+      archId: platform.archId,
     ));
 
-    if (response.code == 0 && response.result != null && response.result!.hasUpdate) {
-      final latest = response.result!;
-      return UpdateInfo(
+    if (response.code != 0) {
+      return UpdateCheckResult.failure(
+        response.msg.isNotEmpty ? response.msg : '检查更新失败',
+      );
+    }
+
+    final result = response.result;
+    if (result == null || !result.hasUpdate) {
+      return UpdateCheckResult.success(
+        UpdateInfo(
+          hasUpdate: false,
+          isChecking: false,
+          isDownloading: false,
+          downloadProgress: 0,
+          lastCheckTime: DateTime.now(),
+        ),
+      );
+    }
+
+    if (result.fileUrl.isEmpty) {
+      return const UpdateCheckResult.failure('服务端未返回下载地址');
+    }
+
+    return UpdateCheckResult.success(
+      UpdateInfo(
         hasUpdate: true,
         latestVersion: VersionInfo(
-          version: latest.version ?? '',
-          size: '${(latest.size / 1024 / 1024).toStringAsFixed(1)}MB',
-          releaseNotes: latest.releaseNotes ?? '',
-          downloadUrl: latest.fileKey,
-          isForce: false, // 服务端目前没有明确的 isForce 字段，默认为 false
+          version: result.version ?? '',
+          size: result.size > 0
+              ? '${(result.size / 1024 / 1024).toStringAsFixed(1)}MB'
+              : '--',
+          releaseNotes: result.releaseNotes ?? '',
+          downloadUrl: result.fileUrl,
+          isForce: result.forceUpdate,
         ),
         isChecking: false,
         isDownloading: false,
         downloadProgress: 0,
         lastCheckTime: DateTime.now(),
-      );
-    }
-    return null;
+      ),
+    );
   }
 }

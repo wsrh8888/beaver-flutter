@@ -28,9 +28,10 @@ class LoadMoreMessagesEvent extends ChatEvent {
 
 class SendMessageEvent extends ChatEvent {
   final MessageContentModel msg;
-  const SendMessageEvent(this.msg);
+  final String? conversationId;
+  const SendMessageEvent(this.msg, {this.conversationId});
   @override
-  List<Object?> get props => [msg];
+  List<Object?> get props => [msg, conversationId];
 }
 
 class UpdateDraftEvent extends ChatEvent {

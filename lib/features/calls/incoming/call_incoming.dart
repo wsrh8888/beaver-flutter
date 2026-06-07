@@ -153,7 +153,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
                                 border: Border.all(color: Colors.white12, width: 2.w),
                               ),
                               child: BeaverCachedImage(
-                                fileKey: callInfo?.callerAvatar,
+                                fileUrl: callInfo?.callerAvatar,
                                 type: CacheType.avatar,
                                 width: 120.w,
                                 height: 120.w,

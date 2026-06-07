@@ -270,7 +270,7 @@ class _CallPageState extends State<CallPage> {
                   ],
                 ),
                 child: BeaverCachedImage(
-                  fileKey: otherParticipant.avatarUrl,
+                  fileUrl: otherParticipant.avatarUrl,
                   width: 140.w,
                   height: 140.w,
                   borderRadius: 70.w,
@@ -343,7 +343,7 @@ class _CallPageState extends State<CallPage> {
                   color: const Color(0xFF1C1C1E),
                   child: Center(
                     child: BeaverCachedImage(
-                      fileKey: remoteParticipant?.avatarUrl,
+                      fileUrl: remoteParticipant?.avatarUrl,
                       width: 100.w,
                       height: 100.w,
                       borderRadius: 50.w,
@@ -539,7 +539,7 @@ class _CallPageState extends State<CallPage> {
                       return Column(
                         children: [
                           BeaverCachedImage(
-                            fileKey: p.avatarUrl,
+                            fileUrl: p.avatarUrl,
                             width: 60.w,
                             height: 60.w,
                             borderRadius: 12.w,
@@ -639,7 +639,7 @@ class _CallPageState extends State<CallPage> {
           else
             Center(
               child: BeaverCachedImage(
-                fileKey: p.avatarUrl,
+                fileUrl: p.avatarUrl,
                 width: 60.w,
                 height: 60.w,
                 borderRadius: 30.w,
@@ -789,7 +789,7 @@ class _CallPageState extends State<CallPage> {
           else
             Center(
               child: BeaverCachedImage(
-                fileKey: localParticipant?.avatarUrl,
+                fileUrl: localParticipant?.avatarUrl,
                 type: CacheType.avatar,
                 width: 60.w,
                 height: 60.w,
@@ -835,7 +835,7 @@ class _CallPageState extends State<CallPage> {
       color: const Color(0xFF1C1C1E),
       child: Center(
         child: BeaverCachedImage(
-          fileKey: otherParticipant.avatarUrl,
+          fileUrl: otherParticipant.avatarUrl,
           width: 60.w,
           height: 60.w,
           borderRadius: 30.w,

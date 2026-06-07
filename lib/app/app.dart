@@ -16,8 +16,10 @@ import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
+import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/store/app/app.dart';
+import 'package:beaver/features/setting/update/update_listener.dart';
 import 'package:beaver/di/injection.dart';
 
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
@@ -89,12 +91,16 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
             BlocProvider<MessageStore>(create: (_) => getIt<MessageStore>()),
             BlocProvider<EmojiStore>(create: (_) => getIt<EmojiStore>()),
             BlocProvider<UpdateStore>(create: (_) => getIt<UpdateStore>()),
+            BlocProvider<WsStore>(create: (_) => getIt<WsStore>()),
             BlocProvider<CallStore>(create: (_) => getIt<CallStore>()),
           ],
           child: MaterialApp.router(
             title: '海狸',
             debugShowCheckedModeBanner: false,
             routerConfig: appRouter,
+            builder: (context, child) => UpdateListener(
+              child: child ?? const SizedBox.shrink(),
+            ),
             theme: ThemeData(
               useMaterial3: true,
               primaryColor: AppColors.primary,

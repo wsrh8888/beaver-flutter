@@ -201,7 +201,7 @@ class _MinePageState extends State<MinePage> {
                       ),
                       child: ClipOval(
                         child: BeaverCachedImage(
-                          fileKey: userInfo?.avatar,
+                          fileUrl: userInfo?.avatar,
                           type: CacheType.avatar,
                           width: 80.w,
                           height: 80.w,

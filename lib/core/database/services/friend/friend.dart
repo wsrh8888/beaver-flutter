@@ -12,6 +12,20 @@ class FriendService extends BaseService {
     )..where((t) => t.friendId.isIn(friendshipIds))).get();
   }
 
+  /// 获取两个用户之间的好友关系
+  Future<Friend?> getFriendByPeerId(String currentUserId, String peerId) async {
+    final friends = await (db.select(db.friends)..where(
+          (t) =>
+              t.isDeleted.equals(0) &
+              ((t.sendUserId.equals(currentUserId) &
+                      t.revUserId.equals(peerId)) |
+                  (t.sendUserId.equals(peerId) &
+                      t.revUserId.equals(currentUserId))),
+        ))
+        .get();
+    return friends.isNotEmpty ? friends.first : null;
+  }
+
   /// 获取所有好友列表
   Future<List<Friend>> getFriends() async {
     return (db.select(db.friends)..where((t) => t.isDeleted.equals(0))).get();

@@ -1,17 +1,17 @@
 class IFileUploadResult {
-  final String fileKey;
+  final String fileUrl;
   final String originalName;
   final FileInfo? fileInfo;
 
   IFileUploadResult({
-    required this.fileKey,
+    required this.fileUrl,
     required this.originalName,
     this.fileInfo,
   });
 
   factory IFileUploadResult.fromJson(Map<String, dynamic> json) {
     return IFileUploadResult(
-      fileKey: json['fileKey'] ?? '',
+      fileUrl: json['fileUrl']?.toString() ?? '',
       originalName: json['originalName'] ?? '',
       fileInfo: json['fileInfo'] != null ? FileInfo.fromJson(json['fileInfo']) : null,
     );
@@ -19,7 +19,7 @@ class IFileUploadResult {
 
   Map<String, dynamic> toJson() {
     return {
-      'fileKey': fileKey,
+      'fileUrl': fileUrl,
       'originalName': originalName,
       'fileInfo': fileInfo?.toJson(),
     };

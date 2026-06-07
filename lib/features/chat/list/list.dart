@@ -133,7 +133,7 @@ class _ChatListViewState extends State<ChatListView> {
                           : null,
                       isLabelVisible: chat.unreadCount > 0,
                       child: BeaverCachedImage(
-                        fileKey: chat.avatar,
+                        fileUrl: chat.avatar,
                         type: CacheType.avatar,
                         width: 32.w,
                         height: 32.w,
@@ -231,7 +231,7 @@ class _ChatListViewState extends State<ChatListView> {
                         : null,
                     isLabelVisible: chat.unreadCount > 0,
                     child: BeaverCachedImage(
-                      fileKey: chat.avatar,
+                      fileUrl: chat.avatar,
                       type: CacheType.avatar,
                       width: 48.w,
                       height: 48.w,
@@ -379,7 +379,6 @@ class _ChatListViewState extends State<ChatListView> {
   }
 
   void _handleChatClick(ChatModel chat) {
-    getIt<ChatStore>().markAsRead(chat.conversationId);
     context.push('/chat/detail?id=${chat.conversationId}');
   }
 

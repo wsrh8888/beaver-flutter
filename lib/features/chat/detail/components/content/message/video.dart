@@ -14,27 +14,23 @@ class VideoMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(
-      '[VideoMessage] Build: msg.fileKey=${msg.fileKey}, msg.thumbnailKey=${msg.thumbnailKey}, msg.width=${msg.width}, msg.height=${msg.height}',
-    );
     final size = _calculateDisplaySize(
       (msg.width ?? 160).toDouble(),
       (msg.height ?? 120).toDouble(),
     );
 
     return BeaverCachedVideo(
-      videoKey: msg.fileKey,
-      thumbnailKey: msg.thumbnailKey,
+      videoUrl: msg.fileUrl,
+      thumbnailUrl: msg.thumbnailUrl,
       width: size.width,
       height: size.height,
       borderRadius: 8.w,
       fit: BoxFit.cover,
       duration: msg.duration,
       onTap: () async {
-        print('[VideoMessage] Tapped: videoKey=${msg.fileKey}');
         final mediaBusiness = getIt<MediaBusiness>();
         final url = await mediaBusiness.getMediaPath(
-          msg.fileKey,
+          msg.fileUrl,
           CacheType.video,
         );
         if (context.mounted) {
@@ -43,7 +39,7 @@ class VideoMessage extends StatelessWidget {
             GalleryItem(
               url: url,
               type: GalleryItemType.video,
-              thumbnail: msg.thumbnailKey,
+              thumbnail: msg.thumbnailUrl,
             ),
           );
         }

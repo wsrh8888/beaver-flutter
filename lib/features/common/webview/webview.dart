@@ -6,6 +6,7 @@ import 'package:beaver/features/common/webview/bloc/event.dart';
 import 'package:beaver/features/common/webview/bloc/state.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -24,12 +25,14 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
   late final WebViewBloc _bloc;
+  late final String _fallbackTitle;
 
   @override
   void initState() {
     super.initState();
     _bloc = WebViewBloc(url: widget.url);
-    
+    _fallbackTitle = _resolveFallbackTitle(widget.url);
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -40,8 +43,10 @@ class _WebViewPageState extends State<WebViewPage> {
           onPageStarted: (String url) {
             _bloc.add(WebViewPageStarted());
           },
-          onPageFinished: (String url) {
-            _bloc.add(WebViewPageFinished());
+          onPageFinished: (String url) async {
+            final pageTitle = await _readPageTitle();
+            if (!mounted) return;
+            _bloc.add(WebViewPageFinished(pageTitle: pageTitle));
           },
           onWebResourceError: (WebResourceError error) {
             _bloc.add(WebViewErrorOccurred(error.description));
@@ -49,6 +54,24 @@ class _WebViewPageState extends State<WebViewPage> {
         ),
       )
       ..loadRequest(Uri.parse(widget.url));
+  }
+
+  String _resolveFallbackTitle(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return '网页';
+    if (uri.host.isNotEmpty) return uri.host;
+    return '网页';
+  }
+
+  Future<String?> _readPageTitle() async {
+    try {
+      final title = await _controller.runJavaScriptReturningResult(
+        'document.title',
+      );
+      final text = title?.toString().replaceAll('"', '').trim();
+      if (text != null && text.isNotEmpty) return text;
+    } catch (_) {}
+    return null;
   }
 
   @override
@@ -63,10 +86,12 @@ class _WebViewPageState extends State<WebViewPage> {
       value: _bloc,
       child: BlocBuilder<WebViewBloc, WebViewState>(
         builder: (context, state) {
+          final displayTitle = widget.title ?? state.pageTitle ?? _fallbackTitle;
+
           return BeaverLayout(
-            title: widget.title ?? '网页',
+            title: displayTitle,
             showBack: true,
-            onBack: () => Navigator.of(context).pop(),
+            onBack: () => context.pop(),
             showBackground: false,
             isScrollable: false,
             child: Stack(
@@ -91,7 +116,13 @@ class _WebViewPageState extends State<WebViewPage> {
                       children: [
                         const Icon(Icons.error_outline, size: 48, color: Colors.grey),
                         SizedBox(height: 16.w),
-                        Text(state.errorMessage ?? '加载失败'),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24.w),
+                          child: Text(
+                            state.errorMessage ?? '加载失败',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                         TextButton(
                           onPressed: () => _controller.reload(),
                           child: const Text('重试'),

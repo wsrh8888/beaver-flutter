@@ -5,6 +5,7 @@ import 'package:beaver/features/chat/detail/components/content/message/text.dart
 import 'package:beaver/features/chat/detail/components/content/message/image.dart';
 import 'package:beaver/features/chat/detail/components/content/message/video.dart';
 import 'package:beaver/features/chat/detail/components/content/message/audio.dart';
+import 'package:beaver/features/chat/detail/components/content/message/voice.dart';
 import 'package:beaver/features/chat/detail/components/content/message/file.dart';
 import 'package:beaver/features/chat/detail/components/content/message/emoji.dart';
 import 'package:beaver/features/chat/detail/components/content/message/notification.dart';
@@ -14,6 +15,7 @@ import 'package:beaver/features/chat/detail/components/content/message/forward.d
 import 'package:beaver/features/chat/detail/components/content/message/call.dart';
 import 'package:beaver/features/chat/detail/components/content/message/markdown.dart';
 import 'package:beaver/features/chat/detail/components/content/popup/action_menu.dart';
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/business/message.dart';
@@ -31,17 +33,22 @@ class ChatContent extends StatelessWidget {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
         if (state.status == ChatStatus.loading) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFFFF7D45)),
+          return ColoredBox(
+            color: AppColors.chatBackground,
+            child: const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         }
 
         final messages = state.messages;
         final isMultiSelect = state.status == ChatStatus.multiSelect;
 
-        return ListView.builder(
+        return Container(
+          color: AppColors.chatBackground,
+          child: ListView.builder(
           reverse: true,
-          padding: EdgeInsets.symmetric(vertical: 20.w, horizontal: 16.w),
+          padding: EdgeInsets.symmetric(vertical: 12.w, horizontal: 12.w),
           itemCount: messages.length + 1,
           itemBuilder: (context, index) {
             if (index == messages.length) {
@@ -65,6 +72,7 @@ class ChatContent extends StatelessWidget {
 
             return _buildMessageRow(context, message, isSelf, isSelected, isMultiSelect);
           },
+        ),
         );
       },
     );
@@ -103,7 +111,7 @@ class ChatContent extends StatelessWidget {
   }
 
   Widget _buildAvatar(String? avatar) => BeaverCachedImage(
-    fileKey: avatar,
+    fileUrl: avatar,
     type: CacheType.avatar,
     width: 36.w,
     height: 36.w,
@@ -150,22 +158,24 @@ class ChatContent extends StatelessWidget {
             ? null
             : BoxDecoration(
                 color: isSelf
-                    ? const Color(0xFFFF7D45) // Beaver Brand Orange (#FF7D45) (Self)
-                    : const Color(0xFFF9FAFB), // #F9FAFB (Other)
+                    ? AppColors.chatBubbleSelf
+                    : AppColors.chatBubbleOther,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12.w),
-                  topRight: Radius.circular(12.w),
+                  topLeft: Radius.circular(4.w),
+                  topRight: Radius.circular(4.w),
                   bottomLeft: isSelf
-                      ? Radius.circular(12.w)
+                      ? Radius.circular(4.w)
                       : Radius.circular(2.w),
                   bottomRight: isSelf
                       ? Radius.circular(2.w)
-                      : Radius.circular(12.w),
+                      : Radius.circular(4.w),
                 ),
               ),
         child: DefaultTextStyle.merge(
           style: TextStyle(
-            color: isSelf ? Colors.white : const Color(0xFF2D3436),
+            color: isSelf
+                ? AppColors.chatBubbleSelfText
+                : AppColors.chatBubbleOtherText,
           ),
           child: _resolveMessageWidget(message, isSelf),
         ),
@@ -186,6 +196,10 @@ class ChatContent extends StatelessWidget {
         return m.videoMsg == null ? const SizedBox() : VideoMessage(msg: m.videoMsg!);
       case MessageType.audio:
         return m.audioFileMsg == null ? const SizedBox() : AudioMessage(msg: m.audioFileMsg!, isSelf: isSelf);
+      case MessageType.voice:
+        return m.voiceMsg == null
+            ? const SizedBox()
+            : VoiceMessage(msg: m.voiceMsg!, isSelf: isSelf);
       case MessageType.file:
         return m.fileMsg == null ? const SizedBox() : FileMessage(msg: m.fileMsg!, isSelf: isSelf);
       case MessageType.emoji:

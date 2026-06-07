@@ -1,6 +1,7 @@
 import 'package:beaver/common/websocket/index.dart';
 import 'package:beaver/core/message/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 
 /// WebSocket 连接管理器
@@ -35,6 +36,7 @@ class WsConnectionManager {
   void disconnect() {
     _wsClient?.dispose();
     _wsClient = null;
+    getIt<WsStore>().setDisconnected();
   }
 
   void send(Map<String, dynamic> data) {

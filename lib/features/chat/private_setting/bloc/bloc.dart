@@ -43,19 +43,29 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
     TogglePinPrivateChatEvent event,
     Emitter<PrivateSettingState> emit,
   ) async {
-    if (state.isSaving || state.conversation == null) return;
+    if (state.conversation == null) return;
 
-    emit(state.copyWith(isSaving: true));
-    try {
-      final newIsPinned = !state.conversation!.isTop;
-      await _conversationBusiness.togglePinChat(state.conversationId, newIsPinned);
-      
-      emit(state.copyWith(
-        isSaving: false,
+    final previousIsTop = state.conversation!.isTop;
+    final newIsPinned = !previousIsTop;
+
+    emit(
+      state.copyWith(
         conversation: state.conversation!.copyWith(isTop: newIsPinned),
-      ));
+      ),
+    );
+
+    try {
+      await _conversationBusiness.togglePinChat(
+        state.conversationId,
+        newIsPinned,
+      );
     } catch (e) {
-      emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          conversation: state.conversation!.copyWith(isTop: previousIsTop),
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

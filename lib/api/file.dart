@@ -57,7 +57,7 @@ Future<BaseResponse<IFileUploadResult>> _uploadFileApiWithTarget(
     );
 
     if (response.isSuccess) {
-      final fileUrl = response.result?.fileKey;
+      final fileUrl = response.result?.fileUrl;
       _logger.info({'text': '文件上传成功', 'fileUrl': fileUrl});
     } else {
       _logger.error({

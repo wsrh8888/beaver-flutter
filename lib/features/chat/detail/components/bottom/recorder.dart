@@ -16,7 +16,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
 class ChatRecorder extends StatefulWidget {
-  const ChatRecorder({super.key});
+  final String conversationId;
+
+  const ChatRecorder({super.key, required this.conversationId});
 
   @override
   State<ChatRecorder> createState() => _ChatRecorderState();
@@ -25,14 +27,12 @@ class ChatRecorder extends StatefulWidget {
 class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMixin {
   bool _isRecording = false;
   bool _expectCancel = false;
+  bool _pressActive = false;
   double _recordingDuration = 0.0;
-  // 录音引擎
   final AudioRecorder _audioRecorder = AudioRecorder();
-  String? _tempPath;
   Timer? _timer;
   OverlayEntry? _overlayEntry;
 
-  // 动画控制
   late AnimationController _waveController;
 
   @override
@@ -52,27 +52,42 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
   void dispose() {
     _waveController.dispose();
     _timer?.cancel();
+    _removeOverlay();
     _audioRecorder.dispose();
     super.dispose();
   }
 
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
   Future<void> _startRecording() async {
-    // 1. 权限检查
-    if (!await Permission.microphone.request().isGranted) {
+    if (!await Permission.microphone.isGranted) {
       if (mounted) BeaverToast.show(context, '请开启麦克风权限');
       return;
     }
 
+    if (!_pressActive || _isRecording) return;
     if (await _audioRecorder.isRecording()) return;
 
-    // 2. 准备路径
     final tempDir = await getTemporaryDirectory();
-    final path = p.join(tempDir.path, 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a');
+    if (!_pressActive) return;
 
-    // 3. 开始录制
+    final path = p.join(
+      tempDir.path,
+      'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+    );
+
     try {
       const config = RecordConfig();
       await _audioRecorder.start(config, path: path);
+
+      if (!_pressActive || !mounted) {
+        await _audioRecorder.stop();
+        File(path).deleteSync();
+        return;
+      }
 
       setState(() {
         _isRecording = true;
@@ -91,30 +106,38 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
   }
 
   Future<void> _stopRecording({bool cancel = false}) async {
-    if (!_isRecording) return;
-    
+    _pressActive = false;
+
+    if (!_isRecording) {
+      if (await _audioRecorder.isRecording()) {
+        final path = await _audioRecorder.stop();
+        if (path != null) File(path).deleteSync();
+      }
+      return;
+    }
+
     final path = await _audioRecorder.stop();
-    
+
     setState(() {
       _isRecording = false;
       _expectCancel = false;
     });
     _waveController.stop();
     _timer?.cancel();
-    _overlayEntry?.remove();
-    _overlayEntry = null;
+    _removeOverlay();
 
     if (cancel || path == null) {
-      if (path != null) File(path).delete();
-    } else {
-      final duration = _recordingDuration.toInt();
-      if (duration < 1) {
-        if (mounted) BeaverToast.show(context, '说话时间太短');
-        File(path).delete();
-        return;
-      }
-      _sendVoiceMessage(path, duration);
+      if (path != null) File(path).deleteSync();
+      return;
     }
+
+    final duration = _recordingDuration.toInt();
+    if (duration < 1) {
+      if (mounted) BeaverToast.show(context, '说话时间太短');
+      File(path).deleteSync();
+      return;
+    }
+    _sendVoiceMessage(path, duration);
   }
 
   void _updateSwipeStatus(LongPressMoveUpdateDetails details) {
@@ -129,28 +152,27 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     final mediaBusiness = getIt<MediaBusiness>();
     final chatBloc = context.read<ChatBloc>();
 
-    // 1. 上传文件 (调用 API 层)
     final uploadResult = await mediaBusiness.uploadFile(path);
     if (uploadResult == null) {
       if (mounted) BeaverToast.show(context, '语音发送失败');
+      File(path).deleteSync();
       return;
     }
 
-    // 2. 构造消息并派发 Event
     chatBloc.add(
       SendMessageEvent(
         MessageContentModel(
           type: MessageType.voice,
           voiceMsg: VoiceMsg(
-            fileKey: uploadResult.fileKey,
+            fileUrl: uploadResult.fileUrl,
             duration: duration,
           ),
         ),
+        conversationId: widget.conversationId,
       ),
     );
 
-    // 3. 清理缓存
-    File(path).delete();
+    File(path).deleteSync();
   }
 
   void _showOverlay() {
@@ -166,7 +188,9 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
                   width: 160.w,
                   height: 160.w,
                   decoration: BoxDecoration(
-                    color: _expectCancel ? Colors.red.withOpacity(0.8) : Colors.black.withOpacity(0.55),
+                    color: _expectCancel
+                        ? Colors.red.withOpacity(0.8)
+                        : Colors.black.withOpacity(0.55),
                     borderRadius: BorderRadius.circular(20.w),
                   ),
                   child: Column(
@@ -237,7 +261,10 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPressStart: (_) => _startRecording(),
+      onLongPressStart: (_) {
+        _pressActive = true;
+        _startRecording();
+      },
       onLongPressMoveUpdate: (details) => _updateSwipeStatus(details),
       onLongPressEnd: (_) => _stopRecording(cancel: _expectCancel),
       onLongPressCancel: () => _stopRecording(cancel: true),

@@ -9,6 +9,7 @@ import 'package:beaver/features/auth/login/bloc/event.dart';
 import 'package:beaver/features/auth/login/bloc/state.dart';
 import 'package:beaver/theme/colors.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/shared/utils/qrcode/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -80,9 +81,13 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state.status == LoginStatus.success) {
-          // 修改为 AppRoutes.root
+          final pendingScene = await consumePendingOAuthScene();
+          if (pendingScene != null && pendingScene.isNotEmpty && context.mounted) {
+            context.go('${AppRoutes.oauthScanConfirm}?sceneId=${Uri.encodeComponent(pendingScene)}');
+            return;
+          }
           context.go(AppRoutes.root);
         } else if (state.status == LoginStatus.error) {
           BeaverToast.show(context, state.errorMessage ?? '登录失败');

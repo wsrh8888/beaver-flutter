@@ -291,18 +291,14 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     if (_isPrivateConversation(conversationId)) {
       final peerId = _parsePrivatePeerId(conversationId, currentUserId);
       if (peerId != null) {
-        final friends = await _friendService.getFriends();
-        final friendIndex = friends.indexWhere(
-          (f) =>
-              (f.sendUserId == currentUserId && f.revUserId == peerId) ||
-              (f.sendUserId == peerId && f.revUserId == currentUserId),
+        final friend = await _friendService.getFriendByPeerId(
+          currentUserId,
+          peerId,
         );
-
         final userInfos = await _userService.getUsersBasicInfo([peerId]);
         final user = userInfos.isNotEmpty ? userInfos.first : null;
 
-        if (friendIndex != -1) {
-          final friend = friends[friendIndex];
+        if (friend != null) {
           final notice = friend.sendUserId == currentUserId
               ? (friend.revUserNotice ?? '')
               : (friend.sendUserNotice ?? '');

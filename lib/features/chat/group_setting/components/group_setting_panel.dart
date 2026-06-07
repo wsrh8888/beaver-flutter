@@ -60,7 +60,7 @@ class GroupSettingPanel extends StatelessWidget {
       child: Row(
         children: [
           BeaverCachedImage(
-            fileKey: avatar,
+            fileUrl: avatar,
             type: CacheType.avatar,
             width: 52.w,
             height: 52.w,
@@ -161,7 +161,7 @@ class GroupSettingPanel extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             BeaverCachedImage(
-              fileKey: displayAvatar,
+              fileUrl: displayAvatar,
               type: CacheType.avatar,
               width: 44.w,
               height: 44.w,

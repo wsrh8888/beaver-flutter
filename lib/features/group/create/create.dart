@@ -175,7 +175,7 @@ class _CreateGroupPageState extends State<CreateGroupPage> {
                 ),
                 SizedBox(width: 16.w),
                 BeaverCachedImage(
-                  fileKey: contact.avatar ?? contact.fileName ?? '',
+                  fileUrl: contact.avatar ?? contact.fileName ?? '',
                   type: CacheType.avatar,
                   width: 44.w,
                   height: 44.w,

@@ -16,7 +16,7 @@ class ImageMessage extends StatelessWidget {
     );
 
     return BeaverCachedImage(
-      fileKey: msg.fileKey,
+      fileUrl: msg.fileUrl,
       type: CacheType.image,
       width: size.width,
       height: size.height,

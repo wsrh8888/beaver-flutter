@@ -53,7 +53,7 @@ class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
                       Hero(
                         tag: 'emoji_${_emoji!.emojiId}',
                         child: BeaverCachedImage(
-                          fileKey: _emoji!.fileKey,
+                          fileUrl: _emoji!.fileKey,
                           width: 250.w,
                           height: 250.w,
                           fit: BoxFit.contain,

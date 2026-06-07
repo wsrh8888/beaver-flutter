@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -7,6 +8,38 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 
 final ImagePicker _picker = ImagePicker();
+
+/// 请求相册保存权限
+Future<bool> requestGallerySavePermission(BuildContext context) async {
+  if (Platform.isAndroid) {
+    final photos = await Permission.photos.request();
+    if (photos.isGranted || photos.isLimited) return true;
+    if (photos.isPermanentlyDenied) {
+      if (context.mounted) BeaverToast.show(context, '请在设置中开启相册权限');
+      await openAppSettings();
+      return false;
+    }
+    final storage = await Permission.storage.request();
+    if (storage.isGranted) return true;
+    if (storage.isPermanentlyDenied) {
+      if (context.mounted) BeaverToast.show(context, '请在设置中开启存储权限');
+      await openAppSettings();
+      return false;
+    }
+    if (context.mounted) BeaverToast.show(context, '需要相册权限才能保存');
+    return false;
+  }
+
+  final status = await Permission.photos.request();
+  if (status.isGranted || status.isLimited) return true;
+  if (status.isPermanentlyDenied) {
+    if (context.mounted) BeaverToast.show(context, '请在设置中开启相册权限');
+    await openAppSettings();
+    return false;
+  }
+  if (context.mounted) BeaverToast.show(context, '需要相册权限才能保存');
+  return false;
+}
 
 /// 从相册选择图片或视频
 Future<List<AssetEntity>?> pickAssets(BuildContext context, {RequestType type = RequestType.common}) async {

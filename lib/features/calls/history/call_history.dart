@@ -90,7 +90,7 @@ class _CallHistoryPageState extends State<CallHistoryPage> {
         children: [
           // 头像
           BeaverCachedImage(
-            fileKey: call.isIncoming ? call.callerAvatar : call.receiverAvatar,
+            fileUrl: call.isIncoming ? call.callerAvatar : call.receiverAvatar,
             type: CacheType.avatar,
             width: 56.w,
             height: 56.w,

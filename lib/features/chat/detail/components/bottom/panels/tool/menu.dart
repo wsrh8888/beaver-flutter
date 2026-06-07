@@ -20,7 +20,9 @@ import 'package:beaver/router/routes.dart';
 import 'package:go_router/go_router.dart';
 
 class ToolMenu extends StatelessWidget {
-  const ToolMenu({super.key});
+  final String conversationId;
+
+  const ToolMenu({super.key, required this.conversationId});
 
   Future<void> _handleCall(BuildContext context, String mode) async {
     // 权限检查
@@ -39,20 +41,20 @@ class ToolMenu extends StatelessWidget {
     }
 
     final chatBloc = context.read<ChatBloc>();
-    final conversationId = chatBloc.state.conversationId;
-    if (conversationId == null) return;
+    final activeConversationId = chatBloc.state.conversationId ?? conversationId;
+    if (activeConversationId.isEmpty) return;
 
     // 根据前缀判断会话类型 (1-私聊, 2-群聊)
-    final int callType = conversationId.startsWith('g_') ? 2 : 1;
+    final int callType = activeConversationId.startsWith('g_') ? 2 : 1;
     // 初始通话模式 (1-语音, 2-视频)
     final int callMode = mode == 'video' ? 2 : 1;
 
     final callBusiness = getIt<CallBusiness>();
-    final callInfo = await callBusiness.makeCall(conversationId, callType, callMode);
+    final callInfo = await callBusiness.makeCall(activeConversationId, callType, callMode);
 
     if (callInfo != null && context.mounted) {
       context.push(AppRoutes.call, extra: {
-        'conversationId': conversationId,
+        'conversationId': activeConversationId,
         'roomToken': callInfo.roomToken,
         'liveKitUrl': callInfo.liveKitUrl,
         'callType': mode, // 'audio' or 'video' for UI
@@ -85,12 +87,13 @@ class ToolMenu extends StatelessWidget {
             MessageContentModel(
               type: MessageType.image,
               imageMsg: ImageMsg(
-                fileKey: uploadResult.fileKey,
+                fileUrl: uploadResult.fileUrl,
                 width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? entity.width.toDouble(),
                 height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? entity.height.toDouble(),
                 size: await file.length(),
               ),
             ),
+            conversationId: conversationId,
           ),
         );
       } else if (entity.type == AssetType.video) {
@@ -99,12 +102,13 @@ class ToolMenu extends StatelessWidget {
             MessageContentModel(
               type: MessageType.video,
               videoMsg: VideoMsg(
-                fileKey: uploadResult.fileKey,
+                fileUrl: uploadResult.fileUrl,
                 width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? entity.width.toDouble(),
                 height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? entity.height.toDouble(),
                 duration: uploadResult.fileInfo?.videoFile?.duration ?? entity.duration,
               ),
             ),
+            conversationId: conversationId,
           ),
         );
       }
@@ -134,12 +138,13 @@ class ToolMenu extends StatelessWidget {
           MessageContentModel(
             type: MessageType.image,
             imageMsg: ImageMsg(
-              fileKey: uploadResult.fileKey,
+              fileUrl: uploadResult.fileUrl,
               width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? entity.width.toDouble(),
               height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? entity.height.toDouble(),
               size: await file.length(),
             ),
           ),
+          conversationId: conversationId,
         ),
       );
     } else if (entity.type == AssetType.video) {
@@ -148,12 +153,13 @@ class ToolMenu extends StatelessWidget {
           MessageContentModel(
             type: MessageType.video,
             videoMsg: VideoMsg(
-              fileKey: uploadResult.fileKey,
+              fileUrl: uploadResult.fileUrl,
               width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? entity.width.toDouble(),
               height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? entity.height.toDouble(),
               duration: uploadResult.fileInfo?.videoFile?.duration ?? entity.duration,
             ),
           ),
+          conversationId: conversationId,
         ),
       );
     }

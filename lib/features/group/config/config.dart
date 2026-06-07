@@ -75,7 +75,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
                           child: Row(
                             children: [
                               BeaverCachedImage(
-                                fileKey: groupInfo.fileName,
+                                fileUrl: groupInfo.fileName,
                                 type: CacheType.avatar,
                                 width: 64.w,
                                 height: 64.w,
@@ -218,7 +218,7 @@ class _GroupConfigPageState extends State<GroupConfigPage> {
     return Column(
       children: [
         BeaverCachedImage(
-          fileKey: member.fileName,
+          fileUrl: member.fileName,
           type: CacheType.avatar,
           width: 48.w,
           height: 48.w,

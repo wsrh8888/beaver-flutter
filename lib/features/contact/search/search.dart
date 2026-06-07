@@ -194,7 +194,7 @@ class _SearchContactPageState extends State<SearchContactPage> {
             child: Row(
               children: [
                 BeaverCachedImage(
-                  fileKey: user.avatar,
+                  fileUrl: user.avatar,
                   type: CacheType.avatar,
                   width: 50.w,
                   height: 50.w,

@@ -1,6 +1,7 @@
 import 'package:beaver/features/chat/detail/bloc/bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/features/chat/detail/components/bottom/bottom.dart';
 import 'package:beaver/features/chat/detail/components/content/content.dart';
 import 'package:beaver/router/routes.dart';
@@ -22,13 +23,32 @@ class ChatDetailPage extends StatefulWidget {
 
 class _ChatDetailPageState extends State<ChatDetailPage> {
   late final ChatBloc _chatBloc;
+  String? _loadedConversationId;
+
   @override
   void initState() {
     super.initState();
-    _chatBloc = ChatBloc();
-    if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
-      _chatBloc.add(LoadMessagesEvent(widget.conversationId!));
+    _chatBloc = ChatBloc(conversationId: widget.conversationId);
+    _ensureConversationLoaded();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.conversationId != widget.conversationId) {
+      _ensureConversationLoaded(force: true);
     }
+  }
+
+  void _ensureConversationLoaded({bool force = false}) {
+    final conversationId = widget.conversationId;
+    if (conversationId == null || conversationId.isEmpty) {
+      print('[ChatDetailPage] conversationId 缺失，无法加载会话');
+      return;
+    }
+    if (!force && _loadedConversationId == conversationId) return;
+    _loadedConversationId = conversationId;
+    _chatBloc.add(LoadMessagesEvent(conversationId));
   }
 
   @override
@@ -49,16 +69,19 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         },
         builder: (context, state) {
           final isMultiSelect = state.status == ChatStatus.multiSelect;
+          final conversationId =
+              widget.conversationId ?? state.conversationId ?? '';
           return BeaverLayout(
             title: _resolveTitle(context, state),
             showBack: true,
-            showBackground: true,
-            backgroundHeight: 160.h,
+            showBackground: false,
             isScrollable: false,
             rightSlot: isMultiSelect
                 ? _buildCancelButton()
                 : _buildMoreButton(context),
-            child: Column(
+            child: ColoredBox(
+              color: AppColors.chatBackground,
+              child: Column(
               children: [
                 Expanded(
                   child: GestureDetector(
@@ -71,6 +94,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                   ),
                 ),
                 ChatBottom(
+                  conversationId: conversationId,
                   draft: state.draft,
                   activePanel: state.activePanel,
                   isVoiceMode: state.isVoiceMode,
@@ -78,6 +102,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                   isMultiSelect: isMultiSelect,
                 ),
               ],
+            ),
             ),
           );
         },

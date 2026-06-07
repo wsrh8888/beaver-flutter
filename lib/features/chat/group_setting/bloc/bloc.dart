@@ -84,24 +84,29 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     TogglePinGroupChatEvent event,
     Emitter<GroupSettingState> emit,
   ) async {
-    if (state.isSaving || state.conversation == null) return;
+    if (state.conversation == null) return;
 
-    emit(state.copyWith(isSaving: true));
+    final previousIsTop = state.conversation!.isTop;
+    final newIsPinned = !previousIsTop;
+
+    emit(
+      state.copyWith(
+        conversation: state.conversation!.copyWith(isTop: newIsPinned),
+      ),
+    );
+
     try {
-      final newIsPinned = !state.conversation!.isTop;
       await _conversationBusiness.togglePinChat(
         state.conversationId,
         newIsPinned,
       );
-
+    } catch (e) {
       emit(
         state.copyWith(
-          isSaving: false,
-          conversation: state.conversation!.copyWith(isTop: newIsPinned),
+          conversation: state.conversation!.copyWith(isTop: previousIsTop),
+          errorMessage: e.toString(),
         ),
       );
-    } catch (e) {
-      emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
 

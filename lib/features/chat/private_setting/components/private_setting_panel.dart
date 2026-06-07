@@ -37,7 +37,7 @@ class PrivateSettingPanel extends StatelessWidget {
           child: Row(
             children: [
               BeaverCachedImage(
-                fileKey: avatar,
+                fileUrl: avatar,
                 type: CacheType.avatar,
                 width: 52.w,
                 height: 52.w,

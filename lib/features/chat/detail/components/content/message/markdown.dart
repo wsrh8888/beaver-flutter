@@ -1,3 +1,4 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -15,7 +16,8 @@ class MarkdownMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
+    final textColor =
+        isSelf ? AppColors.chatBubbleSelfText : AppColors.chatBubbleOtherText;
     final linkColor = isSelf ? const Color(0xFFFFD4B8) : const Color(0xFFFF7D45);
 
     return MarkdownBody(

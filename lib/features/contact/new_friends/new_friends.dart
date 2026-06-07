@@ -185,7 +185,7 @@ class NewFriendsView extends StatelessWidget {
       child: Row(
         children: [
           BeaverCachedImage(
-            fileKey: request.fileName,
+            fileUrl: request.fileName,
             type: CacheType.avatar,
             width: 48.w,
             height: 48.w,

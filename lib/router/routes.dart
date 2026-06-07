@@ -67,4 +67,5 @@ class AppRoutes {
   // 通用模块
   static const String webview = '/common/webview';
   static const String scan = '/common/scan';
+  static const String oauthScanConfirm = '/oauth/scan-confirm';
 }

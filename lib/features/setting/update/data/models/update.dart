@@ -65,3 +65,16 @@ class UpdateInfo {
     );
   }
 }
+
+class UpdateCheckResult {
+  final UpdateInfo? updateInfo;
+  final String? errorMessage;
+
+  const UpdateCheckResult.success(UpdateInfo info)
+      : updateInfo = info,
+        errorMessage = null;
+
+  const UpdateCheckResult.failure(this.errorMessage) : updateInfo = null;
+
+  bool get isSuccess => errorMessage == null;
+}

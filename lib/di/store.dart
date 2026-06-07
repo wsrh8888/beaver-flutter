@@ -9,6 +9,7 @@ import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
+import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/group/group_join_request.dart';
@@ -30,6 +31,7 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<MessageStore>(() => MessageStore());
   getIt.registerLazySingleton<EmojiStore>(() => EmojiStore());
   getIt.registerLazySingleton<UpdateStore>(() => UpdateStore(getIt<UserStore>()));
+  getIt.registerLazySingleton<WsStore>(() => WsStore());
   getIt.registerLazySingleton<CallStore>(() => CallStore());
   getIt.registerLazySingleton<GroupMemberStore>(() => GroupMemberStore());
   getIt.registerLazySingleton<GroupJoinRequestStore>(

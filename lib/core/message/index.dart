@@ -1,5 +1,6 @@
 import 'package:beaver/core/datasync/manager.dart' show syncManager;
 import 'package:beaver/store/app/app.dart';
+import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/message/receivers/call/call.dart';
 import 'package:beaver/core/message/receivers/chat/index.dart';
@@ -25,20 +26,29 @@ class MessageManager {
   final CallMessageReceiver _callReceiver = CallMessageReceiver();
 
   Future<void> onWsConnect() async {
+    getIt<WsStore>().setSyncing();
     try {
       _isDataSyncing = true;
-      // 如果应用已经初始化完成（非冷启动），则使用后台静默同步，避免阻塞用户 UI
       final isBackground = getIt<AppStore>().state.isInitComplete;
       await syncManager.autoSync(isBackground: isBackground);
     } finally {
       _isDataSyncing = false;
+      getIt<WsStore>().setConnected();
       _startDrainQueue();
     }
   }
 
-  void onWsConnecting() {}
-  void onWsDisconnect() {}
-  void onWsError(dynamic error) {}
+  void onWsConnecting() {
+    getIt<WsStore>().setConnecting();
+  }
+
+  void onWsDisconnect() {
+    getIt<WsStore>().setDisconnected();
+  }
+
+  void onWsError(dynamic error) {
+    getIt<WsStore>().setDisconnected();
+  }
 
   void handleMessage(Map<String, dynamic> data) {
     logger.info({'text': '收到了ws消息', 'data': data});

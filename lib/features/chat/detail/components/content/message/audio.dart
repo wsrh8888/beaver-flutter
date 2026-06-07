@@ -1,3 +1,4 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,7 +10,9 @@ class AudioMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = const Color(0xFF636E72);
+    final color = isSelf
+        ? AppColors.chatBubbleSelfText
+        : AppColors.chatBubbleOtherText;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
