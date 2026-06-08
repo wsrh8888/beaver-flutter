@@ -27,6 +27,7 @@ class AppRoutes {
   static const String momentList = '/moment/list';
   static const String momentDetail = '/moment/detail';
   static const String momentPost = '/moment/post';
+  static const String momentMessages = '/moment/messages';
   
   // 群组模块
   static const String groupList = '/group/list';

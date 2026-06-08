@@ -6,6 +6,8 @@ import 'package:beaver/core/database/services/notification/read_cursor.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/notification.dart';
 
+const notificationCategories = ['social', 'group', 'system', 'moment'];
+
 /// 通知收件箱业务逻辑 (对标 PC business/notification/inbox.ts)
 class NotificationInboxBusiness {
   final _inboxService = getIt<NotificationInboxService>();
@@ -71,7 +73,7 @@ class NotificationInboxBusiness {
     String userId, {
     List<String>? categories,
   }) async {
-    final filterCategories = categories ?? ['social', 'group', 'system'];
+    final filterCategories = categories ?? notificationCategories;
     final Map<String, int> byCat = {};
     int total = 0;
 

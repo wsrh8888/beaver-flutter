@@ -4,7 +4,7 @@ import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/group.dart';
 
 class GroupJoinRequestService extends BaseService {
-  GroupJoinRequestService(super.db);
+  const GroupJoinRequestService();
 
   /// 批量创建入群申请
   Future<void> batchCreate(List<IGroupJoinRequestSyncItem> requests) async {

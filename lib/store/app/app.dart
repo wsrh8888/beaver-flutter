@@ -89,7 +89,10 @@ class AppStore extends Cubit<AppStoreState> {
     // 1. 断开 WebSocket
     getIt<WsConnectionManager>().disconnect();
 
-    // 2. 清理本地存储 (token, userId 等)
+    // 2. 关闭本地数据库，避免下次登录仍持有已关闭连接
+    await DatabaseManager.close();
+
+    // 3. 清理本地存储 (token, userId 等)
     await StorageUtil.clear();
 
     // 3. 通知 UserStore 状态变更为未认证
@@ -110,12 +113,7 @@ class AppStore extends Cubit<AppStoreState> {
    * 先同步身份 ID，然后并行初始化其余业务
    */
   Future<void> initApp() async {
-    // 增加守卫：如果没有初始化数据库，则跳过初始化 (可能是未登录状态)
-    try {
-      getIt<AppDatabase>();
-    } catch (e) {
-      return;
-    }
+    if (DatabaseManager.currentUserId == null) return;
 
     emit(state.copyWith(status: AppLifecycleStatus.syncing));
 

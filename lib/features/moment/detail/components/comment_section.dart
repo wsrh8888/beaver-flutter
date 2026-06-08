@@ -229,13 +229,21 @@ class MomentCommentSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                  GestureDetector(
+                  InkWell(
                     onTap: () => onReply(comment),
-                    child: Text(
-                      '回复',
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        color: const Color(0xFF666666),
+                    borderRadius: BorderRadius.circular(4.w),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 4.w,
+                      ),
+                      child: Text(
+                        '回复',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: const Color(0xFF4678BE),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),

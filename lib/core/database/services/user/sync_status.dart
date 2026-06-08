@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class UserSyncStatusService extends BaseService {
-  UserSyncStatusService(super.db);
+  const UserSyncStatusService();
 
   /// 获取用户同步状态
   Future<UserSyncStatusData?> getUserSyncStatus(String userId) async {

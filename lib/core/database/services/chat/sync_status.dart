@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class ChatSyncStatusService extends BaseService {
-  ChatSyncStatusService(super.db);
+  const ChatSyncStatusService();
 
   /// 获取多个会话的版本/seq信息
   Future<List<ChatSyncStatusData>> getModuleVersions(String module, List<String> conversationIds) async {

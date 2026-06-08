@@ -17,13 +17,19 @@ import 'package:beaver/types/cache.dart';
 
 class MomentDetailPage extends StatelessWidget {
   final String momentId;
+  final String? replyCommentId;
 
-  const MomentDetailPage({super.key, required this.momentId});
+  const MomentDetailPage({
+    super.key,
+    required this.momentId,
+    this.replyCommentId,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => MomentDetailBloc()..add(LoadMomentDetailEvent(momentId)),
+      create: (_) => MomentDetailBloc(replyCommentId: replyCommentId)
+        ..add(LoadMomentDetailEvent(momentId)),
       child: MomentDetailView(momentId: momentId),
     );
   }
@@ -99,10 +105,15 @@ class _MomentDetailViewState extends State<MomentDetailView> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<MomentDetailBloc, MomentDetailState>(
-      listenWhen: (prev, curr) => curr.errorMessage != prev.errorMessage,
+      listenWhen: (prev, curr) =>
+          curr.errorMessage != prev.errorMessage ||
+          (prev.replyTarget == null && curr.replyTarget != null),
       listener: (context, state) {
         if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
           BeaverToast.show(context, state.errorMessage!);
+        }
+        if (state.replyTarget != null) {
+          setState(() => _openInputKey++);
         }
       },
       builder: (context, state) {
@@ -172,6 +183,8 @@ class _MomentDetailViewState extends State<MomentDetailView> {
                             ),
                           ),
                         ),
+                        if (moment != null && state.replyTarget != null)
+                          _buildReplyBanner(state),
                         if (moment != null)
                           MomentBottomInput(
                             isLiked: moment.isLiked,
@@ -208,6 +221,40 @@ class _MomentDetailViewState extends State<MomentDetailView> {
                     ),
         );
       },
+    );
+  }
+
+  Widget _buildReplyBanner(MomentDetailState state) {
+    final target = state.replyTarget!;
+    final contactStore = context.read<ContactStore>();
+    final info = contactStore.getContact(target.userId);
+    final name = info?.nickname.isNotEmpty == true
+        ? info!.nickname
+        : target.userName;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.w),
+      color: const Color(0xFFFFF4EC),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '正在回复 $name',
+              style: TextStyle(fontSize: 13.sp, color: const Color(0xFFE86835)),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              context.read<MomentDetailBloc>().add(const SetReplyTargetEvent(null));
+            },
+            child: Text(
+              '取消',
+              style: TextStyle(fontSize: 13.sp, color: const Color(0xFF999999)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

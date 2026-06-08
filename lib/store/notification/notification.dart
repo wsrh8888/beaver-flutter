@@ -1,32 +1,38 @@
 ﻿import 'dart:async';
 
+import 'package:beaver/api/notification.dart';
 import 'package:beaver/core/business/index.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/types/api/notification.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationStoreState extends Equatable {
-  final List<dynamic> notifications;
   final int unreadCount;
+  final Map<String, int> unreadByCategory;
 
   const NotificationStoreState({
-    this.notifications = const [],
     this.unreadCount = 0,
+    this.unreadByCategory = const {},
   });
 
+  int categoryUnread(String category) => unreadByCategory[category] ?? 0;
+
+  int get momentUnread => categoryUnread('moment');
+
   NotificationStoreState copyWith({
-    List<dynamic>? notifications,
     int? unreadCount,
+    Map<String, int>? unreadByCategory,
   }) {
     return NotificationStoreState(
-      notifications: notifications ?? this.notifications,
       unreadCount: unreadCount ?? this.unreadCount,
+      unreadByCategory: unreadByCategory ?? this.unreadByCategory,
     );
   }
 
   @override
-  List<Object?> get props => [notifications, unreadCount];
+  List<Object?> get props => [unreadCount, unreadByCategory];
 }
 
 class NotificationStore extends Cubit<NotificationStoreState> {
@@ -52,20 +58,46 @@ class NotificationStore extends Cubit<NotificationStoreState> {
   }
 
   Future<void> init() async {
-    try {
-      final userId = DatabaseManager.currentUserId;
-      if (userId == null) return;
+    final userId = DatabaseManager.currentUserId;
+    if (userId == null) return;
 
-      final summary = await _inboxBusiness.getUnreadSummary(userId);
-      emit(
-        state.copyWith(
-          unreadCount: summary['total'] as int? ?? 0,
-          notifications: const [],
-        ),
+    final summary = await _inboxBusiness.getUnreadSummary(userId);
+    final byCat = Map<String, int>.from(
+      (summary['byCat'] as Map<String, int>?) ?? {},
+    );
+
+    emit(
+      state.copyWith(
+        unreadCount: summary['total'] as int? ?? 0,
+        unreadByCategory: byCat,
+      ),
+    );
+  }
+
+  Future<void> markCategoryAsViewed(String category) async {
+    if (state.categoryUnread(category) == 0) return;
+
+    final response = await markReadByCategoryApi(
+      IMarkReadByCategoryReq(category: category),
+    );
+    if (response.code != 0) return;
+
+    final userId = DatabaseManager.currentUserId;
+    if (userId != null) {
+      await getIt<NotificationReadCursorBusiness>().syncReadCursors(
+        userId,
+        [category],
       );
-    } catch (e) {
-      print('NotificationStore: init failed: $e');
     }
+
+    final updated = Map<String, int>.from(state.unreadByCategory);
+    updated[category] = 0;
+    emit(
+      state.copyWith(
+        unreadByCategory: updated,
+        unreadCount: updated.values.fold<int>(0, (sum, count) => sum + count),
+      ),
+    );
   }
 
   NotificationInboxBusiness get business => _inboxBusiness;

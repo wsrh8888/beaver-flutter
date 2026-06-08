@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class GroupSyncStatusService extends BaseService {
-  GroupSyncStatusService(super.db);
+  const GroupSyncStatusService();
 
   /// 批量获取指定模块的版本状态
   Future<List<Map<String, dynamic>>> getModuleVersions(String module, List<String> groupIds) async {

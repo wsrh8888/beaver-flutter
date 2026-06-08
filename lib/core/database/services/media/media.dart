@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import '../base.dart';
 
 class MediaService extends BaseService {
-  MediaService(AppDatabase db) : super(db);
+  const MediaService();
 
   Future<void> upsert(Map<String, dynamic> req) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;

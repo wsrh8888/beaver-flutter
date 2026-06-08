@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/core/business/notification/inbox.dart';
+import 'package:beaver/di/injection.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
@@ -36,15 +41,24 @@ class MomentListView extends StatefulWidget {
 
 class _MomentListViewState extends State<MomentListView> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<void>? _inboxSubscription;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _inboxSubscription =
+        getIt<NotificationInboxBusiness>().inboxUpdateStream.listen((_) {
+      if (!mounted) return;
+      context.read<MomentListBloc>().add(
+            const LoadMomentListEvent(refresh: true),
+          );
+    });
   }
 
   @override
   void dispose() {
+    _inboxSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -215,13 +229,67 @@ class _MomentListViewState extends State<MomentListView> {
     return BlocBuilder<UserStore, UserStoreState>(
       builder: (context, state) {
         final userInfo = context.watch<ContactStore>().getContact(state.currentUserId);
-        
-        return Container(
+
+        return BlocBuilder<NotificationStore, NotificationStoreState>(
+          builder: (context, notificationState) {
+            final unreadCount = notificationState.momentUnread;
+
+            return Container(
           margin: EdgeInsets.only(bottom: 24.w),
           height: 300.w,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              Positioned(
+                top: 12.w,
+                right: 12.w,
+                child: GestureDetector(
+                  onTap: () => context.push(AppRoutes.momentMessages),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 36.w,
+                        height: 36.w,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(18.w),
+                        ),
+                        child: Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
+                          size: 20.w,
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -4.w,
+                          top: -4.w,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: unreadCount > 9 ? 4.w : 5.w,
+                              vertical: 2.w,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF4757),
+                              borderRadius: BorderRadius.circular(10.w),
+                            ),
+                            constraints: BoxConstraints(minWidth: 16.w),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : '$unreadCount',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
               // Cover
               Positioned.fill(
                 bottom: 30.w,
@@ -286,12 +354,21 @@ class _MomentListViewState extends State<MomentListView> {
             ],
           ),
         );
+          },
+        );
       },
     );
   }
 
-  Future<void> _openMomentDetail(BuildContext context, IMomentListItem item) async {
-    await context.push('${AppRoutes.momentDetail}?id=${item.id}');
+  Future<void> _openMomentDetail(
+    BuildContext context,
+    IMomentListItem item, {
+    String? replyCommentId,
+  }) async {
+    final query = replyCommentId == null || replyCommentId.isEmpty
+        ? 'id=${item.id}'
+        : 'id=${item.id}&replyCommentId=$replyCommentId';
+    await context.push('${AppRoutes.momentDetail}?$query');
     if (mounted) {
       context.read<MomentListBloc>().add(
             const LoadMomentListEvent(refresh: true),
@@ -493,30 +570,38 @@ class _MomentListViewState extends State<MomentListView> {
                   final name = commentUser?.nickname.isNotEmpty == true
                       ? commentUser!.nickname
                       : comment.userName;
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 4.w),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: name,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF576B95),
+                  return GestureDetector(
+                    onTap: () => _openMomentDetail(
+                      context,
+                      item,
+                      replyCommentId: comment.id,
+                    ),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 4.w),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: name,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF576B95),
+                              ),
                             ),
-                          ),
-                          TextSpan(
-                            text: '：${comment.content}',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: const Color(0xFF333333),
+                            TextSpan(
+                              text: '：${comment.content}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: const Color(0xFF333333),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   );
                 }).toList(),

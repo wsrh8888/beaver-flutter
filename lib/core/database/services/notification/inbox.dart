@@ -4,7 +4,7 @@ import '../base.dart';
 
 // 通知收件箱服务
 class NotificationInboxService extends BaseService {
-  NotificationInboxService(AppDatabase db) : super(db);
+  const NotificationInboxService();
 
   /**
    * @description 创建通知收件箱记录

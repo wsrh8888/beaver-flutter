@@ -6,11 +6,15 @@ import 'package:beaver/types/api/moment.dart';
 
 class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   final MomentDetailRepository _repository;
+  final String? _pendingReplyCommentId;
   static const int _commentLimit = 20;
   static const int _childLimit = 20;
 
-  MomentDetailBloc({MomentDetailRepository? repository})
-      : _repository = repository ?? MomentDetailRepository(),
+  MomentDetailBloc({
+    MomentDetailRepository? repository,
+    String? replyCommentId,
+  })  : _repository = repository ?? MomentDetailRepository(),
+        _pendingReplyCommentId = replyCommentId,
         super(const MomentDetailState()) {
     on<LoadMomentDetailEvent>(_onLoadDetail);
     on<RefreshMomentDetailEvent>(_onRefresh);
@@ -32,7 +36,7 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     if (detail == null) {
       emit(state.copyWith(
         status: MomentDetailStatus.error,
-        errorMessage: '??????',
+        errorMessage: '加载动态详情失败',
       ));
       return;
     }
@@ -45,6 +49,9 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     final likes = await _repository.loadLikes(event.momentId, 1, 50);
 
     final moment = _mergeMomentData(detail, comments: comments, likes: likes);
+    final replyTarget = _pendingReplyCommentId == null
+        ? null
+        : _findCommentById(moment.comments, _pendingReplyCommentId!);
 
     emit(state.copyWith(
       status: MomentDetailStatus.success,
@@ -52,6 +59,8 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
       commentPage: 1,
       hasMoreComments: comments.length < (moment.commentCount),
       childPageMap: const {},
+      replyTarget: replyTarget,
+      activeTab: MomentDetailTab.comments,
     ));
   }
 
@@ -194,7 +203,7 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     );
 
     if (res == null) {
-      emit(state.copyWith(errorMessage: '????'));
+      emit(state.copyWith(errorMessage: '评论发送失败'));
       return;
     }
 
@@ -313,6 +322,10 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     SetReplyTargetEvent event,
     Emitter<MomentDetailState> emit,
   ) {
+    if (event.target == null) {
+      emit(state.copyWith(clearReplyTarget: true));
+      return;
+    }
     emit(state.copyWith(replyTarget: event.target));
   }
 
@@ -363,5 +376,18 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
       isLiked: isLiked ?? moment.isLiked,
       createdAt: moment.createdAt,
     );
+  }
+
+  IMomentCommentModel? _findCommentById(
+    List<IMomentCommentModel> comments,
+    String commentId,
+  ) {
+    for (final comment in comments) {
+      if (comment.id == commentId) return comment;
+      for (final child in comment.children ?? const <IMomentCommentModel>[]) {
+        if (child.id == commentId) return child;
+      }
+    }
+    return null;
   }
 }

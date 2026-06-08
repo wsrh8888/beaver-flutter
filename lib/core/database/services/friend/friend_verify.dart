@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class FriendVerifyService extends BaseService {
-  FriendVerifyService(super.db);
+  const FriendVerifyService();
 
   /// 根据验证记录ID批量查询好友验证记录
   Future<Map<String, FriendVerify>> getFriendVerifiesByIds(

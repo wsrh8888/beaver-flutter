@@ -49,3 +49,14 @@ Future<BaseResponse<IGetNotificationReadCursorsRes>> getNotificationReadCursorsA
     ),
   );
 }
+
+/// 按分类标记所有通知为已读
+Future<BaseResponse<IMarkReadByCategoryRes>> markReadByCategoryApi(
+  IMarkReadByCategoryReq data,
+) {
+  return httpClient.post<IMarkReadByCategoryRes>(
+    '$baseUrl/api/notification/v1/markReadByCategory',
+    data: data.toJson(),
+    fromJsonT: (json) => IMarkReadByCategoryRes.fromJson(json),
+  );
+}

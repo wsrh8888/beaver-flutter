@@ -4,7 +4,7 @@ import '../base.dart';
 
 // 通知已读游标服务
 class NotificationReadCursorService extends BaseService {
-  NotificationReadCursorService(AppDatabase db) : super(db);
+  const NotificationReadCursorService();
 
   /**
    * @description 创建或更新已读游标

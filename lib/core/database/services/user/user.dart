@@ -4,7 +4,7 @@ import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/user.dart';
 
 class UserService extends BaseService {
-  UserService(super.db);
+  const UserService();
 
   /// 创建用户
   Future<void> create(UsersCompanion user) async {

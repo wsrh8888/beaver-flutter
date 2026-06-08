@@ -1,4 +1,5 @@
 import 'package:beaver/api/notification.dart';
+import 'package:beaver/core/business/notification/inbox.dart';
 import 'package:beaver/core/database/services/notification/read_cursor.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/notification.dart';
@@ -37,5 +38,7 @@ class NotificationReadCursorBusiness {
         'updatedAt': cursor.lastReadAt,
       });
     }
+
+    getIt<NotificationInboxBusiness>().notifyInboxUpdate();
   }
 }

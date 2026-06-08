@@ -152,3 +152,22 @@ class IGetNotificationReadCursorsRes {
 
   IGetNotificationReadCursorsRes({required this.cursors});
 }
+
+class IMarkReadByCategoryReq {
+  final String category;
+
+  IMarkReadByCategoryReq({required this.category});
+
+  Map<String, dynamic> toJson() => {'category': category};
+}
+
+class IMarkReadByCategoryRes {
+  final int affected;
+
+  IMarkReadByCategoryRes({required this.affected});
+
+  factory IMarkReadByCategoryRes.fromJson(Map<String, dynamic> json) =>
+      IMarkReadByCategoryRes(
+        affected: (json['affected'] as num?)?.toInt() ?? 0,
+      );
+}

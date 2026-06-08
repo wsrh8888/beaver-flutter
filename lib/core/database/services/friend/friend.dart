@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class FriendService extends BaseService {
-  FriendService(super.db);
+  const FriendService();
 
   /// 根据 IDs 获取好友记录
   Future<List<Friend>> getFriendRecordsByIds(List<String> friendshipIds) async {

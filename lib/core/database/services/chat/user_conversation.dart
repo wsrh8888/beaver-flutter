@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class ChatUserConversationService extends BaseService {
-  ChatUserConversationService(super.db);
+  const ChatUserConversationService();
 
   /// 创建单个用户会话设置
   Future<void> create(ChatUserConversationsCompanion setting) async {
