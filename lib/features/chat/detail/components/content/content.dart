@@ -177,7 +177,57 @@ class ChatContent extends StatelessWidget {
                 ? AppColors.chatBubbleSelfText
                 : AppColors.chatBubbleOtherText,
           ),
-          child: _resolveMessageWidget(message, isSelf),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _resolveMessageWidget(message, isSelf),
+              if (isSelf && message.status == MessageStatus.failed)
+                Padding(
+                  padding: EdgeInsets.only(top: 6.w),
+                  child: GestureDetector(
+                    onTap: () => context.read<ChatBloc>().add(
+                      RetrySendMessageEvent(message.id),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 14.w,
+                          color: isSelf
+                              ? AppColors.chatBubbleSelfText.withValues(alpha: 0.9)
+                              : const Color(0xFFFF5252),
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          '发送失败，点击重试',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: isSelf
+                                ? AppColors.chatBubbleSelfText.withValues(alpha: 0.9)
+                                : const Color(0xFFFF5252),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (message.isEdited && !isEmoji)
+                Padding(
+                  padding: EdgeInsets.only(top: 4.w),
+                  child: Text(
+                    '已编辑',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: isSelf
+                          ? AppColors.chatBubbleSelfText.withValues(alpha: 0.7)
+                          : const Color(0xFF909399),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -191,9 +241,13 @@ class ChatContent extends StatelessWidget {
       case MessageType.text:
         return TextMessage(msg: m.textMsg ?? TextMsg(content: '不支持的格式'), isSelf: isSelf);
       case MessageType.image:
-        return m.imageMsg == null ? const SizedBox() : ImageMessage(msg: m.imageMsg!);
+        return m.imageMsg == null
+            ? const SizedBox()
+            : ImageMessage(msg: m.imageMsg!, messageId: message.id);
       case MessageType.video:
-        return m.videoMsg == null ? const SizedBox() : VideoMessage(msg: m.videoMsg!);
+        return m.videoMsg == null
+            ? const SizedBox()
+            : VideoMessage(msg: m.videoMsg!, messageId: message.id);
       case MessageType.audio:
         return m.audioFileMsg == null ? const SizedBox() : AudioMessage(msg: m.audioFileMsg!, isSelf: isSelf);
       case MessageType.voice:

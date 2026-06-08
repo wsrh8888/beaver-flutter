@@ -1,3 +1,5 @@
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/voice/voice.dart';
 import 'package:beaver/features/chat/detail/components/content/handler/base.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/widgets.dart';
@@ -7,13 +9,15 @@ class AudioHandler extends BaseMessageHandler {
   Future<void> handleCommand(BuildContext context, String commandId, MessageModel message) async {
     switch (commandId) {
       case 'play':
-        print('Play audio: ${message.content}');
+        if (message.msg.audioFileMsg != null) {
+          await getIt<VoicePlayerStore>().toggle(message.msg.audioFileMsg!.fileUrl);
+        }
         break;
       case 'recall':
-        print('Recall audio: ${message.id}');
+        await recallMessage(context, message);
         break;
       case 'delete':
-        print('Delete audio: ${message.id}');
+        await deleteMessage(context, message);
         break;
     }
   }

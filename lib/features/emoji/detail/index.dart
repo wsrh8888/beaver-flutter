@@ -4,6 +4,8 @@ import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/emoji/emoji.dart';
 import 'package:beaver/types/business/emoji.dart';
+import 'package:beaver/api/emoji.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 
 class EmojiDetailScreen extends StatefulWidget {
   final String emojiId;
@@ -17,6 +19,7 @@ class EmojiDetailScreen extends StatefulWidget {
 class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
   EmojiModel? _emoji;
   bool _isLoading = true;
+  bool _isCollecting = false;
 
   @override
   void initState() {
@@ -80,15 +83,32 @@ class _EmojiDetailScreenState extends State<EmojiDetailScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildActionButton(Icons.favorite_border, '添加收藏', () {
-          // TODO: 实现收藏逻辑
-        }),
+        _buildActionButton(Icons.favorite_border, '添加收藏', _collectEmoji),
         SizedBox(width: 40.w),
         _buildActionButton(Icons.send, '发送', () {
           Navigator.pop(context);
         }),
       ],
     );
+  }
+
+  Future<void> _collectEmoji() async {
+    final emoji = _emoji;
+    if (emoji == null || _isCollecting) return;
+
+    setState(() => _isCollecting = true);
+    final res = await addEmojiApi({
+      'fileKey': emoji.fileKey,
+      'title': emoji.name.isNotEmpty ? emoji.name : '收藏表情',
+    });
+    if (!mounted) return;
+
+    setState(() => _isCollecting = false);
+    if (res.code == 0) {
+      BeaverToast.show(context, '已添加到表情', type: ToastType.success);
+    } else {
+      BeaverToast.show(context, res.msg, type: ToastType.error);
+    }
   }
 
   Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {

@@ -1,125 +1,154 @@
 class IGetNotificationEventsByIdsReq {
   final List<String> eventIds;
+
   IGetNotificationEventsByIdsReq({required this.eventIds});
+
   Map<String, dynamic> toJson() => {'eventIds': eventIds};
 }
 
-class NotificationEvent {
+class INotificationEventItem {
   final String eventId;
-  final int type;
-  final String content;
-  final String? senderId;
-  final String? receiverId;
-  final String? relatedId;
-  final int status;
+  final String eventType;
+  final String category;
   final int version;
+  final String? fromUserId;
+  final String? targetId;
+  final String targetType;
+  final String payload;
+  final int priority;
+  final int status;
+  final String? dedupHash;
   final int createdAt;
-  final int? updatedAt;
+  final int updatedAt;
 
-  NotificationEvent({
+  INotificationEventItem({
     required this.eventId,
-    required this.type,
-    required this.content,
-    this.senderId,
-    this.receiverId,
-    this.relatedId,
-    required this.status,
+    required this.eventType,
+    required this.category,
     required this.version,
+    this.fromUserId,
+    this.targetId,
+    required this.targetType,
+    required this.payload,
+    required this.priority,
+    required this.status,
+    this.dedupHash,
     required this.createdAt,
-    this.updatedAt,
+    required this.updatedAt,
   });
 
-  factory NotificationEvent.fromJson(Map<String, dynamic> json) => NotificationEvent(
-    eventId: json['eventId'] ?? '',
-    type: json['type'] ?? 0,
-    content: json['content'] ?? '',
-    senderId: json['senderId'],
-    receiverId: json['receiverId'],
-    relatedId: json['relatedId'],
-    status: json['status'] ?? 0,
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? 0,
-    updatedAt: json['updatedAt'],
-  );
+  factory INotificationEventItem.fromJson(Map<String, dynamic> json) =>
+      INotificationEventItem(
+        eventId: json['eventId'] ?? '',
+        eventType: json['eventType'] ?? '',
+        category: json['category'] ?? '',
+        version: (json['version'] as num?)?.toInt() ?? 0,
+        fromUserId: json['fromUserId'],
+        targetId: json['targetId'],
+        targetType: json['targetType'] ?? '',
+        payload: json['payload'] ?? '',
+        priority: (json['priority'] as num?)?.toInt() ?? 5,
+        status: (json['status'] as num?)?.toInt() ?? 1,
+        dedupHash: json['dedupHash'],
+        createdAt: (json['createdAt'] as num?)?.toInt() ?? 0,
+        updatedAt: (json['updatedAt'] as num?)?.toInt() ?? 0,
+      );
 }
 
 class IGetNotificationEventsByIdsRes {
-  final List<NotificationEvent> events;
+  final List<INotificationEventItem> events;
+
   IGetNotificationEventsByIdsRes({required this.events});
 }
 
 class IGetNotificationInboxByIdsReq {
-  final List<String> inboxIds;
-  IGetNotificationInboxByIdsReq({required this.inboxIds});
-  Map<String, dynamic> toJson() => {'inboxIds': inboxIds};
+  final List<String> eventIds;
+
+  IGetNotificationInboxByIdsReq({required this.eventIds});
+
+  Map<String, dynamic> toJson() => {'eventIds': eventIds};
 }
 
-class NotificationInbox {
-  final String inboxId;
-  final String userId;
+class INotificationInboxItem {
   final String eventId;
-  final int readStatus;
+  final String eventType;
+  final String category;
   final int version;
+  final bool isRead;
+  final int readAt;
+  final int status;
+  final bool isDeleted;
+  final bool silent;
   final int createdAt;
-  final int? updatedAt;
-
-  NotificationInbox({
-    required this.inboxId,
-    required this.userId,
-    required this.eventId,
-    required this.readStatus,
-    required this.version,
-    required this.createdAt,
-    this.updatedAt,
-  });
-
-  factory NotificationInbox.fromJson(Map<String, dynamic> json) => NotificationInbox(
-    inboxId: json['inboxId'] ?? '',
-    userId: json['userId'] ?? '',
-    eventId: json['eventId'] ?? '',
-    readStatus: json['readStatus'] ?? 0,
-    version: json['version'] ?? 0,
-    createdAt: json['createdAt'] ?? 0,
-    updatedAt: json['updatedAt'],
-  );
-}
-
-class IGetNotificationInboxByIdsRes {
-  final List<NotificationInbox> inboxes;
-  IGetNotificationInboxByIdsRes({required this.inboxes});
-}
-
-class IGetNotificationReadCursorsReq {
-  final List<int> categories;
-  IGetNotificationReadCursorsReq({required this.categories});
-  Map<String, dynamic> toJson() => {'categories': categories};
-}
-
-class NotificationReadCursor {
-  final int category;
-  final String userId;
-  final int lastReadVersion;
-  final int version;
   final int updatedAt;
 
-  NotificationReadCursor({
+  INotificationInboxItem({
+    required this.eventId,
+    required this.eventType,
     required this.category,
-    required this.userId,
-    required this.lastReadVersion,
     required this.version,
+    required this.isRead,
+    required this.readAt,
+    required this.status,
+    required this.isDeleted,
+    required this.silent,
+    required this.createdAt,
     required this.updatedAt,
   });
 
-  factory NotificationReadCursor.fromJson(Map<String, dynamic> json) => NotificationReadCursor(
-    category: json['category'] ?? 0,
-    userId: json['userId'] ?? '',
-    lastReadVersion: json['lastReadVersion'] ?? 0,
-    version: json['version'] ?? 0,
-    updatedAt: json['updatedAt'] ?? 0,
-  );
+  factory INotificationInboxItem.fromJson(Map<String, dynamic> json) =>
+      INotificationInboxItem(
+        eventId: json['eventId'] ?? '',
+        eventType: json['eventType'] ?? '',
+        category: json['category'] ?? '',
+        version: (json['version'] as num?)?.toInt() ?? 0,
+        isRead: json['isRead'] == true,
+        readAt: (json['readAt'] as num?)?.toInt() ?? 0,
+        status: (json['status'] as num?)?.toInt() ?? 1,
+        isDeleted: json['isDeleted'] == true,
+        silent: json['silent'] == true,
+        createdAt: (json['createdAt'] as num?)?.toInt() ?? 0,
+        updatedAt: (json['updatedAt'] as num?)?.toInt() ?? 0,
+      );
+}
+
+class IGetNotificationInboxByIdsRes {
+  final List<INotificationInboxItem> inbox;
+
+  IGetNotificationInboxByIdsRes({required this.inbox});
+}
+
+class IGetNotificationReadCursorsReq {
+  final List<String>? categories;
+
+  IGetNotificationReadCursorsReq({this.categories});
+
+  Map<String, dynamic> toJson() => {
+    if (categories != null) 'categories': categories,
+  };
+}
+
+class INotificationReadCursorItem {
+  final String category;
+  final int version;
+  final int lastReadAt;
+
+  INotificationReadCursorItem({
+    required this.category,
+    required this.version,
+    required this.lastReadAt,
+  });
+
+  factory INotificationReadCursorItem.fromJson(Map<String, dynamic> json) =>
+      INotificationReadCursorItem(
+        category: json['category'] ?? '',
+        version: (json['version'] as num?)?.toInt() ?? 0,
+        lastReadAt: (json['lastReadAt'] as num?)?.toInt() ?? 0,
+      );
 }
 
 class IGetNotificationReadCursorsRes {
-  final List<NotificationReadCursor> cursors;
+  final List<INotificationReadCursorItem> cursors;
+
   IGetNotificationReadCursorsRes({required this.cursors});
 }

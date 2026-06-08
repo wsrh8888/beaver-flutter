@@ -55,6 +55,15 @@ class ChatUserConversationService extends BaseService {
         ));
   }
 
+  /// 免打扰/取消免打扰
+  Future<void> toggleMuteConversation(String conversationId, bool isMuted) async {
+    await (db.update(db.chatUserConversations)
+          ..where((t) => t.conversationId.equals(conversationId)))
+        .write(ChatUserConversationsCompanion(
+          isMuted: Value(isMuted ? 1 : 0),
+        ));
+  }
+
   /// 标记已读
   Future<void> markAsRead(String conversationId, int userReadSeq) async {
     await (db.update(db.chatUserConversations)

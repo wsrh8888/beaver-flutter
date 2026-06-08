@@ -100,6 +100,7 @@ class MessageManager {
       case 'USER_PROFILE':
         await _userRouter.processUserMessage(content);
         break;
+      case 'CALL':
       case 'CALL_OPERATION':
         _callReceiver.processCallMessage(content);
         break;

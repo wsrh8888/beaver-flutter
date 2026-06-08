@@ -149,8 +149,12 @@ class _PrivateSettingView extends StatelessWidget {
       userId: state.conversationId,
       avatar: conversation.avatar ?? '',
       isTop: conversation.isTop,
+      isMuted: conversation.isMuted,
       onToggleTop: () => context.read<PrivateSettingBloc>().add(
             const TogglePinPrivateChatEvent(),
+          ),
+      onToggleMute: () => context.read<PrivateSettingBloc>().add(
+            const ToggleMutePrivateChatEvent(),
           ),
       onClearHistory: () => context.read<PrivateSettingBloc>().add(
             const ShowClearHistoryDialogEvent(true),

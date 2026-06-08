@@ -98,4 +98,21 @@ class UserConversationBusiness {
       print('[UserConversationBusiness] 同步置顶状态失败: $e');
     }
   }
+
+  Future<void> toggleMuteChat(String conversationId, bool isMuted) async {
+    await _userConversationService.toggleMuteConversation(
+      conversationId,
+      isMuted,
+    );
+
+    getIt<ConversationBusiness>().notifyConversationUpdate();
+
+    try {
+      await muteChatApi(
+        IMuteChatReq(conversationId: conversationId, isMuted: isMuted),
+      );
+    } catch (e) {
+      print('[UserConversationBusiness] 同步免打扰状态失败: $e');
+    }
+  }
 }

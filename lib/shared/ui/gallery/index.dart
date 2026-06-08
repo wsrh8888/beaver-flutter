@@ -1,4 +1,12 @@
+import 'dart:io';
+
+import 'package:beaver/api/emoji.dart';
+import 'package:beaver/core/cache/media_manager.dart';
+import 'package:beaver/features/chat/detail/components/content/handler/forward.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/types/cache.dart';
 import 'package:flutter/material.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import '../image/image.dart';
 import '../video/player.dart';
 import 'item.dart';
@@ -48,6 +56,8 @@ class _BeaverGalleryState extends State<BeaverGallery> {
     super.dispose();
   }
 
+  GalleryItem get _currentItem => widget.items[_currentIndex];
+
   void _showActionSheet(GalleryItem item) {
     showModalBottomSheet(
       context: context,
@@ -58,31 +68,92 @@ class _BeaverGalleryState extends State<BeaverGallery> {
             ListTile(
               leading: const Icon(Icons.download),
               title: const Text('下载'),
-              onTap: () {
-                // TODO: Implement download logic
+              onTap: () async {
                 Navigator.pop(context);
+                await _downloadItem(item);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.forward),
-              title: const Text('转发'),
-              onTap: () {
-                // TODO: Implement forward logic
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.favorite_border),
-              title: const Text('收藏'),
-              onTap: () {
-                // TODO: Implement favorite logic
-                Navigator.pop(context);
-              },
-            ),
+            if (item.messageId != null)
+              ListTile(
+                leading: const Icon(Icons.forward),
+                title: const Text('转发'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ForwardHandler.navigateToPicker(
+                    context,
+                    messageIds: [item.messageId!],
+                  );
+                },
+              ),
+            if (item.type == GalleryItemType.image)
+              ListTile(
+                leading: const Icon(Icons.favorite_border),
+                title: const Text('收藏'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _favoriteImage(item);
+                },
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _downloadItem(GalleryItem item) async {
+    final cacheType = item.type == GalleryItemType.video
+        ? CacheType.video
+        : CacheType.image;
+    final localPath = await MediaManager().add(cacheType, item.remoteFileUrl);
+    if (localPath == null || localPath.isEmpty) {
+      if (mounted) {
+        BeaverToast.show(context, '下载失败', type: ToastType.error);
+      }
+      return;
+    }
+
+    final filePath = localPath.startsWith('file://')
+        ? localPath.substring(7)
+        : localPath;
+
+    if (item.type == GalleryItemType.image) {
+      final bytes = await File(filePath).readAsBytes();
+      final result = await ImageGallerySaverPlus.saveImage(bytes, quality: 100);
+      if (mounted) {
+        final ok = result != null && result['isSuccess'] == true;
+        BeaverToast.show(
+          context,
+          ok ? '已保存到相册' : '保存失败',
+          type: ok ? ToastType.success : ToastType.error,
+        );
+      }
+      return;
+    }
+
+    final result = await ImageGallerySaverPlus.saveFile(filePath);
+    if (mounted) {
+      final ok = result != null && result['isSuccess'] == true;
+      BeaverToast.show(
+        context,
+        ok ? '已保存到相册' : '保存失败',
+        type: ok ? ToastType.success : ToastType.error,
+      );
+    }
+  }
+
+  Future<void> _favoriteImage(GalleryItem item) async {
+    final res = await addEmojiApi({
+      'fileKey': item.remoteFileUrl,
+      'title': '来自聊天',
+    });
+    if (!mounted) {
+      return;
+    }
+    if (res.code == 0) {
+      BeaverToast.show(context, '已添加到表情', type: ToastType.success);
+    } else {
+      BeaverToast.show(context, res.msg, type: ToastType.error);
+    }
   }
 
   @override
@@ -100,7 +171,6 @@ class _BeaverGalleryState extends State<BeaverGallery> {
               return _buildItem(item);
             },
           ),
-          // 关闭按钮
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 10,
@@ -109,7 +179,14 @@ class _BeaverGalleryState extends State<BeaverGallery> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
-          // 页码指示
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            right: 10,
+            child: IconButton(
+              icon: const Icon(Icons.more_horiz, color: Colors.white, size: 30),
+              onPressed: () => _showActionSheet(_currentItem),
+            ),
+          ),
           if (widget.items.length > 1)
             Positioned(
               bottom: MediaQuery.of(context).padding.bottom + 20,
@@ -139,7 +216,10 @@ class _BeaverGalleryState extends State<BeaverGallery> {
 
   Widget _buildItem(GalleryItem item) {
     if (item.type == GalleryItemType.video) {
-      return BeaverVideoPlayer(url: item.url);
+      return GestureDetector(
+        onLongPress: () => _showActionSheet(item),
+        child: BeaverVideoPlayer(url: item.url),
+      );
     }
 
     return GestureDetector(

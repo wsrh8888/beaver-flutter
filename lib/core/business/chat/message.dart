@@ -153,6 +153,8 @@ class MessageBusiness implements MessageRepositoryInterface {
         return msg.markdownMsg?.title?.isNotEmpty == true
             ? msg.markdownMsg!.title!
             : (msg.markdownMsg?.content ?? '[Markdown]');
+      case MessageType.reply:
+        return msg.replyMsg?.replyMsg?.textMsg?.content ?? '[回复]';
       default:
         return '[消息]';
     }
@@ -330,6 +332,11 @@ class MessageBusiness implements MessageRepositoryInterface {
     }
   }
 
+  /// 将批量同步到的消息落库并刷新 Store / 会话列表
+  Future<void> applySyncedMessages(List<IChatMessageItem> messages) async {
+    await _handleSyncedMessages(messages);
+  }
+
   /**
    * 处理同步到的消息并落库 (对标 PC handleSyncedMessages)
    */
@@ -470,6 +477,105 @@ class MessageBusiness implements MessageRepositoryInterface {
       default:
         return 1;
     }
+  }
+
+  /// 编辑文本/Markdown 消息
+  Future<String?> editMessage(
+    String messageId,
+    String conversationId,
+    String content,
+  ) async {
+    if (content.trim().isEmpty) {
+      return '消息内容不能为空';
+    }
+
+    final chat = await _service.getById(messageId);
+    if (chat == null) {
+      return '消息不存在';
+    }
+
+    final createdAt = chat.createdAt ?? 0;
+    final elapsed = DateTime.now().millisecondsSinceEpoch ~/ 1000 - createdAt;
+    if (elapsed > 24 * 3600) {
+      return '超过24小时，无法编辑';
+    }
+
+    if (chat.msgType != 1 && chat.msgType != 13) {
+      return '仅支持编辑文本或 Markdown 消息';
+    }
+
+    final res = await editMessageApi(
+      IEditMessageReq(messageId: messageId, content: content),
+    );
+    if (res.code != 0) {
+      return res.msg;
+    }
+
+    final Map<String, dynamic> msgJson =
+        jsonDecode(chat.msg ?? '{}') as Map<String, dynamic>;
+    if (chat.msgType == 1) {
+      msgJson['textMsg'] = {'content': content};
+    } else {
+      final markdown = msgJson['markdownMsg'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(msgJson['markdownMsg'] as Map)
+          : <String, dynamic>{};
+      markdown['content'] = content;
+      msgJson['markdownMsg'] = markdown;
+    }
+
+    final newMsg = MessageContentModel.fromJson(msgJson);
+    final preview = _generateMessagePreview(newMsg);
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    await _service.upsert(
+      ChatsCompanion(
+        messageId: Value(messageId),
+        msg: Value(jsonEncode(msgJson)),
+        msgPreview: Value(preview),
+        updatedAt: Value(now),
+      ),
+    );
+
+    getIt<MessageStore>().updateMessageContent(
+      conversationId,
+      messageId,
+      newMsg,
+    );
+    return null;
+  }
+
+  /// 撤回消息（成功后由 WS 推送 Withdraw 指令更新 UI）
+  Future<String?> recallMessage(String messageId, String conversationId) async {
+    final chat = await _service.getById(messageId);
+    if (chat == null) {
+      return '消息不存在';
+    }
+
+    final createdAt = chat.createdAt ?? 0;
+    final elapsed = DateTime.now().millisecondsSinceEpoch ~/ 1000 - createdAt;
+    if (elapsed > 3 * 60) {
+      return '超过3分钟，无法撤回';
+    }
+
+    final res = await recallMessageApi(IRecallMessageReq(messageId: messageId));
+    if (res.code != 0) {
+      return res.msg;
+    }
+    return null;
+  }
+
+  /// 删除消息（仅对自己生效）
+  Future<String?> deleteMessage(String messageId, String conversationId) async {
+    final res = await deleteMessagesApi(
+      IDeleteMessagesReq(messageIds: [messageId]),
+    );
+    if (res.code != 0) {
+      return res.msg;
+    }
+
+    await _service.batchDelete([messageId]);
+    getIt<MessageStore>().removeMessages(conversationId, [messageId]);
+    return null;
   }
 
   @override

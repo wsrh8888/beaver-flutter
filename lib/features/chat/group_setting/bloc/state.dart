@@ -27,10 +27,16 @@ class GroupSettingState extends Equatable {
     this.errorMessage,
   });
 
+  GroupMember? get selfInGroup {
+    if (currentUserId.isEmpty || groupMembers.isEmpty) return null;
+    return groupMembers.where((m) => m.userId == currentUserId).firstOrNull;
+  }
+
+  /// role: 1=owner, 2=admin, 3=member
+  bool get isGroupOwner => selfInGroup?.role == 1;
+
   bool get isAdmin {
-    if (currentUserId.isEmpty || groupMembers.isEmpty) return false;
-    final self = groupMembers.where((m) => m.userId == currentUserId).firstOrNull;
-    // role: 1=owner, 2=admin, 3=member
+    final self = selfInGroup;
     return self != null && (self.role == 1 || self.role == 2);
   }
 

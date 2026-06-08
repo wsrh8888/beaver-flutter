@@ -10,7 +10,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class VideoMessage extends StatelessWidget {
   final VideoMsg msg;
-  const VideoMessage({super.key, required this.msg});
+  final String? messageId;
+
+  const VideoMessage({super.key, required this.msg, this.messageId});
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +40,10 @@ class VideoMessage extends StatelessWidget {
             context,
             GalleryItem(
               url: url,
+              sourceFileUrl: msg.fileUrl,
               type: GalleryItemType.video,
               thumbnail: msg.thumbnailUrl,
+              messageId: messageId,
             ),
           );
         }

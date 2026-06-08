@@ -73,12 +73,16 @@ class MessageStore extends Cubit<MessageStoreState> {
    * @description: 初始化会话消息（类似 PC 端 init）
    */
   Future<void> initConversation(String conversationId) async {
-    // 如果已有数据，可以考虑是否静默刷新或直接使用
     if (state.chatHistory.containsKey(conversationId) &&
         state.chatHistory[conversationId]!.isNotEmpty) {
       return;
     }
 
+    await reloadConversation(conversationId);
+  }
+
+  /// 从本地 DB 重新加载会话消息（后台同步后刷新已打开会话）
+  Future<void> reloadConversation(String conversationId) async {
     final pagination = MessagePagination(
       hasMore: true,
       isLoadingMore: true,
@@ -98,7 +102,6 @@ class MessageStore extends Cubit<MessageStoreState> {
         state.chatHistory,
       );
       newHistory[conversationId] = messages;
-      print('[MessageStore] initConversation: $conversationId loaded ${messages.length} messages (offset: 0)');
 
       final newPagination = Map<String, MessagePagination>.from(
         state.messagePagination,
@@ -253,6 +256,53 @@ class MessageStore extends Cubit<MessageStoreState> {
     emit(
       state.copyWith(
         messagePagination: newPagination,
+        version: state.version + 1,
+      ),
+    );
+  }
+
+  /// 更新消息内容（编辑后本地同步）
+  void updateMessageContent(
+    String conversationId,
+    String messageId,
+    MessageContentModel msg,
+  ) {
+    if (!state.chatHistory.containsKey(conversationId)) return;
+
+    final history = state.chatHistory[conversationId]!
+        .map((m) {
+          if (m.id != messageId) return m;
+          return m.copyWith(msg: msg, isEdited: true);
+        })
+        .toList();
+
+    final newHistory = Map<String, List<MessageModel>>.from(state.chatHistory);
+    newHistory[conversationId] = history;
+
+    emit(
+      state.copyWith(
+        chatHistory: newHistory,
+        version: state.version + 1,
+      ),
+    );
+  }
+
+  /// 批量移除消息（本地缓存 + UI）
+  void removeMessages(String conversationId, List<String> messageIds) {
+    if (messageIds.isEmpty || !state.chatHistory.containsKey(conversationId)) {
+      return;
+    }
+
+    final history = state.chatHistory[conversationId]!
+        .where((m) => !messageIds.contains(m.id))
+        .toList();
+
+    final newHistory = Map<String, List<MessageModel>>.from(state.chatHistory);
+    newHistory[conversationId] = history;
+
+    emit(
+      state.copyWith(
+        chatHistory: newHistory,
         version: state.version + 1,
       ),
     );

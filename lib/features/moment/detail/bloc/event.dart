@@ -1,25 +1,56 @@
-abstract class MomentEvent {
-  const MomentEvent();
+import 'package:beaver/types/api/moment.dart';
+
+enum MomentDetailStatus { initial, loading, success, error }
+
+enum MomentDetailTab { comments, likes }
+
+abstract class MomentDetailEvent {
+  const MomentDetailEvent();
 }
 
-class LoadMomentsEvent extends MomentEvent {
-  const LoadMomentsEvent();
-}
-
-class ToggleLikeEvent extends MomentEvent {
+class LoadMomentDetailEvent extends MomentDetailEvent {
   final String momentId;
-  final bool status;
-
-  const ToggleLikeEvent(this.momentId, this.status);
+  const LoadMomentDetailEvent(this.momentId);
 }
 
-class PreviewImageEvent extends MomentEvent {
-  final List<String> images;
-  final int currentIndex;
-
-  const PreviewImageEvent(this.images, this.currentIndex);
+class RefreshMomentDetailEvent extends MomentDetailEvent {
+  const RefreshMomentDetailEvent();
 }
 
-class GoToPostEvent extends MomentEvent {
-  const GoToPostEvent();
+class LoadMoreCommentsEvent extends MomentDetailEvent {
+  const LoadMoreCommentsEvent();
+}
+
+class LoadChildCommentsEvent extends MomentDetailEvent {
+  final IMomentCommentModel rootComment;
+  const LoadChildCommentsEvent(this.rootComment);
+}
+
+class AddCommentEvent extends MomentDetailEvent {
+  final String content;
+  final IMomentCommentModel? targetComment;
+
+  const AddCommentEvent(this.content, {this.targetComment});
+}
+
+class ToggleLikeEvent extends MomentDetailEvent {
+  final String currentUserId;
+  final String currentUserName;
+  final String currentUserAvatar;
+
+  const ToggleLikeEvent({
+    required this.currentUserId,
+    required this.currentUserName,
+    this.currentUserAvatar = '',
+  });
+}
+
+class SetReplyTargetEvent extends MomentDetailEvent {
+  final IMomentCommentModel? target;
+  const SetReplyTargetEvent(this.target);
+}
+
+class SwitchTabEvent extends MomentDetailEvent {
+  final MomentDetailTab tab;
+  const SwitchTabEvent(this.tab);
 }

@@ -22,7 +22,7 @@ List<GoRoute> callsRoutes() {
           roomToken: extras?['roomToken'] ?? '',
           liveKitUrl: extras?['liveKitUrl'] ?? '',
           callType: callType,
-          isGroup: extras?['isGroup'] ?? extras?['conversationId']?.startsWith('g_') ?? false,
+          isGroup: extras?['isGroup'] ?? extras?['conversationId']?.startsWith('group_') ?? false,
         );
       },
     ),

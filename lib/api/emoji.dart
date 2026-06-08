@@ -113,3 +113,8 @@ Future<BaseResponse<dynamic>> updateFavoriteEmojiPackageApi(
 ) async {
   return httpClient.post('$baseUrl/api/emoji/v1/packageFavorite', data: data);
 }
+
+// 添加表情并自动收藏
+Future<BaseResponse<dynamic>> addEmojiApi(Map<String, dynamic> data) async {
+  return httpClient.post('$baseUrl/api/emoji/v1/add', data: data);
+}

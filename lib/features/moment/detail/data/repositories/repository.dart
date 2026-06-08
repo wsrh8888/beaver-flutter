@@ -1,47 +1,91 @@
-import 'package:beaver/features/moment/detail/data/models/moment.dart';
+import 'package:beaver/api/moment.dart';
+import 'package:beaver/types/api/moment.dart';
 
-class MomentRepository {
-  Future<List<Moment>> getMoments() async {
-    // 模拟获取朋友圈数�?
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      Moment(
-        id: '1',
-        userName: '张三',
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
-        content: '今天天气真好，出去散步了�?,
-        files: [
-          MomentFile('https://neeko-copilot.bytedance.net/api/text2image?prompt=park%20scenery&size=512x512'),
-          MomentFile('https://neeko-copilot.bytedance.net/api/text2image?prompt=sunny%20day&size=512x512'),
-        ],
-        likes: [
-          MomentLike('2', '李四'),
-          MomentLike('3', '王五'),
-        ],
-        createdAt: '2024-01-01 10:00:00',
+class MomentDetailRepository {
+  MomentDetailRepository();
+
+  Future<IMomentListItem?> loadDetail(String momentId) async {
+    final response = await getMomentDetailApi(
+      IGetMomentDetailReq(momentId: momentId),
+    );
+    if (response.isSuccess && response.result != null) {
+      return response.result;
+    }
+    return null;
+  }
+
+  Future<List<IMomentCommentModel>> loadRootComments(
+    String momentId,
+    int page,
+    int limit,
+  ) async {
+    final response = await getMomentCommentsApi(
+      IGetMomentCommentsReq(momentId: momentId, page: page, limit: limit),
+    );
+    if (response.isSuccess && response.result != null) {
+      return response.result!.list;
+    }
+    return [];
+  }
+
+  Future<({List<IMomentCommentModel> list, int count})> loadChildComments(
+    String momentId,
+    String parentId,
+    int page,
+    int limit,
+  ) async {
+    final response = await getMomentCommentsApi(
+      IGetMomentCommentsReq(
+        momentId: momentId,
+        parentId: parentId,
+        page: page,
+        limit: limit,
       ),
-      Moment(
-        id: '2',
-        userName: '李四',
-        fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait%20female&size=512x512',
-        content: '分享一张美食照片，看起来很美味吧！',
-        files: [
-          MomentFile('https://neeko-copilot.bytedance.net/api/text2image?prompt=delicious%20food&size=512x512'),
-          MomentFile('https://neeko-copilot.bytedance.net/api/text2image?prompt=restaurant%20dish&size=512x512'),
-          MomentFile('https://neeko-copilot.bytedance.net/api/text2image?prompt=dessert&size=512x512'),
-        ],
-        likes: [
-          MomentLike('1', '张三'),
-        ],
-        createdAt: '2024-01-01 09:30:00',
+    );
+    if (response.isSuccess && response.result != null) {
+      return (list: response.result!.list, count: response.result!.count);
+    }
+    return (list: <IMomentCommentModel>[], count: 0);
+  }
+
+  Future<ICreateMomentCommentRes?> addComment({
+    required String momentId,
+    required String content,
+    String? parentId,
+    String? replyToCommentId,
+  }) async {
+    final response = await createMomentCommentApi(
+      ICreateMomentCommentReq(
+        momentId: momentId,
+        content: content,
+        parentId: parentId,
+        replyToCommentId: replyToCommentId,
       ),
-    ];
+    );
+    if (response.isSuccess && response.result != null) {
+      return response.result;
+    }
+    return null;
   }
 
   Future<bool> toggleLike(String momentId, bool status) async {
-    // 模拟点赞操作
-    await Future.delayed(const Duration(seconds: 1));
-    return true;
+    final response = await likeMomentApi(
+      ILikeMomentReq(momentId: momentId, status: status),
+    );
+    return response.isSuccess;
+  }
+
+  Future<List<IMomentLikeModel>> loadLikes(
+    String momentId,
+    int page,
+    int limit,
+  ) async {
+    final response = await getMomentLikesApi(
+      IGetMomentLikesReq(momentId: momentId, page: page, limit: limit),
+    );
+    if (response.isSuccess && response.result != null) {
+      return response.result!.list;
+    }
+    return [];
   }
 }
-

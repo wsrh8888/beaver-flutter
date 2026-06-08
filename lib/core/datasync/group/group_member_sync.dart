@@ -3,6 +3,7 @@ import 'package:beaver/api/group.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:drift/drift.dart';
@@ -135,7 +136,11 @@ class GroupMemberSync {
         );
       }
 
-      // TODO: 发送通知到渲染进程
+      final groupIds = response.result!.groupMembers
+          .map((m) => m.groupId)
+          .toSet()
+          .toList();
+      await getIt<GroupMemberStore>().updateMembersByGroupIds(groupIds);
     }
   }
 }

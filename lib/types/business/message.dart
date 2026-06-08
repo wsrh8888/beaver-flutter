@@ -325,16 +325,25 @@ class AudioFileMsg {
 
 class ReplyMsg {
   final String originMsgId;
+  final MessageContentModel? originMsg;
   final MessageContentModel? replyMsg;
-  ReplyMsg({required this.originMsgId, this.replyMsg});
+  ReplyMsg({
+    required this.originMsgId,
+    this.originMsg,
+    this.replyMsg,
+  });
   factory ReplyMsg.fromJson(Map<String, dynamic> json) => ReplyMsg(
     originMsgId: json['originMsgId'] ?? '',
+    originMsg: json['originMsg'] != null
+        ? MessageContentModel.fromJson(json['originMsg'])
+        : null,
     replyMsg: json['replyMsg'] != null
         ? MessageContentModel.fromJson(json['replyMsg'])
         : null,
   );
   Map<String, dynamic> toJson() => {
     'originMsgId': originMsgId,
+    if (originMsg != null) 'originMsg': originMsg!.toJson(),
     'replyMsg': replyMsg?.toJson(),
   };
 }
@@ -424,6 +433,7 @@ class MessageModel {
   final MessageStatus status;
   final DateTime createdAt;
   final bool isSent;
+  final bool isEdited;
 
   const MessageModel({
     required this.id,
@@ -436,13 +446,45 @@ class MessageModel {
     required this.status,
     required this.createdAt,
     required this.isSent,
+    this.isEdited = false,
   });
 
   // For compatibility during transition, we keep content getter if needed
   String get content {
     if (type == MessageType.text) return msg.textMsg?.content ?? '';
     if (type == MessageType.markdown) return msg.markdownMsg?.content ?? '';
+    if (type == MessageType.reply) {
+      return msg.replyMsg?.replyMsg?.textMsg?.content ?? '[回复]';
+    }
     return '[Type: ${type.name}]';
+  }
+
+  /// 消息预览文案（引用条等场景）
+  String get previewText {
+    switch (type) {
+      case MessageType.text:
+        return msg.textMsg?.content ?? '[文本]';
+      case MessageType.markdown:
+        return msg.markdownMsg?.content ?? '[Markdown]';
+      case MessageType.image:
+        return '[图片]';
+      case MessageType.video:
+        return '[视频]';
+      case MessageType.file:
+        return msg.fileMsg?.fileName ?? '[文件]';
+      case MessageType.voice:
+        return '[语音]';
+      case MessageType.audio:
+        return msg.audioFileMsg?.fileName ?? '[音频]';
+      case MessageType.emoji:
+        return '[表情]';
+      case MessageType.reply:
+        return msg.replyMsg?.replyMsg?.textMsg?.content ??
+            msg.replyMsg?.originMsg?.textMsg?.content ??
+            '[回复]';
+      default:
+        return content;
+    }
   }
 
   MessageModel copyWith({
@@ -456,6 +498,7 @@ class MessageModel {
     MessageStatus? status,
     DateTime? createdAt,
     bool? isSent,
+    bool? isEdited,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -468,6 +511,7 @@ class MessageModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       isSent: isSent ?? this.isSent,
+      isEdited: isEdited ?? this.isEdited,
     );
   }
 }

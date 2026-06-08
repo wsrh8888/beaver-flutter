@@ -45,7 +45,10 @@ class _GroupSettingView extends StatelessWidget {
     return BlocConsumer<GroupSettingBloc, GroupSettingState>(
       listener: (context, state) {
         if (state.status == GroupSettingStatus.deleted) {
-          BeaverToast.show(context, '已移动/删除会话');
+          BeaverToast.show(
+            context,
+            state.isGroupOwner ? '已解散群聊' : '已退出群聊',
+          );
           Navigator.of(context).popUntil(
             (route) => route.settings.name == '/chat/list' || route.isFirst,
           );
@@ -80,8 +83,8 @@ class _GroupSettingView extends StatelessWidget {
       children: [
         if (state.showDeleteDialog)
           BeaverDialog(
-            title: state.isAdmin ? '解散群聊' : '退出群聊',
-            contentText: state.isAdmin
+            title: state.isGroupOwner ? '解散群聊' : '退出群聊',
+            contentText: state.isGroupOwner
                 ? '确定解散该群聊吗？此操作不可撤销。'
                 : '确定退出该群聊吗？',
             confirmText: '确定',
@@ -92,7 +95,7 @@ class _GroupSettingView extends StatelessWidget {
                   const ShowDeleteGroupDialogEvent(false),
                 ),
             onConfirm: () {
-              if (state.isAdmin) {
+              if (state.isGroupOwner) {
                 context.read<GroupSettingBloc>().add(
                       const DisbandGroupEvent(),
                     );
@@ -169,6 +172,7 @@ class _GroupSettingView extends StatelessWidget {
         members.where((m) => m.userId == state.currentUserId).firstOrNull;
     final isActualAdmin = selfInGroup != null &&
         (selfInGroup.role == 1 || selfInGroup.role == 2);
+    final isGroupOwner = selfInGroup?.role == 1;
 
     return GroupSettingPanel(
       title: groupName,
@@ -176,11 +180,15 @@ class _GroupSettingView extends StatelessWidget {
       memberCount: members.length,
       avatar: groupAvatar,
       isTop: state.conversation?.isTop ?? false,
+      isMuted: state.conversation?.isMuted ?? false,
       members: members,
       isAdmin: isActualAdmin,
+      isGroupOwner: isGroupOwner,
       contactStore: contactStore,
       onToggleTop: () =>
           context.read<GroupSettingBloc>().add(const TogglePinGroupChatEvent()),
+      onToggleMute: () =>
+          context.read<GroupSettingBloc>().add(const ToggleMuteGroupChatEvent()),
       onClearHistory: () => context.read<GroupSettingBloc>().add(
             const ShowClearGroupHistoryDialogEvent(true),
           ),

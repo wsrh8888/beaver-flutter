@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
@@ -159,7 +160,7 @@ class _MomentListViewState extends State<MomentListView> {
                       final item = state.moments[dataIndex];
                       return Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.w),
-                        child: _buildMomentItem(item),
+                        child: _buildMomentItem(context, item),
                       );
                     },
                   ),
@@ -289,8 +290,25 @@ class _MomentListViewState extends State<MomentListView> {
     );
   }
 
-  Widget _buildMomentItem(IMomentListItem item) {
-    return Container(
+  Future<void> _openMomentDetail(BuildContext context, IMomentListItem item) async {
+    await context.push('${AppRoutes.momentDetail}?id=${item.id}');
+    if (mounted) {
+      context.read<MomentListBloc>().add(
+            const LoadMomentListEvent(refresh: true),
+          );
+    }
+  }
+
+  Widget _buildMomentItem(BuildContext context, IMomentListItem item) {
+    final userState = context.watch<UserStore>().state;
+    final contactStore = context.watch<ContactStore>();
+    final currentUser = contactStore.getContact(userState.currentUserId);
+    final currentUserId = userState.currentUserId;
+    final currentUserName = currentUser?.nickname ?? '我';
+
+    return GestureDetector(
+      onTap: () => _openMomentDetail(context, item),
+      child: Container(
       margin: EdgeInsets.only(bottom: 8.w),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
@@ -381,13 +399,44 @@ class _MomentListViewState extends State<MomentListView> {
           Row(
             children: [
               GestureDetector(
+                onTap: () => _openMomentDetail(context, item),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(10.w),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 14.w,
+                        color: const Color(0xFF636E72),
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        item.commentCount > 0
+                            ? '${item.commentCount}'
+                            : '评论',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF636E72),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              GestureDetector(
                 onTap: () {
                   context.read<MomentListBloc>().add(
                     ToggleLikeMomentEvent(
                       moment: item,
-                      currentUserId:
-                          'TODO_CURRENT_USER_ID', // Replace with auth bloc if added
-                      currentUserName: '我',
+                      currentUserId: currentUserId,
+                      currentUserName: currentUserName,
                     ),
                   );
                 },
@@ -411,7 +460,7 @@ class _MomentListViewState extends State<MomentListView> {
                       ),
                       SizedBox(width: 4.w),
                       Text(
-                        '${item.likeCount}',
+                        item.likeCount > 0 ? '${item.likeCount}' : '赞',
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -426,6 +475,54 @@ class _MomentListViewState extends State<MomentListView> {
               ),
             ],
           ),
+
+          if (item.comments.isNotEmpty) ...[
+            SizedBox(height: 8.w),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(8.w),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: item.comments.take(3).map((comment) {
+                  final commentUser =
+                      contactStore.getContact(comment.userId);
+                  final name = commentUser?.nickname.isNotEmpty == true
+                      ? commentUser!.nickname
+                      : comment.userName;
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 4.w),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: name,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF576B95),
+                            ),
+                          ),
+                          TextSpan(
+                            text: '：${comment.content}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: const Color(0xFF333333),
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
 
           // Likes List
           if (item.likes.isNotEmpty) ...[
@@ -466,6 +563,7 @@ class _MomentListViewState extends State<MomentListView> {
           ],
         ],
       ),
+    ),
     );
   }
 

@@ -31,6 +31,12 @@ Future<BaseResponse<IPinnedChatRes>> pinnedChatApi(IPinnedChatReq data) {
   return httpClient.post<IPinnedChatRes>(url, data: data.toJson(), fromJsonT: (json) => IPinnedChatRes.fromJson(json));
 }
 
+/// 设置会话免打扰
+Future<BaseResponse<IMuteChatRes>> muteChatApi(IMuteChatReq data) {
+  final url = '$baseUrl/api/chat/v1/muteChat';
+  return httpClient.post<IMuteChatRes>(url, data: data.toJson(), fromJsonT: (_) => const IMuteChatRes());
+}
+
 /// 获取合并转发详情
 Future<BaseResponse<IGetForwardDetailsRes>> getForwardDetailsApi(IGetForwardDetailsReq data) {
   final url = '$baseUrl/api/chat/v1/getForwardDetails';
@@ -41,4 +47,36 @@ Future<BaseResponse<IGetForwardDetailsRes>> getForwardDetailsApi(IGetForwardDeta
 Future<BaseResponse<IForwardMessageRes>> forwardMessageApi(IForwardMessageReq data) {
   final url = '$baseUrl/api/chat/v1/forward';
   return httpClient.post<IForwardMessageRes>(url, data: data.toJson(), fromJsonT: (json) => IForwardMessageRes.fromJson(json));
+}
+
+/// 编辑消息
+Future<BaseResponse<IEditMessageRes>> editMessageApi(IEditMessageReq data) {
+  final url = '$baseUrl/api/chat/v1/edit';
+  return httpClient.post<IEditMessageRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IEditMessageRes.fromJson(json),
+  );
+}
+
+/// 撤回消息
+Future<BaseResponse<IRecallMessageRes>> recallMessageApi(IRecallMessageReq data) {
+  final url = '$baseUrl/api/chat/v1/recall';
+  return httpClient.post<IRecallMessageRes>(url, data: data.toJson(), fromJsonT: (json) => IRecallMessageRes.fromJson(json));
+}
+
+/// 批量删除消息
+Future<BaseResponse<IDeleteMessagesRes>> deleteMessagesApi(IDeleteMessagesReq data) {
+  final url = '$baseUrl/api/chat/v1/deleteMessages';
+  return httpClient.post<IDeleteMessagesRes>(url, data: data.toJson(), fromJsonT: (json) => IDeleteMessagesRes.fromJson(json));
+}
+
+/// 搜索消息
+Future<BaseResponse<ISearchMessagesRes>> searchMessagesApi(ISearchMessagesReq data) {
+  final url = '$baseUrl/api/chat/v1/searchMessages';
+  return httpClient.post<ISearchMessagesRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => ISearchMessagesRes.fromJson(json),
+  );
 }

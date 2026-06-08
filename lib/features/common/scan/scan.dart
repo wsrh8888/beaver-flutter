@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:beaver/features/common/scan/bloc/bloc.dart';
 import 'package:beaver/features/common/scan/bloc/event.dart';
 import 'package:beaver/features/common/scan/bloc/state.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/shared/utils/qrcode/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,6 +22,7 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin {
   late ScanBloc _bloc;
   final MobileScannerController _controller = MobileScannerController();
+  final ImagePicker _imagePicker = ImagePicker();
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -103,9 +106,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
             children: [
               _buildActionButton(
                 icon: Icons.photo_library, // 相册
-                onPressed: () {
-                  // TODO: 从相册选取二维码
-                },
+                onPressed: _pickImageFromGallery,
               ),
               SizedBox(width: 40.w),
               _buildActionButton(
@@ -120,6 +121,33 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
         ),
       ],
     );
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (image == null || !mounted) return;
+
+    try {
+      final capture = await _controller.analyzeImage(image.path);
+      String? code;
+      for (final barcode in capture?.barcodes ?? const <Barcode>[]) {
+        final value = barcode.rawValue;
+        if (value != null && value.isNotEmpty) {
+          code = value;
+          break;
+        }
+      }
+
+      if (code == null) {
+        if (mounted) BeaverToast.show(context, '未识别到二维码');
+        return;
+      }
+
+      if (!mounted) return;
+      handleQrCode(context, code);
+    } on MobileScannerBarcodeException catch (e) {
+      if (mounted) BeaverToast.show(context, e.message ?? '图片解析失败');
+    }
   }
 
   Widget _buildScannerOverlay() {

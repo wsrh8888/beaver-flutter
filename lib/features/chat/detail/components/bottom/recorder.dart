@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+
 import 'package:beaver/core/business/media/media.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/chat/detail/bloc/bloc.dart';
 import 'package:beaver/features/chat/detail/bloc/event.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:record/record.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:record/record.dart';
 
+/// 按住说话录音区（对标微信：按下即录、上滑取消、最长 60 秒）
 class ChatRecorder extends StatefulWidget {
   final String conversationId;
 
@@ -24,11 +26,19 @@ class ChatRecorder extends StatefulWidget {
   State<ChatRecorder> createState() => _ChatRecorderState();
 }
 
-class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMixin {
+class _ChatRecorderState extends State<ChatRecorder>
+    with TickerProviderStateMixin {
+  static const double _maxDurationSeconds = 60;
+  static const double _minDurationSeconds = 1;
+  static const double _cancelSlideThreshold = 80;
+
   bool _isRecording = false;
-  bool _expectCancel = false;
+  bool _inCancelZone = false;
   bool _pressActive = false;
-  double _recordingDuration = 0.0;
+  bool _isStarting = false;
+  double _recordingDuration = 0;
+  Offset? _pressStartLocal;
+
   final AudioRecorder _audioRecorder = AudioRecorder();
   Timer? _timer;
   OverlayEntry? _overlayEntry;
@@ -53,6 +63,7 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     _waveController.dispose();
     _timer?.cancel();
     _removeOverlay();
+    unawaited(_safeStopAndDelete());
     _audioRecorder.dispose();
     super.dispose();
   }
@@ -62,17 +73,37 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     _overlayEntry = null;
   }
 
+  Future<void> _safeStopAndDelete() async {
+    try {
+      if (await _audioRecorder.isRecording()) {
+        final path = await _audioRecorder.stop();
+        if (path != null && File(path).existsSync()) {
+          File(path).deleteSync();
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<void> _startRecording() async {
+    if (_isStarting || _isRecording || !_pressActive) return;
+
     if (!await Permission.microphone.isGranted) {
-      if (mounted) BeaverToast.show(context, '请开启麦克风权限');
-      return;
+      final status = await Permission.microphone.request();
+      if (!status.isGranted) {
+        _pressActive = false;
+        if (mounted) BeaverToast.show(context, '请开启麦克风权限');
+        return;
+      }
     }
 
-    if (!_pressActive || _isRecording) return;
-    if (await _audioRecorder.isRecording()) return;
-
-    final tempDir = await getTemporaryDirectory();
     if (!_pressActive) return;
+
+    _isStarting = true;
+    final tempDir = await getTemporaryDirectory();
+    if (!_pressActive) {
+      _isStarting = false;
+      return;
+    }
 
     final path = p.join(
       tempDir.path,
@@ -80,72 +111,82 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     );
 
     try {
-      const config = RecordConfig();
-      await _audioRecorder.start(config, path: path);
+      await _audioRecorder.start(const RecordConfig(), path: path);
 
       if (!_pressActive || !mounted) {
-        await _audioRecorder.stop();
-        File(path).deleteSync();
+        await _safeStopAndDelete();
+        _isStarting = false;
         return;
       }
 
       setState(() {
         _isRecording = true;
-        _expectCancel = false;
-        _recordingDuration = 0.0;
+        _inCancelZone = false;
+        _recordingDuration = 0;
       });
       _waveController.repeat(reverse: true);
-      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+        if (!_isRecording) return;
         _recordingDuration += 0.1;
         _overlayEntry?.markNeedsBuild();
+        if (_recordingDuration >= _maxDurationSeconds) {
+          unawaited(_stopRecording(cancel: false));
+        }
       });
       _showOverlay();
-    } catch (e) {
-      if (mounted) BeaverToast.show(context, '录音机启动失败');
+    } catch (_) {
+      if (mounted) BeaverToast.show(context, '录音启动失败');
+    } finally {
+      _isStarting = false;
     }
   }
 
-  Future<void> _stopRecording({bool cancel = false}) async {
+  void _updateCancelZone(Offset localPosition) {
+    if (!_isRecording || _pressStartLocal == null) return;
+
+    final dy = localPosition.dy - _pressStartLocal!.dy;
+    final shouldCancel = dy < -_cancelSlideThreshold;
+    if (shouldCancel != _inCancelZone) {
+      setState(() => _inCancelZone = shouldCancel);
+      _overlayEntry?.markNeedsBuild();
+    }
+  }
+
+  Future<void> _stopRecording({required bool cancel}) async {
     _pressActive = false;
+    _pressStartLocal = null;
 
     if (!_isRecording) {
-      if (await _audioRecorder.isRecording()) {
-        final path = await _audioRecorder.stop();
-        if (path != null) File(path).deleteSync();
-      }
+      await _safeStopAndDelete();
       return;
     }
 
     final path = await _audioRecorder.stop();
+    _timer?.cancel();
+    _waveController.stop();
+    _removeOverlay();
 
     setState(() {
       _isRecording = false;
-      _expectCancel = false;
+      _inCancelZone = false;
     });
-    _waveController.stop();
-    _timer?.cancel();
-    _removeOverlay();
 
     if (cancel || path == null) {
-      if (path != null) File(path).deleteSync();
+      if (path != null && File(path).existsSync()) {
+        File(path).deleteSync();
+      }
       return;
     }
 
-    final duration = _recordingDuration.toInt();
-    if (duration < 1) {
+    final duration = _recordingDuration.round();
+    if (duration < _minDurationSeconds) {
       if (mounted) BeaverToast.show(context, '说话时间太短');
-      File(path).deleteSync();
+      if (File(path).existsSync()) File(path).deleteSync();
       return;
     }
-    _sendVoiceMessage(path, duration);
-  }
 
-  void _updateSwipeStatus(LongPressMoveUpdateDetails details) {
-    final bool cancel = details.localOffsetFromOrigin.dy < -60;
-    if (cancel != _expectCancel) {
-      setState(() => _expectCancel = cancel);
-      _overlayEntry?.markNeedsBuild();
-    }
+    await _sendVoiceMessage(path, duration);
   }
 
   Future<void> _sendVoiceMessage(String path, int duration) async {
@@ -155,7 +196,7 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     final uploadResult = await mediaBusiness.uploadFile(path);
     if (uploadResult == null) {
       if (mounted) BeaverToast.show(context, '语音发送失败');
-      File(path).deleteSync();
+      if (File(path).existsSync()) File(path).deleteSync();
       return;
     }
 
@@ -172,64 +213,69 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
       ),
     );
 
-    File(path).deleteSync();
+    if (File(path).existsSync()) File(path).deleteSync();
   }
 
   void _showOverlay() {
     _overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          Positioned.fill(child: Container(color: Colors.transparent)),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Container(color: Colors.black.withValues(alpha: 0.08)),
+            ),
+          ),
           Center(
             child: ClipRRect(
+              borderRadius: BorderRadius.circular(12.w),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  width: 160.w,
-                  height: 160.w,
+                  width: 156.w,
+                  padding: EdgeInsets.symmetric(vertical: 28.w, horizontal: 16.w),
                   decoration: BoxDecoration(
-                    color: _expectCancel
-                        ? Colors.red.withOpacity(0.8)
-                        : Colors.black.withOpacity(0.55),
-                    borderRadius: BorderRadius.circular(20.w),
+                    color: _inCancelZone
+                        ? const Color(0xCCFF5252)
+                        : const Color(0xCC333333),
+                    borderRadius: BorderRadius.circular(12.w),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_expectCancel)
-                        Icon(Icons.undo_rounded, size: 68.w, color: Colors.white)
+                      if (_inCancelZone)
+                        Icon(Icons.close_rounded, size: 56.w, color: Colors.white)
                       else
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.mic_rounded, size: 60.w, color: Colors.white),
+                            Icon(Icons.mic_rounded, size: 48.w, color: Colors.white),
                             SizedBox(width: 8.w),
                             _buildWaveform(),
                           ],
                         ),
-                      SizedBox(height: 16.w),
+                      SizedBox(height: 14.w),
                       Text(
-                        _expectCancel ? '松开手指 取消发送' : '手指上滑 取消发送',
+                        _inCancelZone ? '松开手指，取消发送' : '手指上滑，取消发送',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13.sp,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.95),
                           decoration: TextDecoration.none,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      if (!_expectCancel)
-                        Padding(
-                          padding: EdgeInsets.only(top: 8.w),
-                          child: Text(
-                            '${_recordingDuration.toInt()}s',
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      if (!_inCancelZone) ...[
+                        SizedBox(height: 10.w),
+                        Text(
+                          '${_recordingDuration.ceil().clamp(0, _maxDurationSeconds.toInt())}″',
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            color: Colors.white,
+                            decoration: TextDecoration.none,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -247,7 +293,7 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
       children: List.generate(5, (index) {
         return Container(
           width: 3.w,
-          height: (12 + (index * 8 * _waveController.value)).w,
+          height: (10 + (index * 6 * _waveController.value)).w,
           margin: EdgeInsets.symmetric(horizontal: 1.5.w),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -258,22 +304,36 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
     );
   }
 
+  String get _buttonLabel {
+    if (!_isRecording) return '按住 说话';
+    if (_inCancelZone) return '松开 取消';
+    return '松开 发送';
+  }
+
+  Color get _buttonColor {
+    if (!_isRecording) return const Color(0xFFF7F7F7);
+    if (_inCancelZone) return const Color(0xFFFFEBEE);
+    return const Color(0xFFD8D8D8);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPressStart: (_) {
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (event) {
         _pressActive = true;
-        _startRecording();
+        _pressStartLocal = event.localPosition;
+        unawaited(_startRecording());
       },
-      onLongPressMoveUpdate: (details) => _updateSwipeStatus(details),
-      onLongPressEnd: (_) => _stopRecording(cancel: _expectCancel),
-      onLongPressCancel: () => _stopRecording(cancel: true),
+      onPointerMove: (event) => _updateCancelZone(event.localPosition),
+      onPointerUp: (_) => unawaited(_stopRecording(cancel: _inCancelZone)),
+      onPointerCancel: (_) => unawaited(_stopRecording(cancel: true)),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
+        duration: const Duration(milliseconds: 120),
         height: 42.w,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: _isRecording ? const Color(0xFFD1D1D1) : const Color(0xFFF7F7F7),
+          color: _buttonColor,
           borderRadius: BorderRadius.circular(8.w),
           border: Border.all(
             color: _isRecording ? Colors.transparent : const Color(0xFFE8E8E8),
@@ -281,11 +341,13 @@ class _ChatRecorderState extends State<ChatRecorder> with TickerProviderStateMix
           ),
         ),
         child: Text(
-          _isRecording ? '松开 发送' : '按住 说话',
+          _buttonLabel,
           style: TextStyle(
             fontSize: 15.sp,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF181818),
+            fontWeight: FontWeight.w600,
+            color: _inCancelZone
+                ? const Color(0xFFE53935)
+                : const Color(0xFF181818),
           ),
         ),
       ),

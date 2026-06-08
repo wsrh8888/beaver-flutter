@@ -16,6 +16,8 @@ class ChatBar extends StatelessWidget {
   final ComposerPanelType activePanel;
   final bool isVoiceMode;
   final bool isSending;
+  final bool isEditing;
+  final bool isReplying;
   final FocusNode focusNode;
   final TextEditingController controller;
   const ChatBar({
@@ -24,6 +26,8 @@ class ChatBar extends StatelessWidget {
     required this.activePanel,
     required this.isVoiceMode,
     required this.isSending,
+    required this.isEditing,
+    this.isReplying = false,
     required this.focusNode,
     required this.controller,
   });
@@ -63,15 +67,21 @@ class ChatBar extends StatelessWidget {
                       focusNode.requestFocus();
                     },
                     onSubmitted: (val) {
-                      bloc.add(
-                        SendMessageEvent(
-                          MessageContentModel(
-                            type: MessageType.text,
-                            textMsg: TextMsg(content: val),
+                      final trimmed = val.trim();
+                      if (trimmed.isEmpty) return;
+                      if (isEditing) {
+                        bloc.add(SubmitEditMessageEvent(trimmed));
+                      } else {
+                        bloc.add(
+                          SendMessageEvent(
+                            MessageContentModel(
+                              type: MessageType.text,
+                              textMsg: TextMsg(content: trimmed),
+                            ),
+                            conversationId: conversationId,
                           ),
-                          conversationId: conversationId,
-                        ),
-                      );
+                        );
+                      }
                       controller.clear();
                     },
                   ),
@@ -101,15 +111,21 @@ class ChatBar extends StatelessWidget {
                         padding: EdgeInsets.only(left: 8.w),
                         child: GestureDetector(
                           onTap: () {
-                            bloc.add(
-                              SendMessageEvent(
-                                MessageContentModel(
-                                  type: MessageType.text,
-                                  textMsg: TextMsg(content: value.text),
+                            final trimmed = value.text.trim();
+                            if (trimmed.isEmpty) return;
+                            if (isEditing) {
+                              bloc.add(SubmitEditMessageEvent(trimmed));
+                            } else {
+                              bloc.add(
+                                SendMessageEvent(
+                                  MessageContentModel(
+                                    type: MessageType.text,
+                                    textMsg: TextMsg(content: trimmed),
+                                  ),
+                                  conversationId: conversationId,
                                 ),
-                                conversationId: conversationId,
-                              ),
-                            );
+                              );
+                            }
                             controller.clear();
                           },
                           child: Container(

@@ -12,7 +12,10 @@ List<GoRoute> momentRoutes() {
     ),
     GoRoute(
       path: AppRoutes.momentDetail,
-      builder: (context, state) => const MomentDetailPage(),
+      builder: (context, state) {
+        final momentId = state.uri.queryParameters['id'] ?? '';
+        return MomentDetailPage(momentId: momentId);
+      },
     ),
     GoRoute(
       path: AppRoutes.momentPost,

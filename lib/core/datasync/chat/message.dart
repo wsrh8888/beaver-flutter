@@ -1,13 +1,13 @@
 import 'package:beaver/api/chat.dart';
 import 'package:beaver/api/datasync.dart';
-import 'package:beaver/core/database/db.dart';
-import 'package:beaver/core/database/services/index.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/core/business/chat/message.dart';
+import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/message/message.dart';
 import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
-import 'package:drift/drift.dart';
 
 /// 消息同步器 - 负责同步聊天消息数据
 class MessageSync {
@@ -123,7 +123,13 @@ class MessageSync {
       );
     }
 
-    // TODO: 发送通知到渲染进程（在 Flutter 中可以通过 EventBus 或 Stream）
+    final messageStore = getIt<MessageStore>();
+    for (final item in conversationsWithSeq) {
+      if (messageStore.state.chatHistory.containsKey(item.conversationId)) {
+        await messageStore.reloadConversation(item.conversationId);
+      }
+    }
+    getIt<ConversationBusiness>().notifyConversationUpdate();
   }
 
   /// 同步单个会话的消息
@@ -145,7 +151,6 @@ class MessageSync {
     int fromSeq,
     int toSeq,
   ) async {
-    final chatService = getIt<ChatMessageService>();
     final messageBusiness = getIt<MessageBusiness>();
     int currentSeq = fromSeq;
 
@@ -162,30 +167,11 @@ class MessageSync {
       if (response.code == 0 &&
           response.result != null &&
           response.result!.messages.isNotEmpty) {
-        final messages = response.result!.messages
-            .map(
-              (msg) => ChatsCompanion(
-                messageId: Value(msg.messageId),
-                conversationId: Value(msg.conversationId),
-                conversationType: Value(msg.conversationType),
-                sendUserId: Value(msg.sendUserId),
-                msgType: Value(msg.msgType),
-                targetMessageId: Value(msg.targetMessageId),
-                msgPreview: Value(msg.msgPreview),
-                msg: Value(msg.msg),
-                seq: Value(msg.seq),
-                sendStatus: const Value(1), // 已发送
-                createdAt: Value(msg.createdAt),
-                updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
-              ),
-            )
-            .toList();
-
-        await chatService.batchCreate(messages);
-
-        // 清除正在发送消息的计时器 (ACK 确认)
-        final syncedIds = messages.map((m) => m.messageId.value).toList();
-        messageBusiness.clearTimers(syncedIds);
+        final apiMessages = response.result!.messages;
+        await messageBusiness.applySyncedMessages(apiMessages);
+        messageBusiness.clearTimers(
+          apiMessages.map((m) => m.messageId).toList(),
+        );
 
         currentSeq = (currentSeq + 99 < toSeq) ? currentSeq + 100 : toSeq + 1;
       } else {

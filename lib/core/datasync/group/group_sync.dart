@@ -1,5 +1,7 @@
 import 'package:beaver/api/datasync.dart';
 import 'package:beaver/api/group.dart';
+import 'package:beaver/core/business/chat/conversation.dart';
+import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
@@ -112,6 +114,7 @@ class GroupSync {
             creatorId: Value(group.creatorId),
             joinType: Value(group.joinType),
             status: Value(group.status),
+            notice: Value(group.notice),
             version: Value(group.version),
             createdAt: Value(group.createdAt),
             updatedAt: Value(group.updatedAt),
@@ -126,7 +129,10 @@ class GroupSync {
         );
       }
 
-      // TODO: 发送通知到渲染进程
+      getIt<GroupBusiness>().notifyGroupUpdate(
+        response.result!.groups.map((g) => g.groupId).toList(),
+      );
+      getIt<ConversationBusiness>().notifyConversationUpdate();
     }
   }
 }

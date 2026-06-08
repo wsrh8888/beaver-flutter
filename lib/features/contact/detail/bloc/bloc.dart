@@ -76,7 +76,17 @@ class ContactDetailBloc extends Bloc<DetailEvent, DetailState> {
     emit(state.copyWith(status: DetailStatus.loading));
 
     try {
-      await _detailRepository.updateRemarkName(state.userInfo!.userId, event.remarkName);
+      final success = await _detailRepository.updateRemarkName(
+        state.userInfo!.userId,
+        event.remarkName,
+      );
+      if (!success) {
+        emit(state.copyWith(
+          status: DetailStatus.error,
+          errorMessage: '更新备注失败',
+        ));
+        return;
+      }
       final updatedUserInfo = state.userInfo!.copyWith(remarkName: event.remarkName);
       emit(state.copyWith(
         status: DetailStatus.success,

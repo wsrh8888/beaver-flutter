@@ -7,6 +7,7 @@ class IGroupSyncItem {
   final String creatorId;
   final int joinType;
   final int status;
+  final String notice;
   final int version;
   final int? createdAt;
   final int? updatedAt;
@@ -18,6 +19,7 @@ class IGroupSyncItem {
     required this.creatorId,
     required this.joinType,
     required this.status,
+    this.notice = '',
     required this.version,
     this.createdAt,
     this.updatedAt,
@@ -30,6 +32,7 @@ class IGroupSyncItem {
     creatorId: json['creatorId'] ?? '',
     joinType: json['joinType'] ?? 0,
     status: json['status'] ?? 1,
+    notice: json['notice'] ?? '',
     version: json['version'] ?? 0,
     createdAt: json['createdAt'],
     updatedAt: json['updatedAt'],
@@ -239,4 +242,22 @@ class IGroupRemoveMembersReq {
     'groupId': groupId,
     'userIds': userIds,
   };
+}
+
+/// 解散群组请求
+class IGroupDeleteReq {
+  final String groupId;
+
+  IGroupDeleteReq({required this.groupId});
+
+  Map<String, dynamic> toJson() => {'groupId': groupId};
+}
+
+/// 退出群组请求
+class IGroupQuitReq {
+  final String groupId;
+
+  IGroupQuitReq({required this.groupId});
+
+  Map<String, dynamic> toJson() => {'groupId': groupId};
 }

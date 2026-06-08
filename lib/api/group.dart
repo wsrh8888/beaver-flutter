@@ -38,3 +38,15 @@ Future<BaseResponse> removeGroupMemberApi(IGroupRemoveMembersReq data) {
   return httpClient.post(url, data: data.toJson());
 }
 
+/// 解散群组（仅群主）
+Future<BaseResponse> deleteGroupApi(IGroupDeleteReq data) {
+  final url = '$baseUrl/api/group/v1/delete';
+  return httpClient.post(url, data: data.toJson());
+}
+
+/// 退出群组
+Future<BaseResponse> quitGroupApi(IGroupQuitReq data) {
+  final url = '$baseUrl/api/group/v1/quit';
+  return httpClient.post(url, data: data.toJson());
+}
+

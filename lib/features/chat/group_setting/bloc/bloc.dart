@@ -17,6 +17,7 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   GroupSettingBloc() : super(const GroupSettingState()) {
     on<InitGroupSettingEvent>(_onInit);
     on<TogglePinGroupChatEvent>(_onTogglePin);
+    on<ToggleMuteGroupChatEvent>(_onToggleMute);
     on<DeleteGroupConversationEvent>(_onDelete);
     on<ShowDeleteGroupDialogEvent>(_onShowDeleteDialog);
     on<AddGroupMembersEvent>(_onAddMembers);
@@ -110,16 +111,51 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     }
   }
 
+  Future<void> _onToggleMute(
+    ToggleMuteGroupChatEvent event,
+    Emitter<GroupSettingState> emit,
+  ) async {
+    if (state.conversation == null) return;
+
+    final previousIsMuted = state.conversation!.isMuted;
+    final newIsMuted = !previousIsMuted;
+
+    emit(
+      state.copyWith(
+        conversation: state.conversation!.copyWith(isMuted: newIsMuted),
+      ),
+    );
+
+    try {
+      await _conversationBusiness.toggleMuteChat(
+        state.conversationId,
+        newIsMuted,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          conversation: state.conversation!.copyWith(isMuted: previousIsMuted),
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
   Future<void> _onDelete(
     DeleteGroupConversationEvent event,
     Emitter<GroupSettingState> emit,
   ) async {
-    if (state.isSaving) return;
+    if (state.isSaving || state.isGroupOwner) return;
 
     emit(state.copyWith(isSaving: true, showDeleteDialog: false));
     try {
-      await _conversationBusiness.deleteChat(state.conversationId);
-      emit(state.copyWith(isSaving: false, status: GroupSettingStatus.deleted));
+      final groupId = state.conversationId.replaceFirst('group_', '');
+      final response = await quitGroupApi(IGroupQuitReq(groupId: groupId));
+      if (response.code != 0) {
+        throw Exception(response.msg);
+      }
+
+      await _removeLocalConversation(emit);
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
@@ -191,13 +227,26 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     DisbandGroupEvent event,
     Emitter<GroupSettingState> emit,
   ) async {
-    emit(state.copyWith(isSaving: true));
+    if (state.isSaving || !state.isGroupOwner) return;
+
+    emit(state.copyWith(isSaving: true, showDeleteDialog: false));
     try {
-      // TODO: Disband API (if separate from deleteConversation)
-      emit(state.copyWith(isSaving: false, status: GroupSettingStatus.deleted));
+      final groupId = state.conversationId.replaceFirst('group_', '');
+      final response = await deleteGroupApi(IGroupDeleteReq(groupId: groupId));
+      if (response.code != 0) {
+        throw Exception(response.msg);
+      }
+
+      await _removeLocalConversation(emit);
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
+  }
+
+  Future<void> _removeLocalConversation(Emitter<GroupSettingState> emit) async {
+    await _conversationBusiness.deleteChat(state.conversationId);
+    _conversationBusiness.notifyConversationUpdate();
+    emit(state.copyWith(isSaving: false, status: GroupSettingStatus.deleted));
   }
 
   Future<void> _onClearHistory(

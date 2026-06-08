@@ -1,37 +1,175 @@
 import 'package:beaver/api/datasync.dart';
+import 'package:beaver/core/business/notification/event.dart';
+import 'package:beaver/core/business/notification/inbox.dart';
+import 'package:beaver/core/business/notification/read_cursor.dart';
+import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 
-/// 通知事件同步
+/// 通知中心数据同步 (对标 PC notificationDatasync)
 class NotificationSync {
   Future<void> checkAndSync() async {
+    await _syncEvents();
+    await _syncInboxes();
+    await _syncReadCursors();
+  }
+
+  Future<void> _syncEvents() async {
     final datasyncService = getIt<DatasyncService>();
+    final eventService = getIt<NotificationEventService>();
+    final eventBusiness = getIt<NotificationEventBusiness>();
 
-    // 1. 获取本地同步游标
     final cursor = await datasyncService.get('notification_events');
-    final lastSyncTime = cursor?.version ?? 0;
+    final sinceVersion = cursor?.version ?? 0;
 
-    // 2. 获取摘要
     final response = await datasyncGetSyncNotificationEventsApi(
-      IGetSyncNotificationEventsReq(sinceVersion: lastSyncTime),
+      IGetSyncNotificationEventsReq(sinceVersion: sinceVersion),
     );
+    if (response.code != 0 || response.result == null) return;
 
-    if (response.code != 0 || response.result == null) {
-      // print('[NotificationSync] 获取通知版本失败: ${response.msg}');
-      return;
+    final eventVersions = response.result!.eventVersions;
+    final needEventIds = await _filterEventVersions(eventService, eventVersions);
+
+    if (needEventIds.isNotEmpty) {
+      await eventBusiness.syncEventsByIds(needEventIds);
     }
 
-    final serverTimestamp = response.result!.serverTimestamp;
-
-    // 3. 更新游标
-    // TODO: 实现具体通知事件数据的拉取逻辑
+    final nextVersion = _maxVersion(
+      sinceVersion,
+      response.result!.maxVersion,
+      eventVersions.map((e) => e.version),
+    );
 
     await datasyncService.upsert(
       'notification_events',
-      response.result!.maxVersion,
-      serverTimestamp,
+      nextVersion,
+      response.result!.serverTimestamp,
     );
+  }
+
+  Future<void> _syncInboxes() async {
+    final userId = DatabaseManager.currentUserId ?? '';
+    if (userId.isEmpty) return;
+
+    final datasyncService = getIt<DatasyncService>();
+    final inboxService = getIt<NotificationInboxService>();
+    final inboxBusiness = getIt<NotificationInboxBusiness>();
+
+    final cursor = await datasyncService.get('notification_inboxes');
+    final sinceVersion = cursor?.version ?? 0;
+
+    final response = await datasyncGetSyncNotificationInboxesApi(
+      IGetSyncNotificationInboxesReq(sinceVersion: sinceVersion),
+    );
+    if (response.code != 0 || response.result == null) return;
+
+    final inboxVersions = response.result!.inboxVersions;
+    final needEventIds = await _filterInboxVersions(
+      inboxService,
+      userId,
+      inboxVersions,
+    );
+
+    if (needEventIds.isNotEmpty) {
+      await inboxBusiness.syncInboxesByEventIds(userId, needEventIds);
+    }
+
+    final nextVersion = _maxVersion(
+      sinceVersion,
+      response.result!.maxVersion,
+      inboxVersions.map((e) => e.version),
+    );
+
+    await datasyncService.upsert(
+      'notification_inboxes',
+      nextVersion,
+      response.result!.serverTimestamp,
+    );
+  }
+
+  Future<void> _syncReadCursors() async {
+    final userId = DatabaseManager.currentUserId ?? '';
+    if (userId.isEmpty) return;
+
+    final datasyncService = getIt<DatasyncService>();
+    final readCursorBusiness = getIt<NotificationReadCursorBusiness>();
+
+    final cursor = await datasyncService.get('notification_reads');
+    final sinceVersion = cursor?.version ?? 0;
+
+    final response = await datasyncGetSyncNotificationReadCursorsApi(
+      IGetSyncNotificationReadCursorsReq(sinceVersion: sinceVersion),
+    );
+    if (response.code != 0 || response.result == null) return;
+
+    final cursorVersions = response.result!.cursorVersions;
+    final categories = cursorVersions
+        .map((item) => item.category)
+        .where((cat) => cat.isNotEmpty)
+        .toList();
+
+    if (categories.isNotEmpty) {
+      await readCursorBusiness.syncReadCursors(userId, categories);
+    }
+
+    final nextVersion = _maxVersion(
+      sinceVersion,
+      response.result!.maxVersion,
+      cursorVersions.map((e) => e.version),
+    );
+
+    await datasyncService.upsert(
+      'notification_reads',
+      nextVersion,
+      response.result!.serverTimestamp,
+    );
+  }
+
+  Future<List<String>> _filterEventVersions(
+    NotificationEventService eventService,
+    List<INotificationEventVersionItem> eventVersions,
+  ) async {
+    if (eventVersions.isEmpty) return [];
+
+    final eventIds = eventVersions.map((e) => e.eventId).where((id) => id.isNotEmpty).toList();
+    if (eventIds.isEmpty) return [];
+
+    final localMap = await eventService.getVersionMapByIds(eventIds);
+    return eventVersions
+        .where((item) => (localMap[item.eventId] ?? 0) < item.version)
+        .map((item) => item.eventId)
+        .toList();
+  }
+
+  Future<List<String>> _filterInboxVersions(
+    NotificationInboxService inboxService,
+    String userId,
+    List<INotificationInboxVersionItem> inboxVersions,
+  ) async {
+    if (inboxVersions.isEmpty) return [];
+
+    final eventIds = inboxVersions.map((e) => e.eventId).where((id) => id.isNotEmpty).toList();
+    if (eventIds.isEmpty) return [];
+
+    final localMap = await inboxService.getVersionMapByEventIds(
+      userId: userId,
+      eventIds: eventIds,
+    );
+
+    return inboxVersions
+        .where((item) => (localMap[item.eventId] ?? 0) < item.version)
+        .map((item) => item.eventId)
+        .toList();
+  }
+
+  int _maxVersion(int sinceVersion, int maxVersion, Iterable<int> versions) {
+    var result = sinceVersion;
+    if (maxVersion > result) result = maxVersion;
+    for (final version in versions) {
+      if (version > result) result = version;
+    }
+    return result;
   }
 }
 

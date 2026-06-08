@@ -8,7 +8,9 @@ class PrivateSettingPanel extends StatelessWidget {
   final String userId;
   final String avatar;
   final bool isTop;
+  final bool isMuted;
   final VoidCallback onToggleTop;
+  final VoidCallback onToggleMute;
   final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
 
@@ -18,7 +20,9 @@ class PrivateSettingPanel extends StatelessWidget {
     required this.userId,
     required this.avatar,
     required this.isTop,
+    required this.isMuted,
     required this.onToggleTop,
+    required this.onToggleMute,
     required this.onClearHistory,
     required this.onDeleteConversation,
   });
@@ -85,6 +89,25 @@ class PrivateSettingPanel extends StatelessWidget {
             trailing: Switch(
               value: isTop,
               onChanged: (_) => onToggleTop(),
+              activeColor: const Color(0xFFFF7D45),
+            ),
+          ),
+        ),
+        Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '消息免打扰',
+              style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+            ),
+            trailing: Switch(
+              value: isMuted,
+              onChanged: (_) => onToggleMute(),
               activeColor: const Color(0xFFFF7D45),
             ),
           ),

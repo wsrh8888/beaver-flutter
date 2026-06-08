@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:beaver/features/group/notifications/bloc/bloc.dart';
 import 'package:beaver/features/group/notifications/bloc/event.dart';
 import 'package:beaver/features/group/notifications/bloc/state.dart';
@@ -9,6 +10,7 @@ import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/router/routes.dart';
 
 class GroupNotificationsPage extends StatelessWidget {
   const GroupNotificationsPage({super.key});
@@ -82,6 +84,12 @@ class GroupNotificationsView extends StatelessWidget {
       ),
       child: Row(
         children: [
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openGroupChat(context, notification),
+              child: Row(
+                children: [
           Stack(
             children: [
               BeaverCachedImage(
@@ -116,7 +124,7 @@ class GroupNotificationsView extends StatelessWidget {
             ],
           ),
           SizedBox(width: 12.w),
-          Expanded(
+          Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -160,11 +168,20 @@ class GroupNotificationsView extends StatelessWidget {
               ],
             ),
           ),
+                ],
+              ),
+            ),
+          ),
           SizedBox(width: 12.w),
           _buildActions(context, notification),
         ],
       ),
     );
+  }
+
+  void _openGroupChat(BuildContext context, GroupNotification notification) {
+    if (notification.groupId.isEmpty) return;
+    context.push('${AppRoutes.chatDetail}?id=group_${notification.groupId}');
   }
 
   Widget _buildActions(BuildContext context, GroupNotification notification) {

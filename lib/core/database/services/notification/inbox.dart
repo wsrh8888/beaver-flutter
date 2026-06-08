@@ -159,4 +159,18 @@ class NotificationInboxService extends BaseService {
     final results = await query.get();
     return results.length;
   }
+
+  Future<Map<String, int>> getVersionMapByEventIds({
+    required String userId,
+    required List<String> eventIds,
+  }) async {
+    if (eventIds.isEmpty) return {};
+
+    final rows = await (db.select(db.notificationInboxTable)..where(
+          (t) => t.userId.equals(userId) & t.eventId.isIn(eventIds),
+        ))
+        .get();
+
+    return {for (final row in rows) row.eventId: row.version ?? 0};
+  }
 }

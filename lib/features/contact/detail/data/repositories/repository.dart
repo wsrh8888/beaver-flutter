@@ -1,3 +1,6 @@
+import 'package:beaver/core/business/friend/friend.dart';
+import 'package:beaver/core/database/db.dart';
+import 'package:beaver/core/database/services/friend/friend.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/contact/detail/data/models/user_info.dart' as detail_model;
 import 'package:beaver/types/business/contact.dart';
@@ -8,25 +11,44 @@ class DetailRepository {
   final FriendRepositoryInterface _friendRepository;
   final UserRepositoryInterface _userRepository;
   final ConversationRepositoryInterface _conversationRepository;
+  final FriendService _friendService;
+  final FriendBusiness _friendBusiness;
 
   DetailRepository({
     FriendRepositoryInterface? friendRepository,
     UserRepositoryInterface? userRepository,
     ConversationRepositoryInterface? conversationRepository,
+    FriendService? friendService,
+    FriendBusiness? friendBusiness,
   })  : _friendRepository = friendRepository ?? getIt<FriendRepositoryInterface>(),
         _userRepository = userRepository ?? getIt<UserRepositoryInterface>(),
-        _conversationRepository = conversationRepository ?? getIt<ConversationRepositoryInterface>();
+        _conversationRepository = conversationRepository ?? getIt<ConversationRepositoryInterface>(),
+        _friendService = friendService ?? getIt<FriendService>(),
+        _friendBusiness = friendBusiness ?? getIt<FriendBusiness>();
+
+  Future<String> _getRemarkName(String userId) async {
+    final myUserId = DatabaseManager.currentUserId ?? '';
+    if (myUserId.isEmpty) return '';
+
+    final friend = await _friendService.getFriendByPeerId(myUserId, userId);
+    if (friend == null) return '';
+
+    return friend.sendUserId == myUserId
+        ? (friend.sendUserNotice ?? '')
+        : (friend.revUserNotice ?? '');
+  }
 
   Future<detail_model.UserInfo> getUserInfo(String userId) async {
     final user = await _userRepository.getUserProfile(userId);
     final conversationId = await _conversationRepository.getConversationIdByPeerId(userId);
+    final remarkName = await _getRemarkName(userId);
 
     if (user != null) {
       return detail_model.UserInfo(
           userId: user.userId,
           nickname: user.nickName,
           fileName: user.avatar ?? '',
-          remarkName: '',
+          remarkName: remarkName,
           signature: user.abstract,
           gender: user.gender == 1 ? 'male' : 'female',
           location: '',
@@ -44,7 +66,7 @@ class DetailRepository {
       userId: userId,
       nickname: '未知用户',
       fileName: '',
-      remarkName: '',
+      remarkName: remarkName,
       signature: '',
       gender: 'male',
       location: '',
@@ -60,8 +82,7 @@ class DetailRepository {
   }
 
   Future<bool> updateRemarkName(String userId, String remarkName) async {
-    // TODO: 实现更新备注名称逻辑
-    return true;
+    return _friendBusiness.updateRemarkName(userId, remarkName);
   }
 
   Future<bool> deleteFriend(String userId) async {
@@ -69,4 +90,3 @@ class DetailRepository {
     return true;
   }
 }
-

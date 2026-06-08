@@ -5,7 +5,14 @@ import 'package:flutter/widgets.dart';
 class ImageHandler extends BaseMessageHandler {
   @override
   Future<void> handleCommand(BuildContext context, String commandId, MessageModel message) async {
-    // TODO: Implement image specific commands
+    switch (commandId) {
+      case 'recall':
+        await recallMessage(context, message);
+        break;
+      case 'delete':
+        await deleteMessage(context, message);
+        break;
+    }
   }
 
   @override

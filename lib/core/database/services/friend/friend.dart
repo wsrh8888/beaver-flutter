@@ -69,4 +69,23 @@ class FriendService extends BaseService {
       }
     });
   }
+
+  /// 更新好友备注
+  Future<void> updateNotice(
+    String friendId, {
+    String? sendUserNotice,
+    String? revUserNotice,
+  }) async {
+    await (db.update(db.friends)..where((t) => t.friendId.equals(friendId)))
+        .write(
+      FriendsCompanion(
+        sendUserNotice: sendUserNotice != null
+            ? Value(sendUserNotice)
+            : const Value.absent(),
+        revUserNotice: revUserNotice != null
+            ? Value(revUserNotice)
+            : const Value.absent(),
+      ),
+    );
+  }
 }

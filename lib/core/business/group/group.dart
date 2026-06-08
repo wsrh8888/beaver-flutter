@@ -156,6 +156,7 @@ class GroupBusiness implements GroupRepositoryInterface {
             creatorId: Value(group.creatorId),
             joinType: Value(group.joinType),
             status: Value(group.status),
+            notice: Value(group.notice),
             version: Value(group.version),
             createdAt: Value(
               group.createdAt ??

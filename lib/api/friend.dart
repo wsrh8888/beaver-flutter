@@ -49,3 +49,15 @@ Future<BaseResponse<void>> valiFriendApi(IValiFriendReq data) {
   return httpClient.post<void>(url, data: data.toJson());
 }
 
+/// 修改好友备注 (对标 Desktop updateRemarkNameApi)
+Future<BaseResponse<INoticeUpdateRes>> updateRemarkNameApi(
+  INoticeUpdateReq data,
+) {
+  final url = '$baseUrl/api/friend/v1/update_notice';
+  return httpClient.post<INoticeUpdateRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => INoticeUpdateRes.fromJson(json),
+  );
+}
+
