@@ -13,6 +13,7 @@ import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
 import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/call/call.dart';
+import 'package:beaver/store/message_media/message_media.dart';
 import 'package:beaver/core/datasync/emoji/sync.dart';
 import 'package:beaver/core/datasync/manager.dart' show syncManager;
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
@@ -129,6 +130,7 @@ class AppStore extends Cubit<AppStoreState> {
       final emojiStore = getIt<EmojiStore>();
       final updateStore = getIt<UpdateStore>();
       final callStore = getIt<CallStore>();
+      final messageMediaStore = getIt<MessageMediaStore>();
 
       // 1. 先初始化基础数据底座 (ContactStore 存储全局用户 Metadata)
       await contactStore.init();
@@ -146,6 +148,7 @@ class AppStore extends Cubit<AppStoreState> {
         emojiStore.init(),
         updateStore.init(),
         callStore.init(),
+        messageMediaStore.init(),
       ]);
 
       emit(

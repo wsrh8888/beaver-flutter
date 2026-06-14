@@ -8,6 +8,7 @@ class ChatDatasync {
       userConversationSync.checkAndSync(), // 用户会话设置同步
       conversationMetaSync.checkAndSync(), // 会话元数据同步
       messageSync.checkAndSync(), // 消息同步
+      messageMediaSync.checkAndSync(), // 消息媒体状态同步（语音已听等）
     ]);
   }
 }

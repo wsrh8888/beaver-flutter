@@ -71,12 +71,12 @@ Future<BaseResponse<IDeleteMessagesRes>> deleteMessagesApi(IDeleteMessagesReq da
   return httpClient.post<IDeleteMessagesRes>(url, data: data.toJson(), fromJsonT: (json) => IDeleteMessagesRes.fromJson(json));
 }
 
-/// 搜索消息
-Future<BaseResponse<ISearchMessagesRes>> searchMessagesApi(ISearchMessagesReq data) {
-  final url = '$baseUrl/api/chat/v1/searchMessages';
-  return httpClient.post<ISearchMessagesRes>(
+/// 标记消息媒体状态（如语音已听）
+Future<BaseResponse<IMarkMessageMediaRes>> markMessageMediaApi(IMarkMessageMediaReq data) {
+  final url = '$baseUrl/api/chat/v1/markMessageMedia';
+  return httpClient.post<IMarkMessageMediaRes>(
     url,
     data: data.toJson(),
-    fromJsonT: (json) => ISearchMessagesRes.fromJson(json),
+    fromJsonT: (_) => const IMarkMessageMediaRes(),
   );
 }

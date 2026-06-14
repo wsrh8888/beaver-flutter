@@ -85,3 +85,13 @@ Future<BaseResponse<IGetSyncNotificationReadCursorsRes>> datasyncGetSyncNotifica
   final url = '$baseUrl/api/datasync/v1/getSyncNotificationReadCursors';
   return httpClient.post<IGetSyncNotificationReadCursorsRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncNotificationReadCursorsRes.fromJson(json));
 }
+
+/// 同步消息媒体状态（语音已听等）
+Future<BaseResponse<IGetSyncMessageMediasRes>> datasyncGetSyncMessageMediasApi(IGetSyncMessageMediasReq data) {
+  final url = '$baseUrl/api/datasync/v1/getSyncMessageMedias';
+  return httpClient.post<IGetSyncMessageMediasRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IGetSyncMessageMediasRes.fromJson(json),
+  );
+}

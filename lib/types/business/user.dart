@@ -22,6 +22,7 @@ class UserInfo extends Equatable {
   final String? avatar;
   final String? abstract;
   final String? email;
+  final String? phone;
   final int gender;
 
   const UserInfo({
@@ -30,6 +31,7 @@ class UserInfo extends Equatable {
     this.avatar,
     this.abstract,
     this.email,
+    this.phone,
     this.gender = 0,
   });
 
@@ -40,6 +42,7 @@ class UserInfo extends Equatable {
     avatar,
     abstract,
     email,
+    phone,
     gender,
   ];
 
@@ -51,6 +54,7 @@ class UserInfo extends Equatable {
       avatar: map['avatar'],
       abstract: map['abstract'],
       email: map['email'],
+      phone: map['phone'],
       gender: map['gender'] ?? 0,
     );
   }
@@ -62,6 +66,7 @@ class UserInfo extends Equatable {
       'avatar': avatar,
       'abstract': abstract,
       'email': email,
+      'phone': phone,
       'gender': gender,
     };
   }
@@ -72,6 +77,7 @@ class UserInfo extends Equatable {
     String? avatar,
     String? abstract,
     String? email,
+    String? phone,
     int? gender,
   }) {
     return UserInfo(
@@ -80,6 +86,7 @@ class UserInfo extends Equatable {
       avatar: avatar ?? this.avatar,
       abstract: abstract ?? this.abstract,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
       gender: gender ?? this.gender,
     );
   }

@@ -167,3 +167,92 @@ class LogoutRes {
 class LogoutReq {
   Map<String, dynamic> toJson() => {};
 }
+
+/// 修改密码请求
+class UpdatePasswordReq {
+  final String oldPassword;
+  final String newPassword;
+
+  UpdatePasswordReq({
+    required this.oldPassword,
+    required this.newPassword,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'oldPassword': oldPassword,
+    'newPassword': newPassword,
+  };
+}
+
+/// 修改密码响应
+class UpdatePasswordRes {
+  factory UpdatePasswordRes.fromJson(Map<String, dynamic> json) =>
+      UpdatePasswordRes();
+  UpdatePasswordRes();
+}
+
+/// 设备信息
+class DeviceInfo {
+  final String deviceId;
+  final String deviceType;
+  final String deviceOs;
+  final String deviceModel;
+  final String deviceOsVersion;
+  final String deviceName;
+  final String lastLoginTime;
+  final bool isOnline;
+  final String lastLoginIp;
+
+  DeviceInfo({
+    required this.deviceId,
+    required this.deviceType,
+    required this.deviceOs,
+    required this.deviceModel,
+    required this.deviceOsVersion,
+    required this.deviceName,
+    required this.lastLoginTime,
+    required this.isOnline,
+    required this.lastLoginIp,
+  });
+
+  factory DeviceInfo.fromJson(Map<String, dynamic> json) => DeviceInfo(
+    deviceId: json['deviceId'] ?? '',
+    deviceType: json['deviceType'] ?? '',
+    deviceOs: json['deviceOs'] ?? '',
+    deviceModel: json['deviceModel'] ?? '',
+    deviceOsVersion: json['deviceOsVersion'] ?? '',
+    deviceName: json['deviceName'] ?? '',
+    lastLoginTime: json['lastLoginTime'] ?? '',
+    isOnline: json['isOnline'] == true,
+    lastLoginIp: json['lastLoginIp'] ?? '',
+  );
+}
+
+/// 获取登录设备列表响应
+class GetDevicesRes {
+  final List<DeviceInfo> devices;
+
+  GetDevicesRes({required this.devices});
+
+  factory GetDevicesRes.fromJson(Map<String, dynamic> json) => GetDevicesRes(
+    devices: (json['devices'] as List?)
+            ?.map((e) => DeviceInfo.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [],
+  );
+}
+
+/// 踢下线设备请求
+class KickDeviceReq {
+  final String deviceId;
+
+  KickDeviceReq({required this.deviceId});
+
+  Map<String, dynamic> toJson() => {'deviceId': deviceId};
+}
+
+/// 踢下线设备响应
+class KickDeviceRes {
+  factory KickDeviceRes.fromJson(Map<String, dynamic> json) => KickDeviceRes();
+  KickDeviceRes();
+}

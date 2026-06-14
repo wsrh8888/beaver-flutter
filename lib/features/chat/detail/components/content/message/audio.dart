@@ -22,7 +22,9 @@ class AudioMessage extends StatelessWidget {
         final color = isSelf
             ? AppColors.chatBubbleSelfText
             : AppColors.chatBubbleOtherText;
-        final isPlaying = playerState.isPlaying(fileUrl);
+        final isPlaying = playerState.isPlaying(
+          fileUrl.isEmpty ? '' : 'voice-url:$fileUrl',
+        );
 
         return GestureDetector(
           onTap: fileUrl.isEmpty

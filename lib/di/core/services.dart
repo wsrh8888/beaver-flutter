@@ -26,6 +26,9 @@ void configureServiceDependencies(GetIt getIt) {
   getIt.registerLazySingleton<ChatSyncStatusService>(
     () => const ChatSyncStatusService(),
   );
+  getIt.registerLazySingleton<ChatMessageMediaService>(
+    () => const ChatMessageMediaService(),
+  );
 
   getIt.registerLazySingleton<GroupService>(() => const GroupService());
   getIt.registerLazySingleton<GroupMemberService>(

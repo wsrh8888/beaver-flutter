@@ -1,4 +1,7 @@
 import 'package:go_router/go_router.dart';
+import 'package:beaver/features/setting/account_security/account_security.dart';
+import 'package:beaver/features/setting/account_security/change_password.dart';
+import 'package:beaver/features/setting/account_security/devices.dart';
 import 'package:beaver/features/setting/main/main.dart';
 import 'package:beaver/features/setting/theme/theme.dart';
 import 'package:beaver/features/setting/about/about.dart';
@@ -14,6 +17,18 @@ List<GoRoute> settingRoutes() {
     GoRoute(
       path: AppRoutes.settingMain,
       builder: (context, state) => const SettingMainPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.settingAccountSecurity,
+      builder: (context, state) => const AccountSecurityPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.settingChangePassword,
+      builder: (context, state) => const ChangePasswordPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.settingDevices,
+      builder: (context, state) => const LoginDevicesPage(),
     ),
     GoRoute(
       path: AppRoutes.settingTheme,

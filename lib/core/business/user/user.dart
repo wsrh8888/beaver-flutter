@@ -57,6 +57,7 @@ class UserBusiness implements UserRepositoryInterface {
       avatar: dbUser.avatar,
       abstract: dbUser.abstract,
       email: dbUser.email,
+      phone: dbUser.phone,
       gender: dbUser.gender ?? 0,
     );
   }
@@ -167,6 +168,7 @@ class UserBusiness implements UserRepositoryInterface {
             avatar: u['avatar'] ?? '',
             abstract: u['abstract'] ?? '',
             email: u['email'] ?? '',
+            phone: u['phone'] ?? '',
             gender: u['gender'] ?? 0,
           ),
         )

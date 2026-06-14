@@ -44,3 +44,32 @@ Future<BaseResponse<ResetPasswordRes>> resetPasswordApi(ResetPasswordReq data) {
   return httpClient.post<ResetPasswordRes>(url, data: data.toJson(), fromJsonT: (json) => ResetPasswordRes.fromJson(json));
 }
 
+/// 修改密码
+Future<BaseResponse<UpdatePasswordRes>> updatePasswordApi(UpdatePasswordReq data) {
+  final url = '$baseUrl/api/auth/auth/v1/update_password';
+  return httpClient.post<UpdatePasswordRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => UpdatePasswordRes.fromJson(json),
+  );
+}
+
+/// 获取登录设备列表
+Future<BaseResponse<GetDevicesRes>> getDevicesApi() {
+  final url = '$baseUrl/api/auth/auth/v1/devices';
+  return httpClient.get<GetDevicesRes>(
+    url,
+    fromJsonT: (json) => GetDevicesRes.fromJson(json),
+  );
+}
+
+/// 踢下线指定设备
+Future<BaseResponse<KickDeviceRes>> kickDeviceApi(KickDeviceReq data) {
+  final url = '$baseUrl/api/auth/auth/v1/kick_device';
+  return httpClient.post<KickDeviceRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => KickDeviceRes.fromJson(json),
+  );
+}
+

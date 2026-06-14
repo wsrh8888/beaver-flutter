@@ -63,15 +63,34 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (m) async {
         await m.createAll();
+        await _createChatMessageMediasTable(m.database);
+      },
+      onUpgrade: (m, from, to) async {
+        if (from < 2) {
+          await _createChatMessageMediasTable(m.database);
+        }
       },
     );
+  }
+
+  static Future<void> _createChatMessageMediasTable(GeneratedDatabase database) async {
+    await database.customStatement('''
+      CREATE TABLE IF NOT EXISTS chat_message_medias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        message_id TEXT NOT NULL,
+        version INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (user_id, message_id)
+      )
+    ''');
   }
 
   /// 清除本地所有数据 (用于 设置-清理数据)

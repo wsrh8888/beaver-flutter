@@ -65,22 +65,14 @@ class _SettingMainPageState extends State<SettingMainPage> {
                   _buildSettingsCard([
                     _buildSettingItem(
                       title: '账号与安全',
-                      onTap: () => BeaverToast.show(
-                        context,
-                        '暂未开放',
-                      ), // Placeholder since route is missing
+                      onTap: () => context.push(AppRoutes.settingAccountSecurity),
                       showBorder: false,
                     ),
                   ]),
                   SizedBox(height: 24.w),
 
-                  // 2. 主题与存储
+                  // 2. 存储
                   _buildSettingsCard([
-                    _buildSettingItem(
-                      title: '主题设置',
-                      onTap: () => context.push(AppRoutes.settingTheme),
-                      showBorder: true,
-                    ),
                     _buildSettingItem(
                       title: '清理本地数据',
                       onTap: _handleClearLocalData,

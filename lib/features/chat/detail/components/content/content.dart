@@ -253,7 +253,7 @@ class ChatContent extends StatelessWidget {
       case MessageType.voice:
         return m.voiceMsg == null
             ? const SizedBox()
-            : VoiceMessage(msg: m.voiceMsg!, isSelf: isSelf);
+            : VoiceMessage(msg: m.voiceMsg!, messageId: message.id, isSelf: isSelf);
       case MessageType.file:
         return m.fileMsg == null ? const SizedBox() : FileMessage(msg: m.fileMsg!, isSelf: isSelf);
       case MessageType.emoji:

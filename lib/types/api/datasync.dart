@@ -595,3 +595,29 @@ class IGetSyncNotificationReadCursorsRes {
     serverTimestamp: json['serverTimestamp'] ?? 0,
   );
 }
+
+/// 同步消息媒体状态请求
+class IGetSyncMessageMediasReq {
+  final int since;
+
+  const IGetSyncMessageMediasReq({this.since = 0});
+
+  Map<String, dynamic> toJson() => {'since': since};
+}
+
+/// 同步消息媒体状态响应
+class IGetSyncMessageMediasRes {
+  final List<String> messageIds;
+  final int serverTimestamp;
+
+  const IGetSyncMessageMediasRes({
+    required this.messageIds,
+    required this.serverTimestamp,
+  });
+
+  factory IGetSyncMessageMediasRes.fromJson(Map<String, dynamic> json) =>
+      IGetSyncMessageMediasRes(
+        messageIds: (json['messageIds'] as List?)?.cast<String>() ?? [],
+        serverTimestamp: (json['serverTimestamp'] as num?)?.toInt() ?? 0,
+      );
+}

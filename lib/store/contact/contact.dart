@@ -83,6 +83,9 @@ class ContactStore extends Cubit<ContactStoreState> {
         email: (contactInfo.email?.isNotEmpty ?? false)
             ? contactInfo.email
             : existing.email,
+        phone: (contactInfo.phone?.isNotEmpty ?? false)
+            ? contactInfo.phone
+            : existing.phone,
         gender: contactInfo.gender != 0 ? contactInfo.gender : existing.gender,
       );
 

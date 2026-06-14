@@ -12,6 +12,7 @@ import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/store/call/call_list.dart';
+import 'package:beaver/store/message_media/message_media.dart';
 import 'package:beaver/store/voice/voice.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/group/group_join_request.dart';
@@ -37,6 +38,7 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<CallStore>(() => CallStore());
   getIt.registerLazySingleton<CallListStore>(() => CallListStore());
   getIt.registerLazySingleton<VoicePlayerStore>(() => VoicePlayerStore());
+  getIt.registerLazySingleton<MessageMediaStore>(() => MessageMediaStore());
   getIt.registerLazySingleton<GroupMemberStore>(() => GroupMemberStore());
   getIt.registerLazySingleton<GroupJoinRequestStore>(
     () => GroupJoinRequestStore(),
