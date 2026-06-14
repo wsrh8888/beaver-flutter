@@ -5,7 +5,14 @@ import 'package:flutter/widgets.dart';
 class FileHandler extends BaseMessageHandler {
   @override
   Future<void> handleCommand(BuildContext context, String commandId, MessageModel message) async {
-    // TODO: Implement file specific commands
+    switch (commandId) {
+      case 'recall':
+        await recallMessage(context, message);
+        break;
+      case 'delete':
+        await deleteMessage(context, message);
+        break;
+    }
   }
 
   @override

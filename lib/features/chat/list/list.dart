@@ -12,6 +12,7 @@ import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:beaver/features/calls/widgets/incoming_call_banner.dart';
 
 class ChatListPage extends StatelessWidget {
   const ChatListPage({super.key});
@@ -67,6 +68,7 @@ class _ChatListViewState extends State<ChatListView> {
 
           return CustomScrollView(
             slivers: [
+              const SliverToBoxAdapter(child: IncomingCallBanner()),
               // 置顶会话
               if (pinnedChats.isNotEmpty) ...[
                 _buildSectionHeader('置顶会话'),
@@ -133,7 +135,7 @@ class _ChatListViewState extends State<ChatListView> {
                           : null,
                       isLabelVisible: chat.unreadCount > 0,
                       child: BeaverCachedImage(
-                        fileKey: chat.avatar,
+                        fileUrl: chat.avatar,
                         type: CacheType.avatar,
                         width: 32.w,
                         height: 32.w,
@@ -231,7 +233,7 @@ class _ChatListViewState extends State<ChatListView> {
                         : null,
                     isLabelVisible: chat.unreadCount > 0,
                     child: BeaverCachedImage(
-                      fileKey: chat.avatar,
+                      fileUrl: chat.avatar,
                       type: CacheType.avatar,
                       width: 48.w,
                       height: 48.w,
@@ -379,7 +381,6 @@ class _ChatListViewState extends State<ChatListView> {
   }
 
   void _handleChatClick(ChatModel chat) {
-    getIt<ChatStore>().markAsRead(chat.conversationId);
     context.push('/chat/detail?id=${chat.conversationId}');
   }
 
@@ -394,6 +395,9 @@ class _ChatListViewState extends State<ChatListView> {
       case 3: // 扫一扫
         context.push(AppRoutes.scan);
         break;
+      case 4: // 搜索消息
+        context.push(AppRoutes.chatSearch);
+        break;
     }
   }
 
@@ -401,5 +405,6 @@ class _ChatListViewState extends State<ChatListView> {
     {'id': 1, 'title': '发起群聊', 'icon': 'assets/icons/dropdown-group-icon.svg'},
     {'id': 2, 'title': '添加朋友', 'icon': 'assets/icons/add-friend-icon.svg'},
     {'id': 3, 'title': '扫一扫', 'icon': 'assets/icons/scan-icon.svg'},
+    {'id': 4, 'title': '搜索消息', 'icon': 'assets/icons/search-icon.svg'},
   ];
 }

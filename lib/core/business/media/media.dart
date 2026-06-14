@@ -7,13 +7,13 @@ import 'package:beaver/types/api/file.dart';
 /// 职责：为 UI 提供集中的媒体资源访问接口
 class MediaBusiness {
   /// 获取媒体资源地址 (带缓存逻辑)
-  Future<String> getMediaPath(String fileKey, CacheType type) async {
-    return mediaManager.get(type, fileKey);
+  Future<String> getMediaPath(String fileUrl, CacheType type) async {
+    return mediaManager.get(type, fileUrl);
   }
 
   /// 预下载/添加到缓存
-  Future<String?> addMediaPath(String fileKey, CacheType type) async {
-    return mediaManager.add(type, fileKey);
+  Future<String?> addMediaPath(String fileUrl, CacheType type) async {
+    return mediaManager.add(type, fileUrl);
   }
 
   /// 上传文件并返回上传结果 (对标 PC uploadFileApi)

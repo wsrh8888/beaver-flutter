@@ -253,6 +253,27 @@ class IAddFriendReq {
   };
 }
 
+/// 修改好友备注请求
+class INoticeUpdateReq {
+  final String friendId;
+  final String notice;
+
+  INoticeUpdateReq({required this.friendId, required this.notice});
+
+  Map<String, dynamic> toJson() => {
+    'friendId': friendId,
+    'notice': notice,
+  };
+}
+
+/// 修改好友备注响应
+class INoticeUpdateRes {
+  INoticeUpdateRes();
+
+  factory INoticeUpdateRes.fromJson(Map<String, dynamic> json) =>
+      INoticeUpdateRes();
+}
+
 /// 验证好友申请请求
 class IValiFriendReq {
   final String verifyId;

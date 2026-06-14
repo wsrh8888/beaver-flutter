@@ -6,6 +6,7 @@ import 'package:beaver/features/setting/main/bloc/event.dart';
 import 'package:beaver/features/setting/main/bloc/state.dart';
 import 'package:beaver/features/setting/main/data/repositories/repository.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/shared/ui/dialog/index.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -22,6 +23,8 @@ class SettingMainPage extends StatefulWidget {
 
 class _SettingMainPageState extends State<SettingMainPage> {
   late SettingMainBloc _settingMainBloc;
+  bool _showLogoutDialog = false;
+  bool _showClearDataDialog = false;
 
   @override
   void initState() {
@@ -52,7 +55,8 @@ class _SettingMainPageState extends State<SettingMainPage> {
             showBack: true,
             showBackground: true,
             backgroundType: 'gradient',
-            backgroundHeight: 60, // 120rpx / 2 = 60px
+            backgroundHeight: 60,
+            overlay: _buildOverlay(context),
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(16.w, 16.w, 16.w, 40.w),
               child: Column(
@@ -181,9 +185,49 @@ class _SettingMainPageState extends State<SettingMainPage> {
     );
   }
 
+  Widget? _buildOverlay(BuildContext context) {
+    if (!_showLogoutDialog && !_showClearDataDialog) return null;
+
+    if (_showLogoutDialog) {
+      return BeaverDialog(
+        title: '退出登录',
+        contentText: '退出后需要重新登录，确定要退出吗？',
+        confirmText: '退出',
+        confirmColor: const Color(0xFFF44336),
+        cancelText: '取消',
+        maskClosable: true,
+        onCancel: () => setState(() => _showLogoutDialog = false),
+        onConfirm: () async {
+          setState(() => _showLogoutDialog = false);
+          await getIt<AppStore>().logout();
+          if (mounted) {
+            context.go('/login');
+          }
+        },
+      );
+    }
+
+    return BeaverDialog(
+      title: '清理本地数据',
+      contentText: '这将清除本地数据库中所有聊天、好友、群组及表情记录，是否继续？',
+      confirmText: '确定清理',
+      confirmColor: const Color(0xFFF44336),
+      cancelText: '取消',
+      maskClosable: true,
+      onCancel: () => setState(() => _showClearDataDialog = false),
+      onConfirm: () async {
+        setState(() => _showClearDataDialog = false);
+        await getIt<AppStore>().clearLocalData();
+        if (mounted) {
+          BeaverToast.show(context, '本地数据已清空');
+        }
+      },
+    );
+  }
+
   Widget _buildLogoutButton() {
     return GestureDetector(
-      onTap: _showLogoutDialog,
+      onTap: () => setState(() => _showLogoutDialog = true),
       child: Container(
         width: double.infinity,
         height: 48.w,
@@ -211,64 +255,7 @@ class _SettingMainPageState extends State<SettingMainPage> {
     );
   }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('确认退出登录'),
-        content: const Text('退出后需要重新登录才能使用 Beaver ，确定要退出吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              // 调用全局退出登录逻辑 (含 WS 断连及缓存清理)
-              await getIt<AppStore>().logout();
-              if (mounted) {
-                BeaverToast.show(context, '已退出登录');
-                context.go('/login');
-              }
-            },
-            child: const Text(
-              '确认退出',
-              style: TextStyle(color: Color(0xFFFF5252)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _handleClearLocalData() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('清理本地数据'),
-        content: const Text('这将清除本地数据库中所有聊天、好友、群组及表情记录，是否继续？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              // 1. 清除数据库和状态
-              await getIt<AppStore>().clearLocalData();
-              if (mounted) {
-                BeaverToast.show(context, '本地数据已清空');
-              }
-            },
-            child: const Text(
-              '确定清理',
-              style: TextStyle(color: Color(0xFFFF5252)),
-            ),
-          ),
-        ],
-      ),
-    );
+    setState(() => _showClearDataDialog = true);
   }
 }

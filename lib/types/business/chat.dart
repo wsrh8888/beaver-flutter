@@ -3,6 +3,7 @@ abstract class ConversationRepositoryInterface {
   Future<List<ChatModel>> getChatList();
   Future<void> markAsRead(String conversationId);
   Future<void> togglePinChat(String conversationId, bool isPinned);
+  Future<void> toggleMuteChat(String conversationId, bool isMuted);
   Future<void> deleteChat(String conversationId);
   Future<ChatModel?> getConversation(String conversationId);
   Future<void> syncConversationByVersion(String conversationId, int version);
@@ -21,6 +22,7 @@ class ChatModel {
   final String msgPreview;
   final String updateAt;
   final bool isTop;
+  final bool isMuted;
   final int unreadCount;
 
   const ChatModel({
@@ -30,6 +32,7 @@ class ChatModel {
     required this.msgPreview,
     required this.updateAt,
     this.isTop = false,
+    this.isMuted = false,
     this.unreadCount = 0,
   });
 
@@ -42,6 +45,7 @@ class ChatModel {
     String? msgPreview,
     String? updateAt,
     bool? isTop,
+    bool? isMuted,
     int? unreadCount,
   }) {
     return ChatModel(
@@ -51,6 +55,7 @@ class ChatModel {
       msgPreview: msgPreview ?? this.msgPreview,
       updateAt: updateAt ?? this.updateAt,
       isTop: isTop ?? this.isTop,
+      isMuted: isMuted ?? this.isMuted,
       unreadCount: unreadCount ?? this.unreadCount,
     );
   }

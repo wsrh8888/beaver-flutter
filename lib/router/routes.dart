@@ -13,6 +13,7 @@ class AppRoutes {
   static const String groupChatSetting = '/chat/setting/group';
   static const String chatForward = '/chat/forward';
   static const String chatForwardDetail = '/chat/forward/detail';
+  static const String chatSearch = '/chat/search';
   
   // 联系人模块
   static const String contactList = '/contact/list';
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String momentList = '/moment/list';
   static const String momentDetail = '/moment/detail';
   static const String momentPost = '/moment/post';
+  static const String momentMessages = '/moment/messages';
   
   // 群组模块
   static const String groupList = '/group/list';
@@ -67,4 +69,5 @@ class AppRoutes {
   // 通用模块
   static const String webview = '/common/webview';
   static const String scan = '/common/scan';
+  static const String oauthScanConfirm = '/oauth/scan-confirm';
 }

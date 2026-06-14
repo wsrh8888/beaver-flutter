@@ -1,18 +1,25 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/features/chat/detail/components/bottom/bar.dart';
+import 'package:beaver/features/chat/detail/components/bottom/edit_bar.dart';
+import 'package:beaver/features/chat/detail/components/bottom/reply_bar.dart';
 import 'package:beaver/features/chat/detail/components/bottom/action.dart';
 import 'package:beaver/features/chat/detail/components/bottom/panels/emoji/index.dart';
 import 'package:beaver/features/chat/detail/components/bottom/panels/tool/menu.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
+import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ChatBottom extends StatefulWidget {
+  final String conversationId;
   final String draft;
   final ComposerPanelType activePanel;
   final bool isVoiceMode;
   final bool isSending;
   final bool isMultiSelect;
-  const ChatBottom({super.key, required this.draft, required this.activePanel, required this.isVoiceMode, required this.isSending, required this.isMultiSelect});
+  final MessageModel? editingMessage;
+  final MessageModel? replyingMessage;
+  const ChatBottom({super.key, required this.conversationId, required this.draft, required this.activePanel, required this.isVoiceMode, required this.isSending, required this.isMultiSelect, this.editingMessage, this.replyingMessage});
   @override
   State<ChatBottom> createState() => _ChatBottomState();
 }
@@ -44,18 +51,48 @@ class _ChatBottomState extends State<ChatBottom> {
   }
 
   @override
+  void didUpdateWidget(ChatBottom oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.draft != _controller.text) {
+      _controller.text = widget.draft;
+      _controller.selection = TextSelection.collapsed(
+        offset: _controller.text.length,
+      );
+    }
+    if (widget.editingMessage != null &&
+        widget.editingMessage != oldWidget.editingMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
+    if (widget.replyingMessage != null &&
+        widget.replyingMessage != oldWidget.replyingMessage) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (widget.isMultiSelect) return const MultiSelectAction();
     final currentInsets = MediaQuery.of(context).viewInsets.bottom;
     if (currentInsets > 0) _keyboardHeight = currentInsets;
     return Container(
-      color: Colors.white,
+      color: AppColors.chatInputBackground,
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
+        if (widget.editingMessage != null)
+          EditMessageBar(message: widget.editingMessage!),
+        if (widget.editingMessage == null && widget.replyingMessage != null)
+          ReplyMessageBar(message: widget.replyingMessage!),
         ChatBar(
+          conversationId: widget.conversationId,
           activePanel: widget.activePanel, 
           isVoiceMode: widget.isVoiceMode, 
-          isSending: widget.isSending, 
+          isSending: widget.isSending,
+          isEditing: widget.editingMessage != null,
+          isReplying: widget.replyingMessage != null,
           focusNode: _focusNode,
           controller: _controller,
         ), 
@@ -69,8 +106,8 @@ class _ChatBottomState extends State<ChatBottom> {
   }
   Widget _resolvePanel() {
     switch (widget.activePanel) {
-      case ComposerPanelType.emoji: return EmojiPanel(controller: _controller);
-      case ComposerPanelType.package: return const ToolMenu();
+      case ComposerPanelType.emoji: return EmojiPanel(controller: _controller, conversationId: widget.conversationId);
+      case ComposerPanelType.package: return ToolMenu(conversationId: widget.conversationId);
       default: return const SizedBox.shrink();
     }
   }

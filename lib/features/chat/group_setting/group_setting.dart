@@ -45,8 +45,10 @@ class _GroupSettingView extends StatelessWidget {
     return BlocConsumer<GroupSettingBloc, GroupSettingState>(
       listener: (context, state) {
         if (state.status == GroupSettingStatus.deleted) {
-          BeaverToast.show(context, '已移动/删除会话');
-          // Pop until chat list
+          BeaverToast.show(
+            context,
+            state.isGroupOwner ? '已解散群聊' : '已退出群聊',
+          );
           Navigator.of(context).popUntil(
             (route) => route.settings.name == '/chat/list' || route.isFirst,
           );
@@ -63,81 +65,114 @@ class _GroupSettingView extends StatelessWidget {
           title: '群聊设置',
           showBack: true,
           isScrollable: true,
-          child: Stack(
-            children: [
-              if (state.status == GroupSettingStatus.loading)
-                const Center(child: CircularProgressIndicator())
-              else if (state.status == GroupSettingStatus.error)
-                Center(child: Text(state.errorMessage ?? '加载失败'))
-              else if (state.conversation != null)
-                Padding(
-                  padding: EdgeInsets.fromLTRB(12.w, 8.w, 12.w, 24.w),
-                  child: _buildPanel(context, state),
-                ),
-              if (state.showDeleteDialog)
-                BeaverDialog(
-                  title: state.isAdmin ? '解散群聊' : '退出群聊',
-                  contentText: state.isAdmin
-                      ? '确定解散该群聊吗？此操作不可撤销。'
-                      : '确定退出该群聊吗？',
-                  confirmText: '确定',
-                  confirmColor: const Color(0xFFF44336), 
-                  cancelText: '取消',
-                  onCancel: () => context.read<GroupSettingBloc>().add(
-                    const ShowDeleteGroupDialogEvent(false),
-                  ),
-                  onConfirm: () {
-                    if (state.isAdmin) {
-                      context.read<GroupSettingBloc>().add(
-                        const DisbandGroupEvent(),
-                      );
-                    } else {
-                      context.read<GroupSettingBloc>().add(
-                        const DeleteGroupConversationEvent(),
-                      );
-                    }
-                  },
-                ),
-              if (state.showClearDialog)
-                BeaverDialog(
-                  title: '清空聊天记录',
-                  contentText: '确定清空该群聊的聊天记录吗？',
-                  confirmText: '清空',
-                  confirmColor: const Color(0xFFF44336),
-                  cancelText: '取消',
-                  onCancel: () => context.read<GroupSettingBloc>().add(const ShowClearGroupHistoryDialogEvent(false)),
-                  onConfirm: () => context.read<GroupSettingBloc>().add(const ClearGroupChatHistoryEvent()),
-                ),
-              if (state.isSaving)
-                Container(
-                  color: Colors.black12,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-            ],
-          ),
+          overlay: _buildOverlay(context, state),
+          child: _buildBody(context, state),
         );
       },
     );
   }
 
+  Widget? _buildOverlay(BuildContext context, GroupSettingState state) {
+    if (!state.showDeleteDialog &&
+        !state.showClearDialog &&
+        !state.isSaving) {
+      return null;
+    }
+
+    return Stack(
+      children: [
+        if (state.showDeleteDialog)
+          BeaverDialog(
+            title: state.isGroupOwner ? '解散群聊' : '退出群聊',
+            contentText: state.isGroupOwner
+                ? '确定解散该群聊吗？此操作不可撤销。'
+                : '确定退出该群聊吗？',
+            confirmText: '确定',
+            confirmColor: const Color(0xFFF44336),
+            cancelText: '取消',
+            maskClosable: false,
+            onCancel: () => context.read<GroupSettingBloc>().add(
+                  const ShowDeleteGroupDialogEvent(false),
+                ),
+            onConfirm: () {
+              if (state.isGroupOwner) {
+                context.read<GroupSettingBloc>().add(
+                      const DisbandGroupEvent(),
+                    );
+              } else {
+                context.read<GroupSettingBloc>().add(
+                      const DeleteGroupConversationEvent(),
+                    );
+              }
+            },
+          ),
+        if (state.showClearDialog)
+          BeaverDialog(
+            title: '清空聊天记录',
+            contentText: '确定清空该群聊的聊天记录吗？',
+            confirmText: '清空',
+            confirmColor: const Color(0xFFF44336),
+            cancelText: '取消',
+            maskClosable: false,
+            onCancel: () => context.read<GroupSettingBloc>().add(
+                  const ShowClearGroupHistoryDialogEvent(false),
+                ),
+            onConfirm: () => context.read<GroupSettingBloc>().add(
+                  const ClearGroupChatHistoryEvent(),
+                ),
+          ),
+        if (state.isSaving)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black12,
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBody(BuildContext context, GroupSettingState state) {
+    if (state.status == GroupSettingStatus.loading) {
+      return SizedBox(
+        height: 400.w,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (state.status == GroupSettingStatus.error) {
+      return SizedBox(
+        height: 400.w,
+        child: Center(child: Text(state.errorMessage ?? '加载失败')),
+      );
+    }
+    if (state.conversation == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(12.w, 8.w, 12.w, 24.w),
+      child: _buildPanel(context, state),
+    );
+  }
+
   Widget _buildPanel(BuildContext context, GroupSettingState state) {
-    // 监听全局 Store 以获取最新资料 (对标 PC Pinia 响应式)
     final groupStore = context.watch<GroupStore>();
     final contactStore = context.watch<ContactStore>();
     final memberStore = context.watch<GroupMemberStore>();
-    
-    // 获取最新的群组信息
+
     final groupInfo = groupStore.getGroup(state.conversationId);
     final groupName = groupInfo?.title ?? state.conversation?.nickname ?? '群聊';
     final groupAvatar = groupInfo?.avatar ?? state.conversation?.avatar ?? '';
 
-    // 获取最新的群成员 (从 GroupMemberStore 拿，它已经通过 ContactStore 重组了头像和昵称)
     final groupId = state.conversationId.replaceFirst('group_', '');
     final members = memberStore.getMembersByGroupId(groupId);
 
-    // 重新计算 isAdmin (对标 PC 响应式逻辑)
-    final selfInGroup = members.where((m) => m.userId == state.currentUserId).firstOrNull;
-    final isActualAdmin = selfInGroup != null && (selfInGroup.role == 1 || selfInGroup.role == 2);
+    final selfInGroup =
+        members.where((m) => m.userId == state.currentUserId).firstOrNull;
+    final isActualAdmin = selfInGroup != null &&
+        (selfInGroup.role == 1 || selfInGroup.role == 2);
+    final isGroupOwner = selfInGroup?.role == 1;
 
     return GroupSettingPanel(
       title: groupName,
@@ -145,15 +180,21 @@ class _GroupSettingView extends StatelessWidget {
       memberCount: members.length,
       avatar: groupAvatar,
       isTop: state.conversation?.isTop ?? false,
+      isMuted: state.conversation?.isMuted ?? false,
       members: members,
       isAdmin: isActualAdmin,
+      isGroupOwner: isGroupOwner,
       contactStore: contactStore,
       onToggleTop: () =>
           context.read<GroupSettingBloc>().add(const TogglePinGroupChatEvent()),
-      onClearHistory: () => context.read<GroupSettingBloc>().add(const ShowClearGroupHistoryDialogEvent(true)),
+      onToggleMute: () =>
+          context.read<GroupSettingBloc>().add(const ToggleMuteGroupChatEvent()),
+      onClearHistory: () => context.read<GroupSettingBloc>().add(
+            const ShowClearGroupHistoryDialogEvent(true),
+          ),
       onDeleteConversation: () => context.read<GroupSettingBloc>().add(
-        const ShowDeleteGroupDialogEvent(true),
-      ),
+            const ShowDeleteGroupDialogEvent(true),
+          ),
       onAddMember: () async {
         final List<ContactModel>? result = await Navigator.of(context).push(
           MaterialPageRoute(
@@ -166,7 +207,9 @@ class _GroupSettingView extends StatelessWidget {
 
         if (result != null && result.isNotEmpty) {
           final userIds = result.map((c) => c.userId).toList();
-          context.read<GroupSettingBloc>().add(AddGroupMembersEvent(userIds));
+          if (context.mounted) {
+            context.read<GroupSettingBloc>().add(AddGroupMembersEvent(userIds));
+          }
         }
       },
       onRemoveMember: (userId) {

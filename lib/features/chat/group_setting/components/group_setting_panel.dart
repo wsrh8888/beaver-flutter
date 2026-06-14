@@ -11,10 +11,13 @@ class GroupSettingPanel extends StatelessWidget {
   final int memberCount;
   final String avatar;
   final bool isTop;
+  final bool isMuted;
   final List<GroupMember> members;
   final bool isAdmin;
+  final bool isGroupOwner;
   final ContactStore contactStore; // 新增：全局联系人仓库
   final VoidCallback onToggleTop;
+  final VoidCallback onToggleMute;
   final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
   final VoidCallback onAddMember;
@@ -27,10 +30,13 @@ class GroupSettingPanel extends StatelessWidget {
     required this.memberCount,
     required this.avatar,
     required this.isTop,
+    required this.isMuted,
     required this.members,
     required this.isAdmin,
+    required this.isGroupOwner,
     required this.contactStore,
     required this.onToggleTop,
+    required this.onToggleMute,
     required this.onClearHistory,
     required this.onDeleteConversation,
     required this.onAddMember,
@@ -60,7 +66,7 @@ class GroupSettingPanel extends StatelessWidget {
       child: Row(
         children: [
           BeaverCachedImage(
-            fileKey: avatar,
+            fileUrl: avatar,
             type: CacheType.avatar,
             width: 52.w,
             height: 52.w,
@@ -161,7 +167,7 @@ class GroupSettingPanel extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             BeaverCachedImage(
-              fileKey: displayAvatar,
+              fileUrl: displayAvatar,
               type: CacheType.avatar,
               width: 44.w,
               height: 44.w,
@@ -267,6 +273,25 @@ class GroupSettingPanel extends StatelessWidget {
           ),
         ),
         Container(
+          margin: EdgeInsets.only(bottom: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.w),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+            title: Text(
+              '消息免打扰',
+              style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+            ),
+            trailing: Switch(
+              value: isMuted,
+              onChanged: (_) => onToggleMute(),
+              activeColor: const Color(0xFFFF7D45),
+            ),
+          ),
+        ),
+        Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12.w),
@@ -294,7 +319,7 @@ class GroupSettingPanel extends StatelessWidget {
             contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
             title: Center(
               child: Text(
-                isAdmin ? '解散群聊' : '退出群聊',
+                isGroupOwner ? '解散群聊' : '退出群聊',
                 style: TextStyle(
                   fontSize: 15.sp,
                   color: const Color(0xFFF44336),

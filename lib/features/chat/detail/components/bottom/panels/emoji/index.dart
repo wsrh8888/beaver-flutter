@@ -11,7 +11,9 @@ import 'package:go_router/go_router.dart';
 
 class EmojiPanel extends StatefulWidget {
   final TextEditingController? controller;
-  const EmojiPanel({super.key, this.controller});
+  final String conversationId;
+
+  const EmojiPanel({super.key, this.controller, required this.conversationId});
   @override
   State<EmojiPanel> createState() => _EmojiPanelState();
 }
@@ -41,12 +43,17 @@ class _EmojiPanelState extends State<EmojiPanel> {
 
   Widget _buildContent(EmojiStoreState state) {
     if (_activeTab == 'default') {
-      return EmojiGrid(controller: widget.controller); // 内置 Emoji
+      return EmojiGrid(
+        controller: widget.controller,
+        conversationId: widget.conversationId,
+      );
     } else if (_activeTab == 'favorite') {
-      return const StickerGrid(); // 收藏表情 (Stickers)
+      return StickerGrid(conversationId: widget.conversationId);
     } else {
-      // 表情包
-      return EmojiGrid(packageId: _activeTab);
+      return EmojiGrid(
+        packageId: _activeTab,
+        conversationId: widget.conversationId,
+      );
     }
   }
 
@@ -106,7 +113,7 @@ class _EmojiPanelState extends State<EmojiPanel> {
         alignment: Alignment.center,
         color: isSelected ? const Color(0xFFF1F2F6) : Colors.transparent,
         child: BeaverCachedImage(
-          fileKey: package.coverFile,
+          fileUrl: package.coverFile,
           width: 28.w,
           height: 28.w,
           placeholder: Icon(Icons.image, size: 22.w, color: Colors.grey),

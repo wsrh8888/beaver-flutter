@@ -3,7 +3,8 @@ import 'package:drift/drift.dart';
 // 媒体表
 class MediaTable extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get fileKey => text().unique()();
+  TextColumn get url => text().unique()();
+  TextColumn get md5 => text().nullable()();
   TextColumn get path => text()();
   TextColumn get type => text()();
   IntColumn get size => integer().nullable()();

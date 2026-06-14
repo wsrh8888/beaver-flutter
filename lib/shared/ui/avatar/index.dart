@@ -22,7 +22,7 @@ class BeaverAvatar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: BeaverCachedImage(
-        fileKey: avatar,
+        fileUrl: avatar,
         type: CacheType.avatar,
         width: size.w,
         height: size.w,

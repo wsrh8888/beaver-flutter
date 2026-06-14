@@ -3,23 +3,31 @@ import 'package:beaver/features/chat/detail/bloc/event.dart';
 import 'package:beaver/features/chat/detail/bloc/state.dart';
 import 'package:beaver/features/chat/detail/components/bottom/editor.dart';
 import 'package:beaver/features/chat/detail/components/bottom/recorder.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ChatBar extends StatelessWidget {
+  final String conversationId;
   final ComposerPanelType activePanel;
   final bool isVoiceMode;
   final bool isSending;
+  final bool isEditing;
+  final bool isReplying;
   final FocusNode focusNode;
   final TextEditingController controller;
   const ChatBar({
     super.key,
+    required this.conversationId,
     required this.activePanel,
     required this.isVoiceMode,
     required this.isSending,
+    required this.isEditing,
+    this.isReplying = false,
     required this.focusNode,
     required this.controller,
   });
@@ -31,17 +39,24 @@ class ChatBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _buildIcon(context, 'chat', isVoiceMode ? 'keyboard' : 'audio', () {
-            if (isVoiceMode)
-              focusNode.requestFocus();
-            else
+          _buildIcon(context, 'chat', isVoiceMode ? 'keyboard' : 'audio', () async {
+            if (!isVoiceMode) {
+              final status = await Permission.microphone.request();
+              if (!context.mounted) return;
+              if (!status.isGranted) {
+                BeaverToast.show(context, '请开启麦克风权限');
+                return;
+              }
               focusNode.unfocus();
+            } else {
+              focusNode.requestFocus();
+            }
             bloc.add(const ToggleVoiceModeEvent());
           }),
           SizedBox(width: 8.w),
           Expanded(
             child: isVoiceMode
-                ? const ChatRecorder()
+                ? ChatRecorder(conversationId: conversationId)
                 : ChatEditor(
                     controller: controller,
                     focusNode: focusNode,
@@ -52,14 +67,21 @@ class ChatBar extends StatelessWidget {
                       focusNode.requestFocus();
                     },
                     onSubmitted: (val) {
-                      bloc.add(
-                        SendMessageEvent(
-                          MessageContentModel(
-                            type: MessageType.text,
-                            textMsg: TextMsg(content: val),
+                      final trimmed = val.trim();
+                      if (trimmed.isEmpty) return;
+                      if (isEditing) {
+                        bloc.add(SubmitEditMessageEvent(trimmed));
+                      } else {
+                        bloc.add(
+                          SendMessageEvent(
+                            MessageContentModel(
+                              type: MessageType.text,
+                              textMsg: TextMsg(content: trimmed),
+                            ),
+                            conversationId: conversationId,
                           ),
-                        ),
-                      );
+                        );
+                      }
                       controller.clear();
                     },
                   ),
@@ -89,14 +111,21 @@ class ChatBar extends StatelessWidget {
                         padding: EdgeInsets.only(left: 8.w),
                         child: GestureDetector(
                           onTap: () {
-                            bloc.add(
-                              SendMessageEvent(
-                                MessageContentModel(
-                                  type: MessageType.text,
-                                  textMsg: TextMsg(content: value.text),
+                            final trimmed = value.text.trim();
+                            if (trimmed.isEmpty) return;
+                            if (isEditing) {
+                              bloc.add(SubmitEditMessageEvent(trimmed));
+                            } else {
+                              bloc.add(
+                                SendMessageEvent(
+                                  MessageContentModel(
+                                    type: MessageType.text,
+                                    textMsg: TextMsg(content: trimmed),
+                                  ),
+                                  conversationId: conversationId,
                                 ),
-                              ),
-                            );
+                              );
+                            }
                             controller.clear();
                           },
                           child: Container(

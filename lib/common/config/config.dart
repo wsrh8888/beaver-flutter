@@ -9,17 +9,22 @@ class AppConfig {
   static const String env = 'prod';
   static late String version;
   static late String deviceId;
+  static late String deviceModel;
+  static late String deviceOsVersion;
+  static late String deviceDisplayName;
+  static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
   static const String source = 'beaver-flutter';
 
-  /**
-   * 生成标准 User-Agent
-   */
+  /// 升级服务应用 ID，与后台默认种子及 Desktop 端一致
+  static const String updateAppId = '87c9dc499cc34f32896a4537e66cf65e';
+
   static String get userAgent => generateUserAgentIdentifier();
 
   static Future<void> init() async {
     await _initVersion();
     await _initDeviceId();
+    await initDeviceProfile();
   }
 
   static Future<void> _initVersion() async {

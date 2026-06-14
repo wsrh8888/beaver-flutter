@@ -9,7 +9,14 @@ class VideoHandler extends BaseMessageHandler {
     String commandId,
     MessageModel message,
   ) async {
-    // TODO: Implement video specific commands
+    switch (commandId) {
+      case 'recall':
+        await recallMessage(context, message);
+        break;
+      case 'delete':
+        await deleteMessage(context, message);
+        break;
+    }
   }
 
   @override

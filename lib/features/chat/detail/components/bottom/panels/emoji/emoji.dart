@@ -13,8 +13,14 @@ import 'package:go_router/go_router.dart';
 class EmojiGrid extends StatelessWidget {
   final String? packageId;
   final TextEditingController? controller;
+  final String conversationId;
 
-  const EmojiGrid({super.key, this.packageId, this.controller});
+  const EmojiGrid({
+    super.key,
+    this.packageId,
+    this.controller,
+    required this.conversationId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +53,14 @@ class EmojiGrid extends StatelessWidget {
                     MessageContentModel(
                       type: MessageType.emoji,
                       emojiMsg: EmojiMsg(
-                        fileKey: emoji.fileKey,
+                        fileUrl: emoji.fileKey,
                         emojiId: emoji.emojiId.toString(),
                         packageId: packageId ?? '',
                         width: 120,
                         height: 120,
                       ),
                     ),
+                    conversationId: conversationId,
                   ),
                 );
                 bloc.add(const DismissComposerEvent());
@@ -66,7 +73,7 @@ class EmojiGrid extends StatelessWidget {
               child: Hero(
                 tag: 'emoji_${emoji.emojiId}',
                 child: BeaverCachedImage(
-                  fileKey: emoji.fileKey,
+                  fileUrl: emoji.fileKey,
                   fit: BoxFit.contain,
                   enableFullscreen: false,
                 ),

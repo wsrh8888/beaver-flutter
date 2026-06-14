@@ -3,10 +3,9 @@ import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 
 /// 业务层缓存视频组件 (对标 BeaverVideo.vue)
-/// 职责：拿到 videoKey/thumbnailKey -> 调用缓存层取地址 -> 渲染缩略图 + 播放图标。
 class BeaverCachedVideo extends StatefulWidget {
-  final String? videoKey;
-  final String? thumbnailKey;
+  final String? videoUrl;
+  final String? thumbnailUrl;
   final double? width;
   final double? height;
   final BoxFit? fit;
@@ -16,8 +15,8 @@ class BeaverCachedVideo extends StatefulWidget {
 
   const BeaverCachedVideo({
     super.key,
-    required this.videoKey,
-    this.thumbnailKey,
+    required this.videoUrl,
+    this.thumbnailUrl,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
@@ -31,18 +30,13 @@ class BeaverCachedVideo extends StatefulWidget {
 }
 
 class _BeaverCachedVideoState extends State<BeaverCachedVideo> {
-  // 基础渲染：目前主要展示缩略图，点击播放逻辑通常在 handler 中
   @override
   Widget build(BuildContext context) {
-    print(
-      '[BeaverCachedVideo] Build: videoKey=${widget.videoKey}, thumbnailKey=${widget.thumbnailKey}, width=${widget.width}, height=${widget.height}, duration=${widget.duration}',
-    );
-
     final content = Stack(
       alignment: Alignment.center,
       children: [
         BeaverCachedImage(
-          fileKey: widget.thumbnailKey,
+          fileUrl: widget.thumbnailUrl,
           type: CacheType.image,
           width: widget.width,
           height: widget.height,
@@ -50,7 +44,6 @@ class _BeaverCachedVideoState extends State<BeaverCachedVideo> {
           borderRadius: widget.borderRadius,
           errorWidget: _buildDefaultError(),
         ),
-        // 播放按钮
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -59,7 +52,6 @@ class _BeaverCachedVideoState extends State<BeaverCachedVideo> {
           ),
           child: const Icon(Icons.play_arrow, color: Colors.white, size: 28),
         ),
-        // 时长
         if (widget.duration != null && widget.duration! > 0)
           Positioned(
             right: 8,
@@ -106,7 +98,7 @@ class _BeaverCachedVideoState extends State<BeaverCachedVideo> {
 
   Widget _buildDefaultError() {
     return Container(
-      color: Colors.grey[900], // Darker background for error
+      color: Colors.grey[900],
       alignment: Alignment.center,
       child: const Icon(Icons.videocam_outlined, color: Colors.grey, size: 32),
     );

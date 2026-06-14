@@ -28,9 +28,10 @@ class LoadMoreMessagesEvent extends ChatEvent {
 
 class SendMessageEvent extends ChatEvent {
   final MessageContentModel msg;
-  const SendMessageEvent(this.msg);
+  final String? conversationId;
+  const SendMessageEvent(this.msg, {this.conversationId});
   @override
-  List<Object?> get props => [msg];
+  List<Object?> get props => [msg, conversationId];
 }
 
 class UpdateDraftEvent extends ChatEvent {
@@ -71,4 +72,44 @@ class ToggleMessageSelectionEvent extends ChatEvent {
   const ToggleMessageSelectionEvent(this.messageId);
   @override
   List<Object?> get props => [messageId];
+}
+
+class StartEditMessageEvent extends ChatEvent {
+  final MessageModel message;
+  const StartEditMessageEvent(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+class CancelEditMessageEvent extends ChatEvent {
+  const CancelEditMessageEvent();
+}
+
+class SubmitEditMessageEvent extends ChatEvent {
+  final String content;
+  const SubmitEditMessageEvent(this.content);
+  @override
+  List<Object?> get props => [content];
+}
+
+class StartReplyMessageEvent extends ChatEvent {
+  final MessageModel message;
+  const StartReplyMessageEvent(this.message);
+  @override
+  List<Object?> get props => [message];
+}
+
+class CancelReplyMessageEvent extends ChatEvent {
+  const CancelReplyMessageEvent();
+}
+
+class RetrySendMessageEvent extends ChatEvent {
+  final String messageId;
+  const RetrySendMessageEvent(this.messageId);
+  @override
+  List<Object?> get props => [messageId];
+}
+
+class DeleteSelectedMessagesEvent extends ChatEvent {
+  const DeleteSelectedMessagesEvent();
 }

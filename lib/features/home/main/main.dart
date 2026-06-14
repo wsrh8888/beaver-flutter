@@ -8,6 +8,7 @@ import 'package:beaver/store/chat/chat.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:beaver/store/friend/friend_verify.dart';
+import 'package:beaver/store/notification/notification.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -32,32 +33,66 @@ class _MainScreenState extends State<MainScreen> {
       builder: (context, chatState) {
         return BlocBuilder<FriendVerifyStore, FriendVerifyStoreState>(
           builder: (context, verifyState) {
-            return Scaffold(
-              body: IndexedStack(
-                index: _currentIndex,
-                children: _pages,
-              ),
-              bottomNavigationBar: Container(
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 0.5)),
-                ),
-                child: BottomNavigationBar(
-                  currentIndex: _currentIndex,
-                  onTap: (index) => setState(() => _currentIndex = index),
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: Colors.white,
-                  selectedItemColor: const Color(0xFFFF7D45),
-                  unselectedItemColor: const Color(0xFFB2BEC3),
-                  selectedFontSize: 12.sp,
-                  unselectedFontSize: 12.sp,
-                  items: [
-                    _buildNavItem('消息', 'new-chat.png', 'new-chat-active.png', 0, badgeCount: chatState.totalUnreadCount),
-                    _buildNavItem('好友', 'new-friend.png', 'new-friend-active.png', 1, badgeCount: verifyState.unreadCount),
-                    _buildNavItem('朋友圈', 'moment.png', 'moment-active.png', 2),
-                    _buildNavItem('我的', 'new-mine.png', 'new-mine-active.png', 3),
-                  ],
-                ),
-              ),
+            return BlocBuilder<NotificationStore, NotificationStoreState>(
+              builder: (context, notificationState) {
+                return Scaffold(
+                  body: IndexedStack(
+                    index: _currentIndex,
+                    children: _pages,
+                  ),
+                  bottomNavigationBar: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                          width: 0.5,
+                        ),
+                      ),
+                    ),
+                    child: BottomNavigationBar(
+                      currentIndex: _currentIndex,
+                      onTap: (index) {
+                        setState(() => _currentIndex = index);
+                      },
+                      type: BottomNavigationBarType.fixed,
+                      backgroundColor: Colors.white,
+                      selectedItemColor: const Color(0xFFFF7D45),
+                      unselectedItemColor: const Color(0xFFB2BEC3),
+                      selectedFontSize: 12.sp,
+                      unselectedFontSize: 12.sp,
+                      items: [
+                        _buildNavItem(
+                          '消息',
+                          'new-chat.png',
+                          'new-chat-active.png',
+                          0,
+                          badgeCount: chatState.totalUnreadCount,
+                        ),
+                        _buildNavItem(
+                          '好友',
+                          'new-friend.png',
+                          'new-friend-active.png',
+                          1,
+                          badgeCount: verifyState.unreadCount,
+                        ),
+                        _buildNavItem(
+                          '朋友圈',
+                          'moment.png',
+                          'moment-active.png',
+                          2,
+                          badgeCount: notificationState.momentUnread,
+                        ),
+                        _buildNavItem(
+                          '我的',
+                          'new-mine.png',
+                          'new-mine-active.png',
+                          3,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             );
           },
         );

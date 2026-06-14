@@ -11,7 +11,7 @@ class UpdateState {
 
   const UpdateState({
     this.status = UpdateStatus.initial,
-    this.currentVersion = '1.0.0',
+    this.currentVersion = '',
     this.updateInfo,
     this.showUpdateModal = false,
     this.errorMessage,

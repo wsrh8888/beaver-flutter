@@ -12,7 +12,7 @@ class TextMessage extends StatelessWidget {
     return Text(
       msg.content,
       style: TextStyle(
-        fontSize: 16.sp,
+        fontSize: 15.sp,
         height: 1.4,
       ),
     );

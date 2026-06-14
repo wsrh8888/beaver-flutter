@@ -272,7 +272,7 @@ class _ContactListViewState extends State<ContactListView> {
                 child: Row(
                   children: [
                     BeaverCachedImage(
-                      fileKey: contact.avatar,
+                      fileUrl: contact.avatar,
                       type: CacheType.avatar,
                       width: 48.w,
                       height: 48.w,

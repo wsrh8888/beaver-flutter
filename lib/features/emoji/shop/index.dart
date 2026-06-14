@@ -131,7 +131,7 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
               children: [
                 Positioned.fill(
                   child: BeaverCachedImage(
-                    fileKey: item.coverFile,
+                    fileUrl: item.coverFile,
                     fit: BoxFit.cover,
                     placeholder: Container(
                       color: Colors.grey[100],

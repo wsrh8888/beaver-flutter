@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -5,7 +6,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:beaver/core/cache/index.dart'; // 添加缓存管理导入
+import 'package:beaver/core/cache/index.dart';
 import 'tables/user/user.dart';
 import 'tables/user/sync_status.dart';
 import 'tables/chat/message.dart';
@@ -62,22 +63,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
       onCreate: (m) async {
         await m.createAll();
-      },
-      onUpgrade: (m, from, to) async {
-        if (from < 5) {
-          await m.createAll();
-        }
-      },
-      beforeOpen: (details) async {
-        if (details.wasCreated) {
-        } else if (details.hadUpgrade) {}
       },
     );
   }
@@ -97,6 +89,7 @@ class AppDatabase extends _$AppDatabase {
 class DatabaseManager {
   static AppDatabase? _instance;
   static String? _currentUserId;
+  static Future<void>? _initFuture;
 
   static AppDatabase get instance {
     if (_instance == null) {
@@ -110,10 +103,23 @@ class DatabaseManager {
   static Future<void> init(String userId) async {
     if (_instance != null && _currentUserId == userId) return;
 
+    if (_initFuture != null) {
+      await _initFuture;
+      if (_instance != null && _currentUserId == userId) return;
+    }
+
+    _initFuture = _doInit(userId);
+    try {
+      await _initFuture;
+    } finally {
+      _initFuture = null;
+    }
+  }
+
+  static Future<void> _doInit(String userId) async {
     await close();
 
     final dbFolder = await getApplicationDocumentsDirectory();
-    // 使用大厂规范：对标 config.dart 的隔离路径
     final userDbPath = p.join(
       dbFolder.path,
       CachePathConfig.userDbRoot(userId),
@@ -127,14 +133,16 @@ class DatabaseManager {
     _instance = AppDatabase(_openConnection(file));
     _currentUserId = userId;
 
-    // 同步初始化缓存管理 (UserId 同步)
     await mediaManager.init(userId);
   }
 
   static Future<void> close() async {
-    await _instance?.close();
+    if (_instance == null) return;
+
+    final closing = _instance!;
     _instance = null;
     _currentUserId = null;
+    await closing.close();
   }
 }
 

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,6 +10,7 @@ import 'package:beaver/types/call.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
+import 'package:beaver/store/call/call_list.dart';
 
 class CallInvitationPage extends StatefulWidget {
   final String conversationId;
@@ -72,9 +72,16 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _callIncomingBloc,
-      child: BlocConsumer<CallIncomingBloc, CallIncomingState>(
+    return BlocListener<CallListStore, CallListStoreState>(
+      listenWhen: (previous, current) => !current.hasCall(widget.roomId),
+      listener: (context, state) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: BlocProvider.value(
+        value: _callIncomingBloc,
+        child: BlocConsumer<CallIncomingBloc, CallIncomingState>(
         listener: (context, state) {
           if (state.status == CallStatus.connected) {
             Navigator.of(context).pushReplacement(
@@ -84,7 +91,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
                   roomToken: state.callInfo!.roomToken,
                   liveKitUrl: state.callInfo!.liveKitUrl,
                   callType: state.callInfo?.callType ?? CallType.audio,
-                  isGroup: state.callInfo?.isGroup ?? widget.conversationId.startsWith('g_'),
+                  isGroup: state.callInfo?.isGroup ?? widget.conversationId.startsWith('group_'),
                 ),
               ),
             );
@@ -153,7 +160,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
                                 border: Border.all(color: Colors.white12, width: 2.w),
                               ),
                               child: BeaverCachedImage(
-                                fileKey: callInfo?.callerAvatar,
+                                fileUrl: callInfo?.callerAvatar,
                                 type: CacheType.avatar,
                                 width: 120.w,
                                 height: 120.w,
@@ -223,6 +230,7 @@ class _CallInvitationPageState extends State<CallInvitationPage> {
             ),
           );
         },
+      ),
       ),
     );
   }

@@ -107,6 +107,36 @@ class FriendBusiness implements FriendRepositoryInterface {
     await _service.deleteFriend(friendId);
   }
 
+  /**
+   * @description 更新好友备注
+   */
+  Future<bool> updateRemarkName(String friendId, String notice) async {
+    final myUserId = DatabaseManager.currentUserId ?? '';
+    if (myUserId.isEmpty) return false;
+
+    final response = await updateRemarkNameApi(
+      INoticeUpdateReq(friendId: friendId, notice: notice),
+    );
+    if (!response.isSuccess) return false;
+
+    final friend = await _service.getFriendByPeerId(myUserId, friendId);
+    if (friend != null) {
+      if (friend.sendUserId == myUserId) {
+        await _service.updateNotice(
+          friend.friendId,
+          sendUserNotice: notice,
+        );
+      } else {
+        await _service.updateNotice(
+          friend.friendId,
+          revUserNotice: notice,
+        );
+      }
+      notifyFriendUpdate([friend.friendId]);
+    }
+    return true;
+  }
+
   @override
   Future<List<FriendRequest>> getFriendRequests() async {
     final currentUserId = DatabaseManager.currentUserId ?? '';

@@ -19,7 +19,11 @@ class WebViewBloc extends Bloc<WebViewEvent, WebViewState> {
   }
 
   void _onPageFinished(WebViewPageFinished event, Emitter<WebViewState> emit) {
-    emit(state.copyWith(status: WebViewStatus.success, progress: 100));
+    emit(state.copyWith(
+      status: WebViewStatus.success,
+      progress: 100,
+      pageTitle: event.pageTitle,
+    ));
   }
 
   void _onErrorOccurred(WebViewErrorOccurred event, Emitter<WebViewState> emit) {

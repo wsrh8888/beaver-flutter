@@ -8,7 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class StickerGrid extends StatelessWidget {
-  const StickerGrid({super.key});
+  final String conversationId;
+
+  const StickerGrid({super.key, required this.conversationId});
 
   @override
   Widget build(BuildContext context) {
@@ -35,16 +37,19 @@ class StickerGrid extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       final bloc = context.read<ChatBloc>();
-                      bloc.add(SendMessageEvent(MessageContentModel(
-                        type: MessageType.emoji,
-                        emojiMsg: EmojiMsg(
-                          fileKey: sticker.fileKey,
-                          emojiId: sticker.emojiId,
-                          packageId: sticker.packageId ?? '',
-                          width: sticker.width ?? 120,
-                          height: sticker.height ?? 120,
+                      bloc.add(SendMessageEvent(
+                        MessageContentModel(
+                          type: MessageType.emoji,
+                          emojiMsg: EmojiMsg(
+                            fileUrl: sticker.fileKey,
+                            emojiId: sticker.emojiId,
+                            packageId: sticker.packageId ?? '',
+                            width: sticker.width ?? 120,
+                            height: sticker.height ?? 120,
+                          ),
                         ),
-                      )));
+                        conversationId: conversationId,
+                      ));
                       bloc.add(const DismissComposerEvent());
                     },
                     child: Container(
@@ -54,7 +59,7 @@ class StickerGrid extends StatelessWidget {
                       ),
                       padding: EdgeInsets.all(8.w),
                       child: BeaverCachedImage(
-                        fileKey: sticker.fileKey,
+                        fileUrl: sticker.fileKey,
                         fit: BoxFit.contain,
                         placeholder: const Icon(Icons.image, color: Colors.grey),
                         enableFullscreen: false,

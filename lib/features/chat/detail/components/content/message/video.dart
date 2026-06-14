@@ -10,31 +10,29 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class VideoMessage extends StatelessWidget {
   final VideoMsg msg;
-  const VideoMessage({super.key, required this.msg});
+  final String? messageId;
+
+  const VideoMessage({super.key, required this.msg, this.messageId});
 
   @override
   Widget build(BuildContext context) {
-    print(
-      '[VideoMessage] Build: msg.fileKey=${msg.fileKey}, msg.thumbnailKey=${msg.thumbnailKey}, msg.width=${msg.width}, msg.height=${msg.height}',
-    );
     final size = _calculateDisplaySize(
       (msg.width ?? 160).toDouble(),
       (msg.height ?? 120).toDouble(),
     );
 
     return BeaverCachedVideo(
-      videoKey: msg.fileKey,
-      thumbnailKey: msg.thumbnailKey,
+      videoUrl: msg.fileUrl,
+      thumbnailUrl: msg.thumbnailUrl,
       width: size.width,
       height: size.height,
       borderRadius: 8.w,
       fit: BoxFit.cover,
       duration: msg.duration,
       onTap: () async {
-        print('[VideoMessage] Tapped: videoKey=${msg.fileKey}');
         final mediaBusiness = getIt<MediaBusiness>();
         final url = await mediaBusiness.getMediaPath(
-          msg.fileKey,
+          msg.fileUrl,
           CacheType.video,
         );
         if (context.mounted) {
@@ -42,8 +40,10 @@ class VideoMessage extends StatelessWidget {
             context,
             GalleryItem(
               url: url,
+              sourceFileUrl: msg.fileUrl,
               type: GalleryItemType.video,
-              thumbnail: msg.thumbnailKey,
+              thumbnail: msg.thumbnailUrl,
+              messageId: messageId,
             ),
           );
         }

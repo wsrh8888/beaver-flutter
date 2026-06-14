@@ -164,7 +164,7 @@ class GroupListPage extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12.w),
         child: BeaverCachedImage(
-          fileKey: fileKey,
+          fileUrl: fileKey,
           type: CacheType.avatar,
           width: 48.w,
           height: 48.w,

@@ -1,3 +1,4 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,9 +10,14 @@ class ReplyMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
-    final subColor = isSelf ? Colors.white70 : const Color(0xFF636E72);
-    final replyBg = Colors.black.withOpacity(0.05);
+    final textColor =
+        isSelf ? AppColors.chatBubbleSelfText : AppColors.chatBubbleOtherText;
+    final subColor = isSelf
+        ? AppColors.chatBubbleSelfText.withOpacity(0.7)
+        : AppColors.chatBubbleOtherSubText;
+    final replyBg = isSelf
+        ? Colors.black.withOpacity(0.08)
+        : const Color(0xFFF7F7F7);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

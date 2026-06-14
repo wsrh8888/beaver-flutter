@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class ChatUserConversationService extends BaseService {
-  ChatUserConversationService(super.db);
+  const ChatUserConversationService();
 
   /// 创建单个用户会话设置
   Future<void> create(ChatUserConversationsCompanion setting) async {
@@ -52,6 +52,15 @@ class ChatUserConversationService extends BaseService {
           ..where((t) => t.conversationId.equals(conversationId)))
         .write(ChatUserConversationsCompanion(
           isPinned: Value(isPinned ? 1 : 0),
+        ));
+  }
+
+  /// 免打扰/取消免打扰
+  Future<void> toggleMuteConversation(String conversationId, bool isMuted) async {
+    await (db.update(db.chatUserConversations)
+          ..where((t) => t.conversationId.equals(conversationId)))
+        .write(ChatUserConversationsCompanion(
+          isMuted: Value(isMuted ? 1 : 0),
         ));
   }
 

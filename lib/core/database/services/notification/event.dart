@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class NotificationEventService extends BaseService {
-  NotificationEventService(super.db);
+  const NotificationEventService();
 
   /// 批量创建通知事件
   Future<void> batchCreate(List<NotificationEventsCompanion> events) async {

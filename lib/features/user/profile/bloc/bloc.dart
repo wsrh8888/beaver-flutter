@@ -256,10 +256,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       final uploadRes = await uploadFileApi(event.imagePath);
       if (uploadRes.code == 0 && uploadRes.result != null) {
-        final fileKey = uploadRes.result!.fileKey;
-        final success = await _profileRepository.updateUserInfo({'fileName': fileKey});
+        final fileUrl = uploadRes.result!.fileUrl;
+        final success = await _profileRepository.updateUserInfo({'fileName': fileUrl});
         if (success) {
-          final updatedUserInfo = state.userInfo!.copyWith(avatar: fileKey);
+          final updatedUserInfo = state.userInfo!.copyWith(avatar: fileUrl);
           emit(state.copyWith(
             status: ProfileStatus.success,
             userInfo: updatedUserInfo,

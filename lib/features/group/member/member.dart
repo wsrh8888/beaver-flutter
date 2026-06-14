@@ -51,7 +51,7 @@ class _GroupMemberPageState extends State<GroupMemberPage> {
   Widget _buildMemberItem(GroupMember member) {
     return ListTile(
       leading: BeaverCachedImage(
-        fileKey: member.avatar,
+        fileUrl: member.avatar,
         type: CacheType.avatar,
         width: 40.w,
         height: 40.w,

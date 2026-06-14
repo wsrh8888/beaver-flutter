@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:beaver/features/common/scan/bloc/bloc.dart';
 import 'package:beaver/features/common/scan/bloc/event.dart';
 import 'package:beaver/features/common/scan/bloc/state.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
-import 'package:beaver/shared/utils/qrcode.dart';
+import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/utils/qrcode/index.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,6 +22,7 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin {
   late ScanBloc _bloc;
   final MobileScannerController _controller = MobileScannerController();
+  final ImagePicker _imagePicker = ImagePicker();
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -103,9 +106,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
             children: [
               _buildActionButton(
                 icon: Icons.photo_library, // 相册
-                onPressed: () {
-                  // TODO: 从相册选取二维码
-                },
+                onPressed: _pickImageFromGallery,
               ),
               SizedBox(width: 40.w),
               _buildActionButton(
@@ -122,90 +123,133 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
     );
   }
 
+  Future<void> _pickImageFromGallery() async {
+    final image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (image == null || !mounted) return;
+
+    try {
+      final capture = await _controller.analyzeImage(image.path);
+      String? code;
+      for (final barcode in capture?.barcodes ?? const <Barcode>[]) {
+        final value = barcode.rawValue;
+        if (value != null && value.isNotEmpty) {
+          code = value;
+          break;
+        }
+      }
+
+      if (code == null) {
+        if (mounted) BeaverToast.show(context, '未识别到二维码');
+        return;
+      }
+
+      if (!mounted) return;
+      handleQrCode(context, code);
+    } on MobileScannerBarcodeException catch (e) {
+      if (mounted) BeaverToast.show(context, e.message ?? '图片解析失败');
+    }
+  }
+
   Widget _buildScannerOverlay() {
-    return Stack(
-      children: [
-        ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            Colors.black.withValues(alpha: 0.5),
-            BlendMode.srcOut,
-          ),
-          child: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  backgroundBlendMode: BlendMode.dstOut,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scanSize = 260.w;
+        final scanLeft = (constraints.maxWidth - scanSize) / 2;
+        final scanTop = constraints.maxHeight * 0.38 - scanSize / 2;
+        final maskColor = Colors.black.withValues(alpha: 0.5);
+
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: scanTop,
+              child: ColoredBox(color: maskColor),
+            ),
+            Positioned(
+              top: scanTop + scanSize,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ColoredBox(color: maskColor),
+            ),
+            Positioned(
+              top: scanTop,
+              left: 0,
+              width: scanLeft,
+              height: scanSize,
+              child: ColoredBox(color: maskColor),
+            ),
+            Positioned(
+              top: scanTop,
+              left: scanLeft + scanSize,
+              right: 0,
+              height: scanSize,
+              child: ColoredBox(color: maskColor),
+            ),
+            Positioned(
+              left: scanLeft,
+              top: scanTop,
+              width: scanSize,
+              height: scanSize,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.w,
+                  ),
+                  borderRadius: BorderRadius.circular(12.w),
+                ),
+                child: Stack(
+                  children: [
+                    _buildCorner(Alignment.topLeft),
+                    _buildCorner(Alignment.topRight),
+                    _buildCorner(Alignment.bottomLeft),
+                    _buildCorner(Alignment.bottomRight),
+                    AnimatedBuilder(
+                      animation: _animation,
+                      builder: (context, child) {
+                        return Positioned(
+                          top: 10.w + (240.w * _animation.value),
+                          left: 10.w,
+                          right: 10.w,
+                          child: Container(
+                            height: 2.w,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFFF7D45).withValues(alpha: 0),
+                                  const Color(0xFFFF7D45),
+                                  const Color(0xFFFF7D45).withValues(alpha: 0),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
-              Center(
-                child: Container(
-                  width: 260.w,
-                  height: 260.w,
-                  decoration: BoxDecoration(
+            ),
+            Positioned(
+              top: scanTop + scanSize + 20.w,
+              left: 0,
+              right: 0,
+              child: const Center(
+                child: Text(
+                  '将二维码放入框内，即可自动扫描',
+                  style: TextStyle(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.w),
+                    fontSize: 14,
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-        Center(
-          child: Container(
-            width: 260.w,
-            height: 260.w,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.w),
-              borderRadius: BorderRadius.circular(12.w),
             ),
-            child: Stack(
-              children: [
-                _buildCorner(Alignment.topLeft),
-                _buildCorner(Alignment.topRight),
-                _buildCorner(Alignment.bottomLeft),
-                _buildCorner(Alignment.bottomRight),
-                AnimatedBuilder(
-                  animation: _animation,
-                  builder: (context, child) {
-                    return Positioned(
-                      top: 10.w + (240.w * _animation.value),
-                      left: 10.w,
-                      right: 10.w,
-                      child: Container(
-                        height: 2.w,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFFFF7D45).withValues(alpha: 0),
-                              const Color(0xFFFF7D45),
-                              const Color(0xFFFF7D45).withValues(alpha: 0),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0.5.sh + 160.w,
-          left: 0,
-          right: 0,
-          child: const Center(
-            child: Text(
-              '将二维码放入框内，即可自动扫描',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 

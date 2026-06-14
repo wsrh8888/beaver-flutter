@@ -1,22 +1,21 @@
 import 'package:beaver/core/database/db.dart';
+import 'package:beaver/core/database/services/base.dart';
 import 'package:drift/drift.dart';
 
-class EmojiPackageCollectService {
-  final AppDatabase _db;
-
-  EmojiPackageCollectService(this._db);
+class EmojiPackageCollectService extends BaseService {
+  const EmojiPackageCollectService();
 
   Future<void> batchCreate(
     List<EmojiPackageCollectTableCompanion> entries,
   ) async {
-    await _db.batch((batch) {
+    await db.batch((batch) {
       for (final entry in entries) {
         batch.insert(
-          _db.emojiPackageCollectTable,
+          db.emojiPackageCollectTable,
           entry,
           onConflict: DoUpdate(
             (old) => entry,
-            target: [_db.emojiPackageCollectTable.packageCollectId],
+            target: [db.emojiPackageCollectTable.packageCollectId],
           ),
         );
       }
@@ -26,7 +25,7 @@ class EmojiPackageCollectService {
   Future<Map<String, EmojiPackageCollectTableData>> getCollectsByIds(
     List<String> ids,
   ) async {
-    final query = _db.select(_db.emojiPackageCollectTable)
+    final query = db.select(db.emojiPackageCollectTable)
       ..where((t) => t.packageCollectId.isIn(ids));
     final result = await query.get();
     return {for (var item in result) item.packageCollectId: item};

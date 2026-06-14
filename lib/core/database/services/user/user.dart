@@ -4,7 +4,7 @@ import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/user.dart';
 
 class UserService extends BaseService {
-  UserService(super.db);
+  const UserService();
 
   /// 创建用户
   Future<void> create(UsersCompanion user) async {
@@ -37,6 +37,7 @@ class UserService extends BaseService {
             avatar: Value(user.avatar),
             abstract: Value(user.abstract),
             gender: Value(user.gender),
+            userType: Value(user.userType),
             status: Value(user.status),
             version: Value(user.version),
             createdAt: Value(user.createdAt),
@@ -99,6 +100,7 @@ class UserService extends BaseService {
           'userId': user.userId,
           'nickName': user.nickName,
           'avatar': user.avatar ?? '',
+          'userType': user.userType,
         }).toList();
   }
 
@@ -114,6 +116,7 @@ class UserService extends BaseService {
           'phone': user.phone ?? '',
           'email': user.email ?? '',
           'gender': user.gender ?? 0,
+          'userType': user.userType,
           'status': user.status ?? 0,
           'version': user.version ?? 0,
           'createdAt': user.createdAt ?? 0,

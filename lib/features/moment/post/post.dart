@@ -1,12 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:beaver/features/moment/post/bloc/bloc.dart';
 import 'package:beaver/features/moment/post/bloc/event.dart';
 import 'package:beaver/features/moment/post/bloc/state.dart';
-
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/shared/utils/media_util.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 
 class PostMomentPage extends StatefulWidget {
   const PostMomentPage({super.key});
@@ -36,17 +38,26 @@ class _PostMomentPageState extends State<PostMomentPage> {
     _postMomentBloc.add(PostMomentSubmitEvent());
   }
 
-  void _chooseImage() {
-    // 模拟选择图片
-    _postMomentBloc.add(AddImageEvent('https://placeholder.co/512?text=New+Img'));
+  Future<void> _chooseImage() async {
+    final remaining = 9 - _postMomentBloc.state.mediaList.length;
+    if (remaining <= 0) return;
+
+    final assets = await pickAssets(
+      context,
+      type: RequestType.image,
+    );
+    if (assets == null || assets.isEmpty) return;
+
+    for (final asset in assets.take(remaining)) {
+      final file = await asset.file;
+      if (file != null) {
+        _postMomentBloc.add(AddImageEvent(file.path));
+      }
+    }
   }
 
   void _removeImage(int index) {
     _postMomentBloc.add(RemoveImageEvent(index));
-  }
-
-  void _previewImage(int index) {
-    _postMomentBloc.add(PreviewImageEvent(index));
   }
 
   @override
@@ -60,7 +71,7 @@ class _PostMomentPageState extends State<PostMomentPage> {
           } else if (state.status == PostMomentStatus.success) {
             BeaverToast.show(context, '发布成功');
             Future.delayed(const Duration(seconds: 1), () {
-              Navigator.of(context).pop(true);
+              if (context.mounted) Navigator.of(context).pop(true);
             });
           }
         },
@@ -69,7 +80,6 @@ class _PostMomentPageState extends State<PostMomentPage> {
             title: '发布朋友圈',
             showBack: true,
             showBackground: false,
-            backgroundHeight: 120.w,
             isScrollable: true,
             rightSlot: GestureDetector(
               onTap: state.canPost ? _handlePost : null,
@@ -84,77 +94,71 @@ class _PostMomentPageState extends State<PostMomentPage> {
                 child: Text(
                   '发布',
                   style: TextStyle(
-                    fontSize: 14.w,
-                    color: state.canPost ? Colors.white : const Color(0xFF9E9E9E),
+                    fontSize: 14.sp,
+                    color: state.canPost
+                        ? Colors.white
+                        : const Color(0xFF9E9E9E),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-            child: Container(
+            child: Padding(
               padding: EdgeInsets.all(24.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 文本输入区域
-                  Container(
-                    margin: EdgeInsets.only(bottom: 24.w),
-                    child: TextField(
-                      controller: _contentController,
-                      onChanged: (value) {
-                        _postMomentBloc.add(UpdateContentEvent(value));
-                      },
-                      maxLines: 10,
-                      minLines: 5,
-                      maxLength: 1000,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: '分享此刻的想法...',
-                        hintStyle: TextStyle(
-                          fontSize: 16.w,
-                          color: const Color(0xFFB2BEC3),
-                        ),
-                        counterText: '',
+                  TextField(
+                    controller: _contentController,
+                    onChanged: (value) {
+                      _postMomentBloc.add(UpdateContentEvent(value));
+                    },
+                    maxLines: 10,
+                    minLines: 5,
+                    maxLength: 1000,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: '分享此刻的想法...',
+                      hintStyle: TextStyle(
+                        fontSize: 16.sp,
+                        color: const Color(0xFFB2BEC3),
                       ),
-                      style: TextStyle(
-                        fontSize: 16.w,
-                        color: const Color(0xFF2D3436),
-                        height: 1.5,
-                      ),
+                      counterText: '',
+                    ),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: const Color(0xFF2D3436),
+                      height: 1.5,
                     ),
                   ),
-                  // 字数计数器
-                  Container(
+                  Align(
                     alignment: Alignment.centerRight,
-                    margin: EdgeInsets.only(bottom: 24.w),
                     child: Text(
                       '${state.content.length}/1000',
                       style: TextStyle(
-                        fontSize: 12.w,
+                        fontSize: 12.sp,
                         color: const Color(0xFFB2BEC3),
                       ),
                     ),
                   ),
-                  // 图片上传区域
-                  Container(
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 12.w,
-                        mainAxisSpacing: 12.w,
-                        childAspectRatio: 1,
-                      ),
-                      itemCount: state.mediaList.length + (state.mediaList.length < 9 ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index < state.mediaList.length) {
-                          return _buildMediaItem(state.mediaList[index], index);
-                        } else {
-                          return _buildAddMediaItem();
-                        }
-                      },
+                  SizedBox(height: 24.w),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 12.w,
+                      mainAxisSpacing: 12.w,
+                      childAspectRatio: 1,
                     ),
+                    itemCount: state.mediaList.length +
+                        (state.mediaList.length < 9 ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < state.mediaList.length) {
+                        return _buildMediaItem(state.mediaList[index], index);
+                      }
+                      return _buildAddMediaItem();
+                    },
                   ),
                 ],
               ),
@@ -166,45 +170,45 @@ class _PostMomentPageState extends State<PostMomentPage> {
   }
 
   Widget _buildMediaItem(String imageUrl, int index) {
-    return GestureDetector(
-      onTap: () => _previewImage(index),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.w),
-              image: DecorationImage(
-                image: NetworkImage(imageUrl),
-                fit: BoxFit.cover,
+    final isLocal = !imageUrl.startsWith('http');
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.w),
+            image: DecorationImage(
+              image: isLocal
+                  ? FileImage(File(imageUrl)) as ImageProvider
+                  : NetworkImage(imageUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Positioned(
+          top: 4.w,
+          right: 4.w,
+          child: GestureDetector(
+            onTap: () => _removeImage(index),
+            child: Container(
+              width: 24.w,
+              height: 24.w,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(12.w),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '×',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-          Positioned(
-            top: 4.w,
-            right: 4.w,
-            child: GestureDetector(
-              onTap: () => _removeImage(index),
-              child: Container(
-                width: 24.w,
-                height: 24.w,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(12.w),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '×',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.w,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

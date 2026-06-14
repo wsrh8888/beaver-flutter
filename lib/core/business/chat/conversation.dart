@@ -186,6 +186,7 @@ class ConversationBusiness implements ConversationRepositoryInterface {
           msgPreview: msgPreview,
           updateAt: _formatTime(updatedAt),
           isTop: item.setting.isPinned == 1,
+          isMuted: item.setting.isMuted == 1,
           unreadCount: unreadCount,
         ),
       );
@@ -199,6 +200,9 @@ class ConversationBusiness implements ConversationRepositoryInterface {
 
   @override
   Future<void> togglePinChat(String conversationId, bool isPinned) async => getIt<UserConversationBusiness>().togglePinChat(conversationId, isPinned);
+
+  @override
+  Future<void> toggleMuteChat(String conversationId, bool isMuted) async => getIt<UserConversationBusiness>().toggleMuteChat(conversationId, isMuted);
 
   @override
   Future<void> deleteChat(String conversationId) async {
@@ -291,18 +295,14 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     if (_isPrivateConversation(conversationId)) {
       final peerId = _parsePrivatePeerId(conversationId, currentUserId);
       if (peerId != null) {
-        final friends = await _friendService.getFriends();
-        final friendIndex = friends.indexWhere(
-          (f) =>
-              (f.sendUserId == currentUserId && f.revUserId == peerId) ||
-              (f.sendUserId == peerId && f.revUserId == currentUserId),
+        final friend = await _friendService.getFriendByPeerId(
+          currentUserId,
+          peerId,
         );
-
         final userInfos = await _userService.getUsersBasicInfo([peerId]);
         final user = userInfos.isNotEmpty ? userInfos.first : null;
 
-        if (friendIndex != -1) {
-          final friend = friends[friendIndex];
+        if (friend != null) {
           final notice = friend.sendUserId == currentUserId
               ? (friend.revUserNotice ?? '')
               : (friend.sendUserNotice ?? '');
@@ -341,6 +341,7 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       msgPreview: meta.lastMessage ?? '',
       updateAt: _formatTime(updatedAt),
       isTop: setting?.isPinned == 1,
+      isMuted: setting?.isMuted == 1,
       unreadCount: unreadCount,
     );
   }

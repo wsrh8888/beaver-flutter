@@ -19,6 +19,10 @@ class TogglePinPrivateChatEvent extends PrivateSettingEvent {
   const TogglePinPrivateChatEvent();
 }
 
+class ToggleMutePrivateChatEvent extends PrivateSettingEvent {
+  const ToggleMutePrivateChatEvent();
+}
+
 class DeletePrivateChatEvent extends PrivateSettingEvent {
   const DeletePrivateChatEvent();
 }

@@ -3,7 +3,7 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 
 class DatasyncService extends BaseService {
-  DatasyncService(super.db);
+  const DatasyncService();
 
   Future<DatasyncData?> get(String module) async {
     return (db.select(db.datasync)..where((t) => t.module.equals(module))).getSingleOrNull();

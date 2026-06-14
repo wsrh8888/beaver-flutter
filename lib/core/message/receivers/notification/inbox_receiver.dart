@@ -10,20 +10,22 @@ class InboxReceiver {
    */
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tableUpdates'] ?? body['tables']) as List?;
-    final userId = body['userId'] as String?;
-    if (updates == null || userId == null) return;
+    if (updates == null) return;
 
     for (final update in updates) {
       final table = update['table'] as String?;
       final data = update['data'] as List?;
+      final userId = update['userId'] as String?;
 
-      if (table == 'notification_inbox' && data != null) {
-        for (final item in data) {
-          final version = item['version'] as int?;
-          final eventId = item['eventId'] as String?;
-          if (version != null && eventId != null) {
-            await _inboxBusiness.handleTableUpdates(version, eventId, userId);
-          }
+      if (table != 'notification_inbox' || data == null || userId == null) {
+        continue;
+      }
+
+      for (final item in data) {
+        final version = item['version'] as int?;
+        final eventId = item['eventId'] as String?;
+        if (version != null && eventId != null) {
+          await _inboxBusiness.handleTableUpdates(version, eventId, userId);
         }
       }
     }

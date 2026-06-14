@@ -137,7 +137,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 BeaverCachedImage(
                                   width: 80.w,
                                   height: 80.w,
-                                  fileKey: userInfo?.avatar,
+                                  fileUrl: userInfo?.avatar,
                                   type: CacheType.avatar,
                                   borderRadius: 20.w,
                                 ),

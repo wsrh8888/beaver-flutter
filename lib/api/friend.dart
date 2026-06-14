@@ -6,7 +6,7 @@ import 'package:beaver/common/config/env.dart';
 Future<BaseResponse<IGetFriendsListByIdsRes>> getFriendsListByIdsApi(
   IGetFriendsListByIdsReq data,
 ) {
-  final url = '$baseUrl/api/friend/getFriendsListByIds';
+  final url = '$baseUrl/api/friend/v1/getFriendsListByIds';
   return httpClient.post<IGetFriendsListByIdsRes>(
     url,
     data: data.toJson(),
@@ -17,7 +17,7 @@ Future<BaseResponse<IGetFriendsListByIdsRes>> getFriendsListByIdsApi(
 /// 批量获取好友验证数据
 Future<BaseResponse<IGetFriendVerifiesListByIdsRes>>
 getFriendVerifiesListByIdsApi(IGetFriendVerifiesListByIdsReq data) {
-  final url = '$baseUrl/api/friend/getFriendVerifiesListByIds';
+  final url = '$baseUrl/api/friend/v1/getFriendVerifiesListByIds';
   return httpClient.post<IGetFriendVerifiesListByIdsRes>(
     url,
     data: data.toJson(),
@@ -29,7 +29,7 @@ getFriendVerifiesListByIdsApi(IGetFriendVerifiesListByIdsReq data) {
 Future<BaseResponse<IResSearchUserInfo>> getSearchFriendApi(
   ISearchUserReq data,
 ) {
-  final url = '$baseUrl/api/friend/search';
+  final url = '$baseUrl/api/friend/v1/search';
   return httpClient.get<IResSearchUserInfo>(
     url,
     queryParameters: data.toJson(),
@@ -39,13 +39,25 @@ Future<BaseResponse<IResSearchUserInfo>> getSearchFriendApi(
 
 /// 申请添加好友 (对标 Desktop applyAddFriendApi)
 Future<BaseResponse<void>> applyAddFriendApi(IAddFriendReq data) {
-  final url = '$baseUrl/api/friend/add_friend';
+  final url = '$baseUrl/api/friend/v1/add_friend';
   return httpClient.post<void>(url, data: data.toJson());
 }
 
 /// 验证好友申请 (对标 Desktop valiFrienddAPi)
 Future<BaseResponse<void>> valiFriendApi(IValiFriendReq data) {
-  final url = '$baseUrl/api/friend/valid';
+  final url = '$baseUrl/api/friend/v1/valid';
   return httpClient.post<void>(url, data: data.toJson());
+}
+
+/// 修改好友备注 (对标 Desktop updateRemarkNameApi)
+Future<BaseResponse<INoticeUpdateRes>> updateRemarkNameApi(
+  INoticeUpdateReq data,
+) {
+  final url = '$baseUrl/api/friend/v1/update_notice';
+  return httpClient.post<INoticeUpdateRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => INoticeUpdateRes.fromJson(json),
+  );
 }
 

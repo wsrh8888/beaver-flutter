@@ -298,8 +298,8 @@ class ICreateMomentCommentReq {
     if (userId != null) 'userId': userId,
     'momentId': momentId,
     'content': content,
-    if (parentId != null) 'parentId': parentId,
-    if (replyToCommentId != null) 'replyToCommentId': replyToCommentId,
+    'parentId': parentId ?? '',
+    'replyToCommentId': replyToCommentId ?? '',
   };
 }
 

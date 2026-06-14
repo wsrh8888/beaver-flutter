@@ -12,6 +12,7 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
   PrivateSettingBloc() : super(const PrivateSettingState()) {
     on<InitPrivateSettingEvent>(_onInit);
     on<TogglePinPrivateChatEvent>(_onTogglePin);
+    on<ToggleMutePrivateChatEvent>(_onToggleMute);
     on<DeletePrivateChatEvent>(_onDelete);
     on<ShowDeletePrivateChatDialogEvent>(_onShowDeleteDialog);
     on<ClearChatHistoryEvent>(_onClearHistory);
@@ -43,19 +44,59 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
     TogglePinPrivateChatEvent event,
     Emitter<PrivateSettingState> emit,
   ) async {
-    if (state.isSaving || state.conversation == null) return;
+    if (state.conversation == null) return;
 
-    emit(state.copyWith(isSaving: true));
-    try {
-      final newIsPinned = !state.conversation!.isTop;
-      await _conversationBusiness.togglePinChat(state.conversationId, newIsPinned);
-      
-      emit(state.copyWith(
-        isSaving: false,
+    final previousIsTop = state.conversation!.isTop;
+    final newIsPinned = !previousIsTop;
+
+    emit(
+      state.copyWith(
         conversation: state.conversation!.copyWith(isTop: newIsPinned),
-      ));
+      ),
+    );
+
+    try {
+      await _conversationBusiness.togglePinChat(
+        state.conversationId,
+        newIsPinned,
+      );
     } catch (e) {
-      emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          conversation: state.conversation!.copyWith(isTop: previousIsTop),
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onToggleMute(
+    ToggleMutePrivateChatEvent event,
+    Emitter<PrivateSettingState> emit,
+  ) async {
+    if (state.conversation == null) return;
+
+    final previousIsMuted = state.conversation!.isMuted;
+    final newIsMuted = !previousIsMuted;
+
+    emit(
+      state.copyWith(
+        conversation: state.conversation!.copyWith(isMuted: newIsMuted),
+      ),
+    );
+
+    try {
+      await _conversationBusiness.toggleMuteChat(
+        state.conversationId,
+        newIsMuted,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          conversation: state.conversation!.copyWith(isMuted: previousIsMuted),
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

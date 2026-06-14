@@ -53,6 +53,8 @@ class MessageActionMenu extends StatelessWidget {
         context.read<ChatBloc>().add(
           EnterMultiSelectEvent(initialMessageId: message.id),
         );
+      } else if (action.id == 'reply') {
+        context.read<ChatBloc>().add(StartReplyMessageEvent(message));
       } else if (action.id == 'forward') {
         ForwardHandler.navigateToPicker(context, messageIds: [message.id]);
       } else {

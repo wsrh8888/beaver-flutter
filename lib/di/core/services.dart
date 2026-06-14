@@ -1,85 +1,67 @@
 import 'package:get_it/get_it.dart';
-import 'package:beaver/core/database/database.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/core/datasync/emoji/sync.dart';
 
 /// 数据服务层依赖配置
 void configureServiceDependencies(GetIt getIt) {
-  // 用户模块
-  getIt.registerLazySingleton<UserService>(
-    () => UserService(getIt<AppDatabase>()),
-  );
+  getIt.registerLazySingleton<UserService>(() => const UserService());
   getIt.registerLazySingleton<UserSyncStatusService>(
-    () => UserSyncStatusService(getIt<AppDatabase>()),
+    () => const UserSyncStatusService(),
   );
 
-  // 好友模块
-  getIt.registerLazySingleton<FriendService>(
-    () => FriendService(getIt<AppDatabase>()),
-  );
+  getIt.registerLazySingleton<FriendService>(() => const FriendService());
   getIt.registerLazySingleton<FriendVerifyService>(
-    () => FriendVerifyService(getIt<AppDatabase>()),
+    () => const FriendVerifyService(),
   );
 
-  // 聊天模块
   getIt.registerLazySingleton<ChatConversationService>(
-    () => ChatConversationService(getIt<AppDatabase>()),
+    () => const ChatConversationService(),
   );
   getIt.registerLazySingleton<ChatMessageService>(
-    () => ChatMessageService(getIt<AppDatabase>()),
+    () => const ChatMessageService(),
   );
   getIt.registerLazySingleton<ChatUserConversationService>(
-    () => ChatUserConversationService(getIt<AppDatabase>()),
+    () => const ChatUserConversationService(),
   );
   getIt.registerLazySingleton<ChatSyncStatusService>(
-    () => ChatSyncStatusService(getIt<AppDatabase>()),
+    () => const ChatSyncStatusService(),
   );
 
-  // 群组模块
-  getIt.registerLazySingleton<GroupService>(
-    () => GroupService(getIt<AppDatabase>()),
-  );
+  getIt.registerLazySingleton<GroupService>(() => const GroupService());
   getIt.registerLazySingleton<GroupMemberService>(
-    () => GroupMemberService(getIt<AppDatabase>()),
+    () => const GroupMemberService(),
   );
   getIt.registerLazySingleton<GroupJoinRequestService>(
-    () => GroupJoinRequestService(getIt<AppDatabase>()),
+    () => const GroupJoinRequestService(),
   );
   getIt.registerLazySingleton<GroupSyncStatusService>(
-    () => GroupSyncStatusService(getIt<AppDatabase>()),
+    () => const GroupSyncStatusService(),
   );
 
-  // 其他服务
-  getIt.registerLazySingleton<DatasyncService>(
-    () => DatasyncService(getIt<AppDatabase>()),
-  );
-  getIt.registerLazySingleton<MediaService>(
-    () => MediaService(getIt<AppDatabase>()),
-  );
-  // 表情模块服务
-  getIt.registerLazySingleton<EmojiService>(
-    () => EmojiService(getIt<AppDatabase>()),
-  );
+  getIt.registerLazySingleton<DatasyncService>(() => const DatasyncService());
+  getIt.registerLazySingleton<MediaService>(() => const MediaService());
+
+  getIt.registerLazySingleton<EmojiService>(() => const EmojiService());
   getIt.registerLazySingleton<EmojiCollectService>(
-    () => EmojiCollectService(getIt<AppDatabase>()),
+    () => const EmojiCollectService(),
   );
   getIt.registerLazySingleton<EmojiPackageService>(
-    () => EmojiPackageService(getIt<AppDatabase>()),
+    () => const EmojiPackageService(),
   );
   getIt.registerLazySingleton<EmojiPackageCollectService>(
-    () => EmojiPackageCollectService(getIt<AppDatabase>()),
+    () => const EmojiPackageCollectService(),
   );
   getIt.registerLazySingleton<EmojiPackageEmojiService>(
-    () => EmojiPackageEmojiService(getIt<AppDatabase>()),
+    () => const EmojiPackageEmojiService(),
   );
   getIt.registerLazySingleton<EmojiSync>(() => EmojiSync());
   getIt.registerLazySingleton<NotificationInboxService>(
-    () => NotificationInboxService(getIt<AppDatabase>()),
+    () => const NotificationInboxService(),
   );
   getIt.registerLazySingleton<NotificationReadCursorService>(
-    () => NotificationReadCursorService(getIt<AppDatabase>()),
+    () => const NotificationReadCursorService(),
   );
   getIt.registerLazySingleton<NotificationEventService>(
-    () => NotificationEventService(getIt<AppDatabase>()),
+    () => const NotificationEventService(),
   );
 }

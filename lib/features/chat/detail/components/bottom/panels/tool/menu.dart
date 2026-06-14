@@ -11,16 +11,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 
 import 'package:beaver/core/business/call/call.dart';
 import 'package:beaver/router/routes.dart';
 import 'package:go_router/go_router.dart';
 
 class ToolMenu extends StatelessWidget {
-  const ToolMenu({super.key});
+  final String conversationId;
+
+  const ToolMenu({super.key, required this.conversationId});
 
   Future<void> _handleCall(BuildContext context, String mode) async {
     // 权限检查
@@ -39,20 +42,20 @@ class ToolMenu extends StatelessWidget {
     }
 
     final chatBloc = context.read<ChatBloc>();
-    final conversationId = chatBloc.state.conversationId;
-    if (conversationId == null) return;
+    final activeConversationId = chatBloc.state.conversationId ?? conversationId;
+    if (activeConversationId.isEmpty) return;
 
     // 根据前缀判断会话类型 (1-私聊, 2-群聊)
-    final int callType = conversationId.startsWith('g_') ? 2 : 1;
+    final int callType = activeConversationId.startsWith('group_') ? 2 : 1;
     // 初始通话模式 (1-语音, 2-视频)
     final int callMode = mode == 'video' ? 2 : 1;
 
     final callBusiness = getIt<CallBusiness>();
-    final callInfo = await callBusiness.makeCall(conversationId, callType, callMode);
+    final callInfo = await callBusiness.makeCall(activeConversationId, callType, callMode);
 
     if (callInfo != null && context.mounted) {
       context.push(AppRoutes.call, extra: {
-        'conversationId': conversationId,
+        'conversationId': activeConversationId,
         'roomToken': callInfo.roomToken,
         'liveKitUrl': callInfo.liveKitUrl,
         'callType': mode, // 'audio' or 'video' for UI
@@ -85,12 +88,13 @@ class ToolMenu extends StatelessWidget {
             MessageContentModel(
               type: MessageType.image,
               imageMsg: ImageMsg(
-                fileKey: uploadResult.fileKey,
+                fileUrl: uploadResult.fileUrl,
                 width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? entity.width.toDouble(),
                 height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? entity.height.toDouble(),
                 size: await file.length(),
               ),
             ),
+            conversationId: conversationId,
           ),
         );
       } else if (entity.type == AssetType.video) {
@@ -99,15 +103,54 @@ class ToolMenu extends StatelessWidget {
             MessageContentModel(
               type: MessageType.video,
               videoMsg: VideoMsg(
-                fileKey: uploadResult.fileKey,
+                fileUrl: uploadResult.fileUrl,
                 width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? entity.width.toDouble(),
                 height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? entity.height.toDouble(),
                 duration: uploadResult.fileInfo?.videoFile?.duration ?? entity.duration,
               ),
             ),
+            conversationId: conversationId,
           ),
         );
       }
+    }
+  }
+
+  Future<void> _handleFile(BuildContext context) async {
+    final chatBloc = context.read<ChatBloc>();
+    final mediaBusiness = getIt<MediaBusiness>();
+
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (result == null || result.files.isEmpty) return;
+
+    for (final platformFile in result.files) {
+      final path = platformFile.path;
+      if (path == null) continue;
+
+      final file = File(path);
+      final uploadResult = await mediaBusiness.uploadFile(path);
+      if (uploadResult == null) {
+        if (context.mounted) BeaverToast.show(context, '上传失败');
+        continue;
+      }
+
+      final fileName = uploadResult.originalName.isNotEmpty
+          ? uploadResult.originalName
+          : (platformFile.name.isNotEmpty ? platformFile.name : p.basename(path));
+
+      chatBloc.add(
+        SendMessageEvent(
+          MessageContentModel(
+            type: MessageType.file,
+            fileMsg: FileMsg(
+              fileUrl: uploadResult.fileUrl,
+              fileName: fileName,
+              size: await file.length(),
+            ),
+          ),
+          conversationId: conversationId,
+        ),
+      );
     }
   }
 
@@ -134,12 +177,13 @@ class ToolMenu extends StatelessWidget {
           MessageContentModel(
             type: MessageType.image,
             imageMsg: ImageMsg(
-              fileKey: uploadResult.fileKey,
+              fileUrl: uploadResult.fileUrl,
               width: uploadResult.fileInfo?.imageFile?.width.toDouble() ?? entity.width.toDouble(),
               height: uploadResult.fileInfo?.imageFile?.height.toDouble() ?? entity.height.toDouble(),
               size: await file.length(),
             ),
           ),
+          conversationId: conversationId,
         ),
       );
     } else if (entity.type == AssetType.video) {
@@ -148,12 +192,13 @@ class ToolMenu extends StatelessWidget {
           MessageContentModel(
             type: MessageType.video,
             videoMsg: VideoMsg(
-              fileKey: uploadResult.fileKey,
+              fileUrl: uploadResult.fileUrl,
               width: uploadResult.fileInfo?.videoFile?.width.toDouble() ?? entity.width.toDouble(),
               height: uploadResult.fileInfo?.videoFile?.height.toDouble() ?? entity.height.toDouble(),
               duration: uploadResult.fileInfo?.videoFile?.duration ?? entity.duration,
             ),
           ),
+          conversationId: conversationId,
         ),
       );
     }
@@ -192,6 +237,8 @@ class ToolMenu extends StatelessWidget {
               _handleCall(context, 'audio');
             } else if (item['label'] == '视频通话') {
               _handleCall(context, 'video');
+            } else if (item['label'] == '文件') {
+              _handleFile(context);
             }
           },
         );

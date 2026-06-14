@@ -1,12 +1,12 @@
-class ReportVersionReq {
-  final String? userId; // header Beaver-User-Id
-  final String deviceId; // header deviceId
-  final String version; // header version
-  final String appId; // json
-  final int platformId; // json: 1=Windows, 2=MacOS, 3=iOS, 4=Android, 5=HarmonyOS
-  final int archId; // json: 0=h5, 1=WinX64, 2=WinArm64, 3=MacIntel, 4=MacApple, 5=iOS, 6=Android, 7=HarmonyOS
+class IReportVersionReq {
+  final String? userId;
+  final String deviceId;
+  final String version;
+  final String appId;
+  final int platformId;
+  final int archId;
 
-  ReportVersionReq({
+  IReportVersionReq({
     this.userId,
     required this.deviceId,
     required this.version,
@@ -28,25 +28,23 @@ class ReportVersionReq {
       'deviceId': deviceId,
       'version': version,
     };
-    if (userId != null) {
+    if (userId != null && userId!.isNotEmpty) {
       headers['Beaver-User-Id'] = userId!;
     }
     return headers;
   }
 }
 
-class GetLatestVersionReq {
-  final String? userId; // header Beaver-User-Id
-  final String? cityName; // header X-City-Name
-  final String deviceId; // header deviceId
-  final String version; // header version
-  final String appId; // json
-  final int platformId; // json
-  final int archId; // json
+class IGetLatestVersionReq {
+  final String? userId;
+  final String deviceId;
+  final String version;
+  final String appId;
+  final int platformId;
+  final int archId;
 
-  GetLatestVersionReq({
+  IGetLatestVersionReq({
     this.userId,
-    this.cityName,
     required this.deviceId,
     required this.version,
     required this.appId,
@@ -67,43 +65,43 @@ class GetLatestVersionReq {
       'deviceId': deviceId,
       'version': version,
     };
-    if (userId != null) {
+    if (userId != null && userId!.isNotEmpty) {
       headers['Beaver-User-Id'] = userId!;
-    }
-    if (cityName != null) {
-      headers['X-City-Name'] = cityName!;
     }
     return headers;
   }
 }
 
-class GetLatestVersionRes {
+class IGetLatestVersionRes {
   final bool hasUpdate;
+  final bool forceUpdate;
   final int? architectureId;
   final String? version;
-  final String fileKey;
+  final String fileUrl;
   final int size;
   final String md5;
   final String? description;
   final String? releaseNotes;
 
-  GetLatestVersionRes({
+  IGetLatestVersionRes({
     required this.hasUpdate,
+    this.forceUpdate = false,
     this.architectureId,
     this.version,
-    required this.fileKey,
+    required this.fileUrl,
     required this.size,
     required this.md5,
     this.description,
     this.releaseNotes,
   });
 
-  factory GetLatestVersionRes.fromJson(Map<String, dynamic> json) {
-    return GetLatestVersionRes(
+  factory IGetLatestVersionRes.fromJson(Map<String, dynamic> json) {
+    return IGetLatestVersionRes(
       hasUpdate: json['hasUpdate'] ?? false,
+      forceUpdate: json['forceUpdate'] ?? false,
       architectureId: json['architectureId'],
       version: json['version'],
-      fileKey: json['fileKey'] ?? '',
+      fileUrl: json['fileUrl']?.toString() ?? '',
       size: json['size'] ?? 0,
       md5: json['md5'] ?? '',
       description: json['description'],

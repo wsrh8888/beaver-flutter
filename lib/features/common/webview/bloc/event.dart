@@ -17,7 +17,13 @@ class WebViewProgressChanged extends WebViewEvent {
 
 class WebViewPageStarted extends WebViewEvent {}
 
-class WebViewPageFinished extends WebViewEvent {}
+class WebViewPageFinished extends WebViewEvent {
+  final String? pageTitle;
+  const WebViewPageFinished({this.pageTitle});
+
+  @override
+  List<Object?> get props => [pageTitle];
+}
 
 class WebViewErrorOccurred extends WebViewEvent {
   final String errorMessage;

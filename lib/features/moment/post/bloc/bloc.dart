@@ -29,22 +29,29 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     Emitter<PostMomentState> emit,
   ) async {
     if (state.mediaList.length >= 9) {
+      emit(state.copyWith(errorMessage: '最多只能上传9张图片'));
+      return;
+    }
+
+    final localPath = event.imagePath;
+    final withLocal = List<String>.from(state.mediaList)..add(localPath);
+    emit(state.copyWith(mediaList: withLocal));
+
+    final uploadedUrl = await _postMomentRepository.uploadImage(localPath);
+    final finalList = List<String>.from(withLocal);
+    final index = finalList.indexOf(localPath);
+
+    if (uploadedUrl.isEmpty || index == -1) {
+      finalList.remove(localPath);
       emit(state.copyWith(
-        errorMessage: '最多只能上传9张图片',
+        mediaList: finalList,
+        errorMessage: '上传图片失败',
       ));
       return;
     }
 
-    try {
-      final uploadedUrl = await _postMomentRepository.uploadImage(event.imagePath);
-      final updatedMediaList = List<String>.from(state.mediaList);
-      updatedMediaList.add(uploadedUrl);
-      emit(state.copyWith(mediaList: updatedMediaList));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: '上传图片失败: $e',
-      ));
-    }
+    finalList[index] = uploadedUrl;
+    emit(state.copyWith(mediaList: finalList));
   }
 
   Future<void> _onRemoveImage(

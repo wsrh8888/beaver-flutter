@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/core/business/notification/inbox.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/router/routes.dart';
+import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
@@ -35,15 +41,24 @@ class MomentListView extends StatefulWidget {
 
 class _MomentListViewState extends State<MomentListView> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<void>? _inboxSubscription;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _inboxSubscription =
+        getIt<NotificationInboxBusiness>().inboxUpdateStream.listen((_) {
+      if (!mounted) return;
+      context.read<MomentListBloc>().add(
+            const LoadMomentListEvent(refresh: true),
+          );
+    });
   }
 
   @override
   void dispose() {
+    _inboxSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
@@ -159,7 +174,7 @@ class _MomentListViewState extends State<MomentListView> {
                       final item = state.moments[dataIndex];
                       return Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.w),
-                        child: _buildMomentItem(item),
+                        child: _buildMomentItem(context, item),
                       );
                     },
                   ),
@@ -214,13 +229,67 @@ class _MomentListViewState extends State<MomentListView> {
     return BlocBuilder<UserStore, UserStoreState>(
       builder: (context, state) {
         final userInfo = context.watch<ContactStore>().getContact(state.currentUserId);
-        
-        return Container(
+
+        return BlocBuilder<NotificationStore, NotificationStoreState>(
+          builder: (context, notificationState) {
+            final unreadCount = notificationState.momentUnread;
+
+            return Container(
           margin: EdgeInsets.only(bottom: 24.w),
           height: 300.w,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              Positioned(
+                top: 12.w,
+                right: 12.w,
+                child: GestureDetector(
+                  onTap: () => context.push(AppRoutes.momentMessages),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 36.w,
+                        height: 36.w,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(18.w),
+                        ),
+                        child: Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
+                          size: 20.w,
+                        ),
+                      ),
+                      if (unreadCount > 0)
+                        Positioned(
+                          right: -4.w,
+                          top: -4.w,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: unreadCount > 9 ? 4.w : 5.w,
+                              vertical: 2.w,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF4757),
+                              borderRadius: BorderRadius.circular(10.w),
+                            ),
+                            constraints: BoxConstraints(minWidth: 16.w),
+                            child: Text(
+                              unreadCount > 99 ? '99+' : '$unreadCount',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
               // Cover
               Positioned.fill(
                 bottom: 30.w,
@@ -273,7 +342,7 @@ class _MomentListViewState extends State<MomentListView> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(6.w),
                         child: BeaverCachedImage(
-                          fileKey: userInfo?.avatar,
+                          fileUrl: userInfo?.avatar,
                           type: CacheType.avatar,
                           fit: BoxFit.cover,
                         ),
@@ -285,12 +354,38 @@ class _MomentListViewState extends State<MomentListView> {
             ],
           ),
         );
+          },
+        );
       },
     );
   }
 
-  Widget _buildMomentItem(IMomentListItem item) {
-    return Container(
+  Future<void> _openMomentDetail(
+    BuildContext context,
+    IMomentListItem item, {
+    String? replyCommentId,
+  }) async {
+    final query = replyCommentId == null || replyCommentId.isEmpty
+        ? 'id=${item.id}'
+        : 'id=${item.id}&replyCommentId=$replyCommentId';
+    await context.push('${AppRoutes.momentDetail}?$query');
+    if (mounted) {
+      context.read<MomentListBloc>().add(
+            const LoadMomentListEvent(refresh: true),
+          );
+    }
+  }
+
+  Widget _buildMomentItem(BuildContext context, IMomentListItem item) {
+    final userState = context.watch<UserStore>().state;
+    final contactStore = context.watch<ContactStore>();
+    final currentUser = contactStore.getContact(userState.currentUserId);
+    final currentUserId = userState.currentUserId;
+    final currentUserName = currentUser?.nickname ?? '我';
+
+    return GestureDetector(
+      onTap: () => _openMomentDetail(context, item),
+      child: Container(
       margin: EdgeInsets.only(bottom: 8.w),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
@@ -319,7 +414,7 @@ class _MomentListViewState extends State<MomentListView> {
                   color: Colors.grey[200],
                   child: item.avatar?.isNotEmpty == true
                       ? BeaverCachedImage(
-                          fileKey: item.avatar!,
+                          fileUrl: item.avatar!,
                           type: CacheType.avatar,
                           width: 32.w,
                           height: 32.w,
@@ -381,13 +476,44 @@ class _MomentListViewState extends State<MomentListView> {
           Row(
             children: [
               GestureDetector(
+                onTap: () => _openMomentDetail(context, item),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(10.w),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 14.w,
+                        color: const Color(0xFF636E72),
+                      ),
+                      SizedBox(width: 4.w),
+                      Text(
+                        item.commentCount > 0
+                            ? '${item.commentCount}'
+                            : '评论',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF636E72),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              GestureDetector(
                 onTap: () {
                   context.read<MomentListBloc>().add(
                     ToggleLikeMomentEvent(
                       moment: item,
-                      currentUserId:
-                          'TODO_CURRENT_USER_ID', // Replace with auth bloc if added
-                      currentUserName: '我',
+                      currentUserId: currentUserId,
+                      currentUserName: currentUserName,
                     ),
                   );
                 },
@@ -411,7 +537,7 @@ class _MomentListViewState extends State<MomentListView> {
                       ),
                       SizedBox(width: 4.w),
                       Text(
-                        '${item.likeCount}',
+                        item.likeCount > 0 ? '${item.likeCount}' : '赞',
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -426,6 +552,62 @@ class _MomentListViewState extends State<MomentListView> {
               ),
             ],
           ),
+
+          if (item.comments.isNotEmpty) ...[
+            SizedBox(height: 8.w),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(8.w),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: item.comments.take(3).map((comment) {
+                  final commentUser =
+                      contactStore.getContact(comment.userId);
+                  final name = commentUser?.nickname.isNotEmpty == true
+                      ? commentUser!.nickname
+                      : comment.userName;
+                  return GestureDetector(
+                    onTap: () => _openMomentDetail(
+                      context,
+                      item,
+                      replyCommentId: comment.id,
+                    ),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 4.w),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: name,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF576B95),
+                              ),
+                            ),
+                            TextSpan(
+                              text: '：${comment.content}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: const Color(0xFF333333),
+                              ),
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
 
           // Likes List
           if (item.likes.isNotEmpty) ...[
@@ -466,6 +648,7 @@ class _MomentListViewState extends State<MomentListView> {
           ],
         ],
       ),
+    ),
     );
   }
 
@@ -512,7 +695,7 @@ class _MomentListViewState extends State<MomentListView> {
                     children: [
                       if (file.type == 2)
                         BeaverCachedImage(
-                          fileKey: file.fileKey,
+                          fileUrl: file.fileKey,
                           type: CacheType.image,
                           fit: BoxFit.cover,
                         )

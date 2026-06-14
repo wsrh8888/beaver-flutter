@@ -14,6 +14,7 @@ enum MessageType {
   recalled, // 10
   reply, // 11
   mergedForward, // 12
+  markdown, // 13
   system,
 }
 
@@ -46,6 +47,7 @@ class MessageContentModel {
   final ReplyMsg? replyMsg;
   final ForwardMsg? forwardMsg;
   final NotificationMsg? notificationMsg;
+  final MarkdownMsg? markdownMsg;
 
   MessageContentModel({
     required this.type,
@@ -59,6 +61,7 @@ class MessageContentModel {
     this.replyMsg,
     this.forwardMsg,
     this.notificationMsg,
+    this.markdownMsg,
   });
 
   factory MessageContentModel.fromJson(Map<String, dynamic> json) {
@@ -96,6 +99,9 @@ class MessageContentModel {
       notificationMsg: json['notificationMsg'] != null
           ? NotificationMsg.fromJson(json['notificationMsg'])
           : null,
+      markdownMsg: json['markdownMsg'] != null
+          ? MarkdownMsg.fromJson(json['markdownMsg'])
+          : null,
     );
   }
 
@@ -112,6 +118,7 @@ class MessageContentModel {
       'replyMsg': replyMsg?.toJson(),
       'forwardMsg': forwardMsg?.toJson(),
       'notificationMsg': notificationMsg?.toJson(),
+      'markdownMsg': markdownMsg?.toJson(),
     };
   }
 
@@ -141,6 +148,8 @@ class MessageContentModel {
         return 11;
       case MessageType.mergedForward:
         return 12;
+      case MessageType.markdown:
+        return 13;
       default:
         return 1;
     }
@@ -172,6 +181,8 @@ class MessageContentModel {
         return MessageType.reply;
       case 12:
         return MessageType.mergedForward;
+      case 13:
+        return MessageType.markdown;
       default:
         return MessageType.text;
     }
@@ -187,102 +198,107 @@ class TextMsg {
 }
 
 class ImageMsg {
-  final String fileKey;
+  final String fileUrl;
   final double? width;
   final double? height;
   final int? size;
-  ImageMsg({required this.fileKey, this.width, this.height, this.size});
+  ImageMsg({required this.fileUrl, this.width, this.height, this.size});
   factory ImageMsg.fromJson(Map<String, dynamic> json) => ImageMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     width: (json['width'] as num?)?.toDouble(),
     height: (json['height'] as num?)?.toDouble(),
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'width': width,
-    'height': height,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (size != null) 'size': size,
   };
 }
 
 class VideoMsg {
-  final String fileKey;
-  final String? thumbnailKey;
+  final String fileUrl;
+  final String? thumbnailUrl;
   final double? width;
   final double? height;
   final int? duration;
   VideoMsg({
-    required this.fileKey,
-    this.thumbnailKey,
+    required this.fileUrl,
+    this.thumbnailUrl,
     this.width,
     this.height,
     this.duration,
   });
   factory VideoMsg.fromJson(Map<String, dynamic> json) => VideoMsg(
-    fileKey: json['fileKey'] ?? '',
-    thumbnailKey: json['thumbnailKey'],
+    fileUrl: json['fileUrl']?.toString() ?? '',
+    thumbnailUrl: json['thumbnailUrl']?.toString(),
     width: (json['width'] as num?)?.toDouble(),
     height: (json['height'] as num?)?.toDouble(),
     duration: json['duration'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'thumbnailKey': thumbnailKey,
-    'width': width,
-    'height': height,
-    'duration': duration,
+    'fileUrl': fileUrl,
+    if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
+    if (width != null) 'width': width,
+    if (height != null) 'height': height,
+    if (duration != null) 'duration': duration,
   };
 }
 
 class FileMsg {
-  final String fileKey;
+  final String fileUrl;
   final String? fileName;
   final int? size;
-  FileMsg({required this.fileKey, this.fileName, this.size});
+  FileMsg({required this.fileUrl, this.fileName, this.size});
   factory FileMsg.fromJson(Map<String, dynamic> json) => FileMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     fileName: json['fileName'],
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'fileName': fileName,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (fileName != null) 'fileName': fileName,
+    if (size != null) 'size': size,
   };
 }
 
 class VoiceMsg {
-  final String fileKey;
+  final String fileUrl;
   final int? duration;
-  VoiceMsg({required this.fileKey, this.duration});
-  factory VoiceMsg.fromJson(Map<String, dynamic> json) =>
-      VoiceMsg(fileKey: json['fileKey'] ?? '', duration: json['duration']);
-  Map<String, dynamic> toJson() => {'fileKey': fileKey, 'duration': duration};
+  VoiceMsg({required this.fileUrl, this.duration});
+  factory VoiceMsg.fromJson(Map<String, dynamic> json) => VoiceMsg(
+    fileUrl: json['fileUrl']?.toString() ?? '',
+    duration: json['duration'],
+  );
+  Map<String, dynamic> toJson() => {
+        'fileUrl': fileUrl,
+        if (duration != null) 'duration': duration,
+      };
 }
 
 class EmojiMsg {
-  final String fileKey;
+  final String fileUrl;
   final String emojiId;
   final String packageId;
   final int? width;
   final int? height;
   EmojiMsg({
-    required this.fileKey,
+    required this.fileUrl,
     required this.emojiId,
     required this.packageId,
     this.width,
     this.height,
   });
   factory EmojiMsg.fromJson(Map<String, dynamic> json) => EmojiMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     emojiId: json['emojiId'] ?? '',
     packageId: json['packageId'] ?? '',
     width: json['width'],
     height: json['height'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
+    'fileUrl': fileUrl,
     'emojiId': emojiId,
     'packageId': packageId,
     if (width != null) 'width': width,
@@ -291,34 +307,43 @@ class EmojiMsg {
 }
 
 class AudioFileMsg {
-  final String fileKey;
+  final String fileUrl;
   final String? fileName;
   final int? size;
-  AudioFileMsg({required this.fileKey, this.fileName, this.size});
+  AudioFileMsg({required this.fileUrl, this.fileName, this.size});
   factory AudioFileMsg.fromJson(Map<String, dynamic> json) => AudioFileMsg(
-    fileKey: json['fileKey'] ?? '',
+    fileUrl: json['fileUrl']?.toString() ?? '',
     fileName: json['fileName'],
     size: json['size'],
   );
   Map<String, dynamic> toJson() => {
-    'fileKey': fileKey,
-    'fileName': fileName,
-    'size': size,
+    'fileUrl': fileUrl,
+    if (fileName != null) 'fileName': fileName,
+    if (size != null) 'size': size,
   };
 }
 
 class ReplyMsg {
   final String originMsgId;
+  final MessageContentModel? originMsg;
   final MessageContentModel? replyMsg;
-  ReplyMsg({required this.originMsgId, this.replyMsg});
+  ReplyMsg({
+    required this.originMsgId,
+    this.originMsg,
+    this.replyMsg,
+  });
   factory ReplyMsg.fromJson(Map<String, dynamic> json) => ReplyMsg(
     originMsgId: json['originMsgId'] ?? '',
+    originMsg: json['originMsg'] != null
+        ? MessageContentModel.fromJson(json['originMsg'])
+        : null,
     replyMsg: json['replyMsg'] != null
         ? MessageContentModel.fromJson(json['replyMsg'])
         : null,
   );
   Map<String, dynamic> toJson() => {
     'originMsgId': originMsgId,
+    if (originMsg != null) 'originMsg': originMsg!.toJson(),
     'replyMsg': replyMsg?.toJson(),
   };
 }
@@ -356,6 +381,23 @@ class NotificationMsg {
   Map<String, dynamic> toJson() => {'type': type, 'actors': actors};
 }
 
+class MarkdownMsg {
+  final String content;
+  final String? title;
+
+  MarkdownMsg({required this.content, this.title});
+
+  factory MarkdownMsg.fromJson(Map<String, dynamic> json) => MarkdownMsg(
+        content: json['content'] ?? '',
+        title: json['title'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'content': content,
+        if (title != null) 'title': title,
+      };
+}
+
 class ChatMessageSendBody {
   final String conversationId;
   final String messageId;
@@ -391,6 +433,7 @@ class MessageModel {
   final MessageStatus status;
   final DateTime createdAt;
   final bool isSent;
+  final bool isEdited;
 
   const MessageModel({
     required this.id,
@@ -403,12 +446,45 @@ class MessageModel {
     required this.status,
     required this.createdAt,
     required this.isSent,
+    this.isEdited = false,
   });
 
   // For compatibility during transition, we keep content getter if needed
   String get content {
     if (type == MessageType.text) return msg.textMsg?.content ?? '';
+    if (type == MessageType.markdown) return msg.markdownMsg?.content ?? '';
+    if (type == MessageType.reply) {
+      return msg.replyMsg?.replyMsg?.textMsg?.content ?? '[回复]';
+    }
     return '[Type: ${type.name}]';
+  }
+
+  /// 消息预览文案（引用条等场景）
+  String get previewText {
+    switch (type) {
+      case MessageType.text:
+        return msg.textMsg?.content ?? '[文本]';
+      case MessageType.markdown:
+        return msg.markdownMsg?.content ?? '[Markdown]';
+      case MessageType.image:
+        return '[图片]';
+      case MessageType.video:
+        return '[视频]';
+      case MessageType.file:
+        return msg.fileMsg?.fileName ?? '[文件]';
+      case MessageType.voice:
+        return '[语音]';
+      case MessageType.audio:
+        return msg.audioFileMsg?.fileName ?? '[音频]';
+      case MessageType.emoji:
+        return '[表情]';
+      case MessageType.reply:
+        return msg.replyMsg?.replyMsg?.textMsg?.content ??
+            msg.replyMsg?.originMsg?.textMsg?.content ??
+            '[回复]';
+      default:
+        return content;
+    }
   }
 
   MessageModel copyWith({
@@ -422,6 +498,7 @@ class MessageModel {
     MessageStatus? status,
     DateTime? createdAt,
     bool? isSent,
+    bool? isEdited,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -434,6 +511,7 @@ class MessageModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       isSent: isSent ?? this.isSent,
+      isEdited: isEdited ?? this.isEdited,
     );
   }
 }

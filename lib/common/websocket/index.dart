@@ -174,7 +174,13 @@ class WsClient {
   void send(Map<String, dynamic> data) {
     if (_channel != null) {
       _channel!.sink.add(jsonEncode(data));
+      return;
     }
+    _logger.warn({
+      'text': 'WS 未连接，消息未发出',
+      'command': data['command'],
+      'messageId': (data['content'] as Map?)?['messageId'],
+    });
   }
 
   void _sendPing() {

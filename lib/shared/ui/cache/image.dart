@@ -5,9 +5,9 @@ import 'package:beaver/di/injection.dart';
 import '../image/image.dart';
 
 /// 业务层缓存图片组件 (对标 BeaverImage.vue)
-/// 职责：拿到 fileKey -> 调用缓存层取地址 -> 使用 BeaverImage 底层渲染。
+/// 职责：拿到 fileUrl -> 调用缓存层取地址 -> 使用 BeaverImage 底层渲染。
 class BeaverCachedImage extends StatefulWidget {
-  final String? fileKey;
+  final String? fileUrl;
   final CacheType type;
   final double? width;
   final double? height;
@@ -19,7 +19,7 @@ class BeaverCachedImage extends StatefulWidget {
 
   const BeaverCachedImage({
     super.key,
-    required this.fileKey,
+    required this.fileUrl,
     this.type = CacheType.image,
     this.width,
     this.height,
@@ -47,14 +47,14 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
   @override
   void didUpdateWidget(BeaverCachedImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.fileKey != widget.fileKey) {
+    if (oldWidget.fileUrl != widget.fileUrl) {
       _resolveUrl();
     }
   }
 
   Future<void> _resolveUrl() async {
-    final key = widget.fileKey;
-    if (key == null || key.isEmpty) {
+    final url = widget.fileUrl;
+    if (url == null || url.isEmpty) {
       if (mounted) {
         setState(() {
           _resolvedUrl = '';
@@ -68,7 +68,7 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
 
     // 调用业务逻辑层获取完整地址
     final mediaBusiness = getIt<MediaBusiness>();
-    final path = await mediaBusiness.getMediaPath(key, widget.type);
+    final path = await mediaBusiness.getMediaPath(url, widget.type);
 
     if (mounted) {
       setState(() {

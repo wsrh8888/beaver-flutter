@@ -170,7 +170,7 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
                 Opacity(
                   opacity: isDisabled ? 0.5 : 1.0,
                   child: BeaverCachedImage(
-                    fileKey: contact.avatar ?? contact.fileName ?? '',
+                    fileUrl: contact.avatar ?? contact.fileName ?? '',
                     type: CacheType.avatar,
                     width: 44.w,
                     height: 44.w,

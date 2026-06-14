@@ -13,7 +13,7 @@ class PostMomentRepository {
   Future<String> uploadImage(String imagePath) async {
     final response = await uploadFileApi(imagePath);
     if (response.isSuccess && response.result != null) {
-      return response.result!.fileKey;
+      return response.result!.fileUrl;
     }
     return '';
   }

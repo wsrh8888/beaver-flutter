@@ -182,7 +182,7 @@ class _ContactDetailViewState extends State<ContactDetailView> {
                 ),
                 child: ClipOval(
                   child: BeaverCachedImage(
-                    fileKey: userInfo.fileName,
+                    fileUrl: userInfo.fileName,
                     type: CacheType.avatar,
                     width: 70.w,
                     height: 70.w,

@@ -4,7 +4,7 @@ import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/group.dart';
 
 class GroupService extends BaseService {
-  GroupService(super.db);
+  const GroupService();
 
   /// 创建群组
   Future<void> create(GroupsCompanion group) async {

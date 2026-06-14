@@ -1,28 +1,51 @@
-import 'package:beaver/features/moment/detail/data/models/moment.dart';
+import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/features/moment/detail/bloc/event.dart';
 
-enum MomentStatus { initial, loading, success, error }
-
-class MomentState {
-  final MomentStatus status;
-  final List<Moment> moments;
+class MomentDetailState {
+  final MomentDetailStatus status;
+  final IMomentListItem? moment;
   final String? errorMessage;
+  final MomentDetailTab activeTab;
+  final IMomentCommentModel? replyTarget;
+  final int commentPage;
+  final bool hasMoreComments;
+  final bool isLoadingComments;
+  final Map<String, int> childPageMap;
 
-  const MomentState({
-    this.status = MomentStatus.initial,
-    this.moments = const [],
+  const MomentDetailState({
+    this.status = MomentDetailStatus.initial,
+    this.moment,
     this.errorMessage,
+    this.activeTab = MomentDetailTab.comments,
+    this.replyTarget,
+    this.commentPage = 1,
+    this.hasMoreComments = false,
+    this.isLoadingComments = false,
+    this.childPageMap = const {},
   });
 
-  MomentState copyWith({
-    MomentStatus? status,
-    List<Moment>? moments,
+  MomentDetailState copyWith({
+    MomentDetailStatus? status,
+    IMomentListItem? moment,
     String? errorMessage,
+    MomentDetailTab? activeTab,
+    IMomentCommentModel? replyTarget,
+    bool clearReplyTarget = false,
+    int? commentPage,
+    bool? hasMoreComments,
+    bool? isLoadingComments,
+    Map<String, int>? childPageMap,
   }) {
-    return MomentState(
+    return MomentDetailState(
       status: status ?? this.status,
-      moments: moments ?? this.moments,
-      errorMessage: errorMessage ?? this.errorMessage,
+      moment: moment ?? this.moment,
+      errorMessage: errorMessage,
+      activeTab: activeTab ?? this.activeTab,
+      replyTarget: clearReplyTarget ? null : (replyTarget ?? this.replyTarget),
+      commentPage: commentPage ?? this.commentPage,
+      hasMoreComments: hasMoreComments ?? this.hasMoreComments,
+      isLoadingComments: isLoadingComments ?? this.isLoadingComments,
+      childPageMap: childPageMap ?? this.childPageMap,
     );
   }
 }
-

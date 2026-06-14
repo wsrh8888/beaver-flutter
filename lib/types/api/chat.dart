@@ -28,9 +28,9 @@ class IMessageSender {
   IMessageSender({required this.nickName, this.avatar});
 
   factory IMessageSender.fromJson(Map<String, dynamic> json) => IMessageSender(
-        nickName: json['nickName'] ?? (json['nickname'] ?? '用户'),
-        avatar: json['avatar'],
-      );
+    nickName: json['nickName'] ?? (json['nickname'] ?? '用户'),
+    avatar: json['avatar'],
+  );
 }
 
 /// 消息项
@@ -270,6 +270,24 @@ class IPinnedChatRes {
       IPinnedChatRes(success: json['success'] ?? (json['code'] == 0));
 }
 
+/// 免打扰会话请求
+class IMuteChatReq {
+  final String conversationId;
+  final bool isMuted;
+
+  IMuteChatReq({required this.conversationId, required this.isMuted});
+
+  Map<String, dynamic> toJson() => {
+    'conversationId': conversationId,
+    'isMuted': isMuted,
+  };
+}
+
+/// 免打扰会话响应
+class IMuteChatRes {
+  const IMuteChatRes();
+}
+
 /// 获取合并转发详情请求
 class IGetForwardDetailsReq {
   final String recordId;
@@ -289,9 +307,11 @@ class IGetForwardDetailsRes {
   factory IGetForwardDetailsRes.fromJson(Map<String, dynamic> json) =>
       IGetForwardDetailsRes(
         title: json['title'] ?? '聊天记录',
-        list: (json['list'] as List?)
-            ?.map((e) => IChatMessageItem.fromJson(e))
-            .toList() ?? [],
+        list:
+            (json['list'] as List?)
+                ?.map((e) => IChatMessageItem.fromJson(e))
+                .toList() ??
+            [],
       );
 }
 
@@ -310,11 +330,11 @@ class IForwardMessageReq {
   });
 
   Map<String, dynamic> toJson() => {
-        'messageIds': messageIds,
-        'targetId': targetId,
-        'forwardMode': forwardMode,
-        'forwardType': forwardType,
-      };
+    'messageIds': messageIds,
+    'targetId': targetId,
+    'forwardMode': forwardMode,
+    'forwardType': forwardType,
+  };
 }
 
 /// 转发消息响应
@@ -325,4 +345,157 @@ class IForwardMessageRes {
 
   factory IForwardMessageRes.fromJson(Map<String, dynamic> json) =>
       IForwardMessageRes(messageId: json['messageId']);
+}
+
+/// 编辑消息请求
+class IEditMessageReq {
+  final String messageId;
+  final String content;
+
+  IEditMessageReq({required this.messageId, required this.content});
+
+  Map<String, dynamic> toJson() => {'messageId': messageId, 'content': content};
+}
+
+/// 编辑消息响应
+class IEditMessageRes {
+  final int id;
+  final String messageId;
+  final String content;
+  final String editTime;
+
+  IEditMessageRes({
+    required this.id,
+    required this.messageId,
+    required this.content,
+    required this.editTime,
+  });
+
+  factory IEditMessageRes.fromJson(Map<String, dynamic> json) =>
+      IEditMessageRes(
+        id: json['id'] ?? 0,
+        messageId: json['messageId'] ?? '',
+        content: json['content'] ?? '',
+        editTime: json['editTime'] ?? '',
+      );
+}
+
+/// 撤回消息请求
+class IRecallMessageReq {
+  final String messageId;
+
+  IRecallMessageReq({required this.messageId});
+
+  Map<String, dynamic> toJson() => {'messageId': messageId};
+}
+
+/// 撤回消息响应
+class IRecallMessageRes {
+  final String messageId;
+  final String recallTime;
+
+  IRecallMessageRes({required this.messageId, required this.recallTime});
+
+  factory IRecallMessageRes.fromJson(Map<String, dynamic> json) =>
+      IRecallMessageRes(
+        messageId: json['messageId'] ?? '',
+        recallTime: json['recallTime'] ?? '',
+      );
+}
+
+/// 批量删除消息请求
+class IDeleteMessagesReq {
+  final List<String> messageIds;
+
+  IDeleteMessagesReq({required this.messageIds});
+
+  Map<String, dynamic> toJson() => {'messageIds': messageIds};
+}
+
+/// 批量删除消息响应
+class IDeleteMessagesRes {
+  final bool success;
+
+  IDeleteMessagesRes({required this.success});
+
+  factory IDeleteMessagesRes.fromJson(Map<String, dynamic> json) =>
+      IDeleteMessagesRes(success: json['success'] ?? true);
+}
+
+/// 搜索消息请求
+class ISearchMessagesReq {
+  final String keyword;
+  final String? conversationId;
+  final int page;
+  final int limit;
+
+  ISearchMessagesReq({
+    required this.keyword,
+    this.conversationId,
+    this.page = 1,
+    this.limit = 20,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'keyword': keyword,
+    if (conversationId != null) 'conversationId': conversationId,
+    'page': page,
+    'limit': limit,
+  };
+}
+
+/// 搜索消息结果项
+class ISearchMessageItem {
+  final String messageId;
+  final String conversationId;
+  final int conversationType;
+  final String preview;
+  final String senderName;
+  final String createdAt;
+
+  ISearchMessageItem({
+    required this.messageId,
+    required this.conversationId,
+    required this.conversationType,
+    required this.preview,
+    required this.senderName,
+    required this.createdAt,
+  });
+
+  factory ISearchMessageItem.fromJson(Map<String, dynamic> json) {
+    final msg = json['msg'] as Map<String, dynamic>?;
+    final textMsg = msg?['textMsg'] as Map<String, dynamic>?;
+    final markdownMsg = msg?['markdownMsg'] as Map<String, dynamic>?;
+    final preview = json['msgPreview']?.toString() ??
+        textMsg?['content']?.toString() ??
+        markdownMsg?['content']?.toString() ??
+        '';
+
+    final sender = json['sender'] as Map<String, dynamic>? ?? {};
+    return ISearchMessageItem(
+      messageId: json['messageId'] ?? '',
+      conversationId: json['conversationId'] ?? '',
+      conversationType: json['conversationType'] ?? 0,
+      preview: preview,
+      senderName: sender['nickName']?.toString() ?? '',
+      createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+}
+
+/// 搜索消息响应
+class ISearchMessagesRes {
+  final int count;
+  final List<ISearchMessageItem> list;
+
+  ISearchMessagesRes({required this.count, required this.list});
+
+  factory ISearchMessagesRes.fromJson(Map<String, dynamic> json) =>
+      ISearchMessagesRes(
+        count: (json['count'] as num?)?.toInt() ?? 0,
+        list: (json['list'] as List?)
+                ?.map((e) => ISearchMessageItem.fromJson(e))
+                .toList() ??
+            [],
+      );
 }

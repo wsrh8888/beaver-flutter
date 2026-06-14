@@ -1,10 +1,146 @@
-/// 通话消息接收器
+import 'package:flutter/scheduler.dart';
+import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/router/router.dart';
+import 'package:beaver/router/routes.dart';
+import 'package:beaver/store/call/call_list.dart';
+import 'package:beaver/store/contact/contact.dart';
+
+/// 通话 WS 信令接收器（对标 Desktop CallMessageRouter）
 class CallMessageReceiver {
-  void processCallMessage(Map<String, dynamic> wsMessage) {
-    final data = wsMessage['data'] as Map<String, dynamic>?;
-    print('[CallMessageReceiver] 处理通话消息: $data');
-    // TODO: 实现通话消息处理逻辑
+  final _logger = Logger('CallMessageReceiver');
+  final _openedIncomingRooms = <String>{};
+
+  void processCallMessage(Map<String, dynamic> content) {
+    final data = content['data'];
+    if (data is! Map<String, dynamic>) return;
+
+    final payload = _resolvePayload(data);
+    if (payload == null) return;
+
+    _logger.info({'text': '收到通话信令', 'payload': payload});
+
+    switch (payload['type'] as String?) {
+      case 'RTC_INVITE':
+        _handleInvite(payload);
+        break;
+      case 'RTC_ACCEPTED':
+        _handleAccepted(payload);
+        break;
+      case 'RTC_HANGUP':
+      case 'RTC_CANCEL':
+        _handleHangup(payload);
+        break;
+      case 'RTC_REJECT':
+        _handleRejected(payload);
+        break;
+    }
+  }
+
+  Map<String, dynamic>? _resolvePayload(Map<String, dynamic> data) {
+    if (data['type'] == 'call_receive') {
+      final body = data['body'];
+      final conversationId = data['conversationId'] as String? ?? '';
+
+      if (body is Map<String, dynamic>) {
+        return {...body, 'conversationId': conversationId};
+      }
+      return null;
+    }
+    return data;
+  }
+
+  void _handleInvite(Map<String, dynamic> payload) {
+    final callerId = payload['callerId'] as String?;
+    if (callerId == null || callerId.isEmpty) return;
+
+    final roomId = payload['roomId'] as String? ?? '';
+    if (roomId.isEmpty) return;
+
+    final conversationId = payload['conversationId'] as String? ?? '';
+    final callTypeRaw = payload['callType'];
+    final callType = callTypeRaw == 2 ? 'group' : 'private';
+    final timestamp = _readTimestamp(payload['timestamp']);
+
+    String? callerName;
+    String? callerAvatar;
+    final callerUserInfo = payload['callerUserInfo'];
+    if (callerUserInfo is Map) {
+      callerName = callerUserInfo['nickName'] as String?;
+      callerAvatar = callerUserInfo['avatar'] as String?;
+    }
+
+    final callListStore = getIt<CallListStore>();
+    callListStore.addIncomingCall(
+      roomId: roomId,
+      callType: callType,
+      callerId: callerId,
+      conversationId: conversationId,
+      timestamp: timestamp,
+      callerName: callerName,
+      callerAvatar: callerAvatar,
+    );
+
+    _loadCallerInfo(roomId, callerId);
+    _openIncomingPage(conversationId, roomId);
+  }
+
+  void _handleAccepted(Map<String, dynamic> payload) {
+    final roomId = payload['roomId'] as String? ?? '';
+    if (roomId.isEmpty) return;
+    getIt<CallListStore>().updateCallStatus(roomId, CallListItemStatus.active);
+  }
+
+  void _handleHangup(Map<String, dynamic> payload) {
+    final roomId = payload['roomId'] as String? ?? '';
+    if (roomId.isEmpty) return;
+    getIt<CallListStore>().removeCall(roomId);
+    _openedIncomingRooms.remove(roomId);
+  }
+
+  void _handleRejected(Map<String, dynamic> payload) {
+    _handleHangup(payload);
+  }
+
+  Future<void> _loadCallerInfo(String roomId, String callerId) async {
+    final contact = getIt<ContactStore>().getContact(callerId);
+    if (contact == null) return;
+
+    getIt<CallListStore>().updateCallerInfo(
+      roomId,
+      name: contact.nickname,
+      avatar: contact.avatar,
+    );
+  }
+
+  void _openIncomingPage(String conversationId, String roomId) {
+    if (_openedIncomingRooms.contains(roomId)) return;
+    _openedIncomingRooms.add(roomId);
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final context = rootNavigatorKey.currentContext;
+      if (context == null) {
+        _openedIncomingRooms.remove(roomId);
+        return;
+      }
+
+      context
+          .push(
+            AppRoutes.callIncoming,
+            extra: {
+              'conversationId': conversationId,
+              'roomId': roomId,
+            },
+          )
+          .whenComplete(() => _openedIncomingRooms.remove(roomId));
+    });
+  }
+
+  int _readTimestamp(dynamic value) {
+    if (value is int) {
+      return value > 9999999999 ? value : value * 1000;
+    }
+    return DateTime.now().millisecondsSinceEpoch;
   }
 }
-
-// Removed global callMessageReceiver

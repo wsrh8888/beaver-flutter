@@ -29,9 +29,9 @@ class EmojiMessage extends StatelessWidget {
       height = max(minSize, height);
     }
 
-    // 仅使用 BeaverCachedImage 渲染，由 fileKey 决定内容同步
+    // 仅使用 BeaverCachedImage 渲染，由 fileUrl 决定内容同步
     return BeaverCachedImage(
-      fileKey: msg.fileKey,
+      fileUrl: msg.fileUrl,
       width: width.w,
       height: height.w,
       fit: BoxFit.contain,

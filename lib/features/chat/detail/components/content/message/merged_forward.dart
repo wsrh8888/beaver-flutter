@@ -1,3 +1,4 @@
+import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,9 +14,14 @@ class MergedForwardMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isSelf ? Colors.white : const Color(0xFF2D3436);
-    final subColor = isSelf ? Colors.white70 : const Color(0xFF636E72);
-    final footerColor = isSelf ? Colors.white60 : const Color(0xFFB2BEC3);
+    final textColor =
+        isSelf ? AppColors.chatBubbleSelfText : AppColors.chatBubbleOtherText;
+    final subColor = isSelf
+        ? AppColors.chatBubbleSelfText.withOpacity(0.7)
+        : AppColors.chatBubbleOtherSubText;
+    final footerColor = isSelf
+        ? AppColors.chatBubbleSelfText.withOpacity(0.6)
+        : AppColors.textPlaceholder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

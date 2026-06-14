@@ -19,6 +19,10 @@ class TogglePinGroupChatEvent extends GroupSettingEvent {
   const TogglePinGroupChatEvent();
 }
 
+class ToggleMuteGroupChatEvent extends GroupSettingEvent {
+  const ToggleMuteGroupChatEvent();
+}
+
 class DeleteGroupConversationEvent extends GroupSettingEvent {
   const DeleteGroupConversationEvent();
 }
