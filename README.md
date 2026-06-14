@@ -1,11 +1,14 @@
 # 🦫 Beaver IM - 海狸即时通讯移动端
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)](VERSION)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev/)
 [![Dart](https://img.shields.io/badge/Dart-3.x-blue.svg)](https://dart.dev/)
 [![QQ群](https://img.shields.io/badge/QQ群-1013328597%2B-blue.svg)](https://qm.qq.com/q/82rbf7QBzO)
 
 > 🚀 **现代化移动端即时通讯应用** - 基于 Flutter + Dart 构建，支持 Android/iOS/Web，提供完整的社交聊天体验
+
+**当前版本：[2.0.1](VERSION)**（以仓库根目录 [`VERSION`](VERSION) 文件为准，与 `pubspec.yaml` 同步）
 
 [English](README_EN.md) | [中文](README.md)
 
