@@ -1,0 +1,55 @@
+import 'package:drift/drift.dart';
+import 'package:beaver/core/database/services/base.dart';
+
+class ChatMessageMediaService extends BaseService {
+  const ChatMessageMediaService();
+
+  Future<void> _ensureTable() async {
+    await db.customStatement('''
+      CREATE TABLE IF NOT EXISTS chat_message_medias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        message_id TEXT NOT NULL,
+        version INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (user_id, message_id)
+      )
+    ''');
+  }
+
+  Future<List<String>> getMessageIds(String userId) async {
+    if (userId.isEmpty) {
+      return [];
+    }
+
+    await _ensureTable();
+    final rows = await db
+        .customSelect(
+          'SELECT message_id FROM chat_message_medias WHERE user_id = ?',
+          variables: [Variable.withString(userId)],
+          readsFrom: const {},
+        )
+        .get();
+    return rows.map((row) => row.read<String>('message_id')).toList();
+  }
+
+  Future<void> batchCreate(String userId, List<String> messageIds) async {
+    if (userId.isEmpty || messageIds.isEmpty) {
+      return;
+    }
+
+    await _ensureTable();
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await db.batch((batch) {
+      for (final messageId in messageIds) {
+        if (messageId.isEmpty) {
+          continue;
+        }
+        batch.customStatement(
+          'INSERT OR IGNORE INTO chat_message_medias (user_id, message_id, version, created_at) VALUES (?, ?, 0, ?)',
+          [userId, messageId, now],
+        );
+      }
+    });
+  }
+}

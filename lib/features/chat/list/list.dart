@@ -395,9 +395,6 @@ class _ChatListViewState extends State<ChatListView> {
       case 3: // 扫一扫
         context.push(AppRoutes.scan);
         break;
-      case 4: // 搜索消息
-        context.push(AppRoutes.chatSearch);
-        break;
     }
   }
 
@@ -405,6 +402,5 @@ class _ChatListViewState extends State<ChatListView> {
     {'id': 1, 'title': '发起群聊', 'icon': 'assets/icons/dropdown-group-icon.svg'},
     {'id': 2, 'title': '添加朋友', 'icon': 'assets/icons/add-friend-icon.svg'},
     {'id': 3, 'title': '扫一扫', 'icon': 'assets/icons/scan-icon.svg'},
-    {'id': 4, 'title': '搜索消息', 'icon': 'assets/icons/search-icon.svg'},
   ];
 }

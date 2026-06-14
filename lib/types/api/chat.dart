@@ -422,80 +422,16 @@ class IDeleteMessagesRes {
       IDeleteMessagesRes(success: json['success'] ?? true);
 }
 
-/// 搜索消息请求
-class ISearchMessagesReq {
-  final String keyword;
-  final String? conversationId;
-  final int page;
-  final int limit;
+/// 标记消息媒体状态请求
+class IMarkMessageMediaReq {
+  final List<String> messageIds;
 
-  ISearchMessagesReq({
-    required this.keyword,
-    this.conversationId,
-    this.page = 1,
-    this.limit = 20,
-  });
+  const IMarkMessageMediaReq({required this.messageIds});
 
-  Map<String, dynamic> toJson() => {
-    'keyword': keyword,
-    if (conversationId != null) 'conversationId': conversationId,
-    'page': page,
-    'limit': limit,
-  };
+  Map<String, dynamic> toJson() => {'messageIds': messageIds};
 }
 
-/// 搜索消息结果项
-class ISearchMessageItem {
-  final String messageId;
-  final String conversationId;
-  final int conversationType;
-  final String preview;
-  final String senderName;
-  final String createdAt;
-
-  ISearchMessageItem({
-    required this.messageId,
-    required this.conversationId,
-    required this.conversationType,
-    required this.preview,
-    required this.senderName,
-    required this.createdAt,
-  });
-
-  factory ISearchMessageItem.fromJson(Map<String, dynamic> json) {
-    final msg = json['msg'] as Map<String, dynamic>?;
-    final textMsg = msg?['textMsg'] as Map<String, dynamic>?;
-    final markdownMsg = msg?['markdownMsg'] as Map<String, dynamic>?;
-    final preview = json['msgPreview']?.toString() ??
-        textMsg?['content']?.toString() ??
-        markdownMsg?['content']?.toString() ??
-        '';
-
-    final sender = json['sender'] as Map<String, dynamic>? ?? {};
-    return ISearchMessageItem(
-      messageId: json['messageId'] ?? '',
-      conversationId: json['conversationId'] ?? '',
-      conversationType: json['conversationType'] ?? 0,
-      preview: preview,
-      senderName: sender['nickName']?.toString() ?? '',
-      createdAt: json['created_at']?.toString() ?? '',
-    );
-  }
-}
-
-/// 搜索消息响应
-class ISearchMessagesRes {
-  final int count;
-  final List<ISearchMessageItem> list;
-
-  ISearchMessagesRes({required this.count, required this.list});
-
-  factory ISearchMessagesRes.fromJson(Map<String, dynamic> json) =>
-      ISearchMessagesRes(
-        count: (json['count'] as num?)?.toInt() ?? 0,
-        list: (json['list'] as List?)
-                ?.map((e) => ISearchMessageItem.fromJson(e))
-                .toList() ??
-            [],
-      );
+/// 标记消息媒体状态响应
+class IMarkMessageMediaRes {
+  const IMarkMessageMediaRes();
 }

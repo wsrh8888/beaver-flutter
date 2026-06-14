@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import './message_receiver.dart';
 import './conversation_receiver.dart';
 import './user_conversation_receiver.dart';
-import 'package:beaver/core/business/chat/message.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/message_media/message_media.dart';
+import 'package:beaver/core/business/chat/message.dart';
 
 /// 聊天消息路由器 (对标 PC receivers/chat/index.ts)
 /// 根据消息类型路由到对应的接收器
 class ChatMessageRouter {
+  final _logger = Logger('chat-message-router');
   final _messageReceiver = messageReceiver;
   final _conversationReceiver = conversationReceiver;
   final _userConversationReceiver = userConversationReceiver;
@@ -24,12 +29,15 @@ class ChatMessageRouter {
     }
 
     final type = data['type'] as String?;
-    final body = data['body'] as Map<String, dynamic>?;
+    final body = _parseBody(data['body']);
     final conversationId = data['conversationId'] as String?;
 
-    print(
-      '[ChatMessageRouter] 收到路由消息: type=$type, convId=$conversationId, hasBody=${body != null}',
-    );
+    _logger.info({
+      'text': '收到路由消息',
+      'type': type,
+      'conversationId': conversationId,
+      'hasBody': body != null,
+    });
 
     if (type == null || body == null) return;
 
@@ -73,8 +81,71 @@ class ChatMessageRouter {
         }
         break;
 
+      case 'chat_message_media_receive':
+        _handleMessageMediaUpdate(body);
+        break;
+
       default:
         print('[ChatMessageRouter] 未处理的消息类型: $type');
+    }
+  }
+
+  Map<String, dynamic>? _parseBody(dynamic raw) {
+    if (raw is Map<String, dynamic>) {
+      return raw;
+    }
+    if (raw is Map) {
+      return Map<String, dynamic>.from(raw);
+    }
+    if (raw is String && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  void _handleMessageMediaUpdate(Map<String, dynamic> body) {
+    final tableUpdates = body['tableUpdates'] as List?;
+    if (tableUpdates == null) {
+      _logger.warn({'text': '消息媒体更新缺少 tableUpdates', 'body': body});
+      return;
+    }
+
+    final messageIds = <String>[];
+    for (final update in tableUpdates) {
+      if (update is! Map) {
+        continue;
+      }
+      if (update['table'] != 'message_medias') {
+        continue;
+      }
+      final data = update['data'] as List?;
+      if (data == null) {
+        continue;
+      }
+      for (final item in data) {
+        if (item is! Map) {
+          continue;
+        }
+        final ids = item['messageIds'] as List?;
+        if (ids == null) {
+          continue;
+        }
+        messageIds.addAll(ids.whereType<String>());
+      }
+    }
+
+    if (messageIds.isNotEmpty) {
+      _logger.info({
+        'text': '收到消息媒体已听推送',
+        'count': messageIds.length,
+        'messageIds': messageIds,
+      });
+      getIt<MessageMediaStore>().merge(messageIds);
     }
   }
 }

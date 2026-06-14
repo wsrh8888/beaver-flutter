@@ -3,6 +3,7 @@ export 'chat/conversation.dart';
 export 'chat/message.dart';
 export 'chat/sync_status.dart';
 export 'chat/user_conversation.dart';
+export 'chat/message_media.dart';
 
 // User Services
 export 'user/user.dart';

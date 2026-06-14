@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:beaver/common/ua/ua.dart';
@@ -7,11 +8,12 @@ import 'package:beaver/common/ua/ua.dart';
 /// 应用级配置 (Dart 规范化重构)
 class AppConfig {
   static const String env = 'prod';
-  static late String version;
+  static String version = '1.0.0';
   static late String deviceId;
-  static late String deviceModel;
-  static late String deviceOsVersion;
-  static late String deviceDisplayName;
+  static String deviceArch = 'arm64';
+  static String deviceModel = '';
+  static String deviceOsVersion = '';
+  static String deviceDisplayName = '';
   static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 
   static const String source = 'beaver-flutter';
@@ -28,6 +30,15 @@ class AppConfig {
   }
 
   static Future<void> _initVersion() async {
+    try {
+      final content = await rootBundle.loadString('VERSION');
+      final trimmed = content.trim();
+      if (trimmed.isNotEmpty) {
+        version = trimmed;
+        return;
+      }
+    } catch (_) {}
+
     final packageInfo = await PackageInfo.fromPlatform();
     version = packageInfo.version;
   }

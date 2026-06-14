@@ -3,6 +3,7 @@ export 'chat/chat.dart';
 export 'chat/conversation_meta.dart';
 export 'chat/message.dart';
 export 'chat/user_conversation.dart';
+export 'chat/message_media.dart';
 
 // Emoji Syncers
 export 'emoji/sync.dart';

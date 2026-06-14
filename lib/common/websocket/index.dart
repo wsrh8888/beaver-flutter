@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:beaver/common/config/config.dart';
 import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/app/app.dart';
@@ -96,7 +97,10 @@ class WsClient {
 
       _logger.info({'text': '开始建立安全WS连接', 'url': uri.toString()});
 
-      final customChannel = IOWebSocketChannel.connect(uri, headers: const {});
+      final customChannel = IOWebSocketChannel.connect(
+        uri,
+        headers: {'User-Agent': AppConfig.userAgent},
+      );
 
       // 等待握手完成。如果服务端返回 401，这里会抛出 Exception
       await customChannel.ready;

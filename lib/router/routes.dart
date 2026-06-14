@@ -13,7 +13,6 @@ class AppRoutes {
   static const String groupChatSetting = '/chat/setting/group';
   static const String chatForward = '/chat/forward';
   static const String chatForwardDetail = '/chat/forward/detail';
-  static const String chatSearch = '/chat/search';
   
   // 联系人模块
   static const String contactList = '/contact/list';
@@ -45,6 +44,9 @@ class AppRoutes {
   
   // 设置模块
   static const String settingMain = '/setting';
+  static const String settingAccountSecurity = '/setting/account-security';
+  static const String settingChangePassword = '/setting/change-password';
+  static const String settingDevices = '/setting/devices';
   static const String settingTheme = '/setting/theme';
   static const String settingAbout = '/setting/about';
   static const String settingFeedback = '/setting/feedback';

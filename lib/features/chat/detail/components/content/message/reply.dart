@@ -1,3 +1,4 @@
+import 'package:beaver/features/chat/detail/components/content/message/text.dart';
 import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/business/message.dart';
 import 'package:flutter/material.dart';
@@ -40,12 +41,13 @@ class ReplyMessage extends StatelessWidget {
           ),
         ),
         if (msg.replyMsg?.textMsg != null)
-          Text(
-            msg.replyMsg!.textMsg!.content,
-            style: TextStyle(
+          DefaultTextStyle(
+            style: TextStyle(color: textColor),
+            child: TextMessage(
+              msg: msg.replyMsg!.textMsg!,
+              isSelf: isSelf,
+              emojiSize: 28.w,
               fontSize: 14.sp,
-              height: 1.5,
-              color: textColor,
             ),
           ),
       ],
