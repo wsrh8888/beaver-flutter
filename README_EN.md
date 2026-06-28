@@ -102,7 +102,7 @@
 - 🎥 **Video Tutorial**: [Bilibili Tutorial](https://www.bilibili.com/video/BV1HrrKYeEB4/)
 - 📱 **Experience Package Download**: [Beaver IM Android Experience Package](https://github.com/wsrh8888/beaver-docs/releases/download/lastest/latest.apk)
 - 💬 **QQ Groups**:
-  - [1013328597](https://qm.qq.com/q/82rbf7QBzO) - Group 1 (Full)
+  - [1013328597](https://qm.qq.com/q/82rbf7QBzO) - Group 1
   - [1044762885](https://qm.qq.com/q/82rbf7QBzO) - Group 2
   - [1003121259](https://qm.qq.com/q/82rbf7QBzO) - Group 3
 

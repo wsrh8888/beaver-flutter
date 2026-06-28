@@ -100,7 +100,7 @@
 - 🎥 **视频教程**: [B站教程](https://www.bilibili.com/video/BV1HrrKYeEB4/)
 - 📱 **体验包下载**: [海狸IM Android体验包](https://github.com/wsrh8888/beaver-docs/releases/download/lastest/latest.apk)
 - 💬 **QQ群**:
-  - [1013328597](https://qm.qq.com/q/82rbf7QBzO) - 群一 (已满)
+  - [1013328597](https://qm.qq.com/q/82rbf7QBzO) - 群一
   - [1044762885](https://qm.qq.com/q/82rbf7QBzO) - 群二
   - [1003121259](https://qm.qq.com/q/82rbf7QBzO) - 群三
 
