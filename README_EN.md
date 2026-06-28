@@ -39,34 +39,44 @@
 
 ### 💬 Chat Features
 <div align="center">
-  <img src="./assets/screenshots/messages.jpg" width="200" alt="Message List"/>
-  <img src="./assets/screenshots/chat_content.jpg" width="200" alt="Chat Content"/>
-  <img src="./assets/screenshots/chat_settings.jpg" width="200" alt="Chat Settings"/>
-  <img src="./assets/screenshots/favorite_emojis.jpg" width="200" alt="Favorite Emojis"/>
-  <img src="./assets/screenshots/default_emojis.jpg" width="200" alt="Default Emojis"/>
+  <img src="./static/flutter/消息.jpg" width="200" alt="Message List"/>
+  <img src="./static/flutter/聊天-markdown.jpg" width="200" alt="Markdown Message"/>
+  <img src="./static/flutter/聊天-图片预览.jpg" width="200" alt="Image Preview"/>
+  <img src="./static/flutter/私聊-设置.jpg" width="200" alt="Private Chat Settings"/>
+  <img src="./static/flutter/会话-语言.jpg" width="200" alt="Voice Session"/>
+  <img src="./static/flutter/表情-商店.jpg" width="200" alt="Emoji Store"/>
 </div>
 
 ### 👥 Social Features
 <div align="center">
-  <img src="./assets/screenshots/friend_list.jpg" width="200" alt="Friend List"/>
-  <img src="./assets/screenshots/friend_profile.jpg" width="200" alt="Friend Profile"/>
-  <img src="./assets/screenshots/new_friend_received.jpg" width="200" alt="Friend Request Received"/>
-  <img src="./assets/screenshots/new_friend_sent.jpg" width="200" alt="Friend Request Sent"/>
+  <img src="./static/flutter/朋友.jpg" width="200" alt="Friend List"/>
+  <img src="./static/flutter/好友-详情.jpg" width="200" alt="Friend Profile"/>
+  <img src="./static/flutter/好友-新的朋友.jpg" width="200" alt="New Friends"/>
+  <img src="./static/flutter/添加朋友.jpg" width="200" alt="Add Friend"/>
+  <img src="./static/flutter/搜索好友.jpg" width="200" alt="Search Friend"/>
 </div>
 
 ### 👥 Group Features
 <div align="center">
-  <img src="./assets/screenshots/create_group.jpg" width="200" alt="Create Group"/>
-  <img src="./assets/screenshots/my_groups.jpg" width="200" alt="My Groups"/>
+  <img src="./static/flutter/群聊-发起群聊.jpg" width="200" alt="Create Group"/>
+  <img src="./static/flutter/群聊-列表.jpg" width="200" alt="Group List"/>
+  <img src="./static/flutter/群聊-群聊设置.jpg" width="200" alt="Group Settings"/>
+</div>
+
+### 🌐 Moments
+<div align="center">
+  <img src="./static/flutter/朋友圈-详情.jpg" width="200" alt="Moment Detail"/>
+  <img src="./static/flutter/朋友圈-回复.jpg" width="200" alt="Moment Reply"/>
 </div>
 
 ### ⚙️ System Features
 <div align="center">
-  <img src="./assets/screenshots/my_profile.jpg" width="200" alt="Profile Page"/>
-  <img src="./assets/screenshots/general_settings.jpg" width="200" alt="General Settings"/>
-  <img src="./assets/screenshots/feedback.jpg" width="200" alt="Feedback"/>
-  <img src="./assets/screenshots/camera.jpg" width="200" alt="Camera"/>
-  <img src="./assets/screenshots/database.jpg" width="200" alt="Database Sync"/>
+  <img src="./static/flutter/我的.jpg" width="200" alt="Profile Page"/>
+  <img src="./static/flutter/我的-二维码.jpg" width="200" alt="My QR Code"/>
+  <img src="./static/flutter/基础-通用设置.jpg" width="200" alt="General Settings"/>
+  <img src="./static/flutter/升级.jpg" width="200" alt="Check Update"/>
+  <img src="./static/flutter/扫码.jpg" width="200" alt="Scan"/>
+  <img src="./static/flutter/账号-登录.jpg" width="200" alt="Login"/>
 </div>
 
 ---

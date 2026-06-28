@@ -25,6 +25,14 @@ class MinePage extends StatefulWidget {
 }
 
 class _MinePageState extends State<MinePage> {
+  static const _pageBackground = BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment(0.42, -0.91),
+      end: Alignment(-0.42, 0.91),
+      colors: [Color(0xFFFF7D45), Color(0xFFE86835)],
+    ),
+  );
+
   late MineBloc _mineBloc;
 
   @override
@@ -95,17 +103,28 @@ class _MinePageState extends State<MinePage> {
             builder: (context, state) {
               return BeaverLayout(
                 showHeader: false,
-                isScrollable: true,
+                headerBackground: Colors.transparent,
+                statusBarIconLight: true,
+                showWsStatus: false,
+                fullScreenBackground:
+                    const DecoratedBox(decoration: _pageBackground),
+                isScrollable: false,
                 child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    // 背景颜色
-                    Positioned.fill(
-                      child: Container(color: const Color(0xFFF9FAFB)),
+                    const Positioned.fill(
+                      child: ColoredBox(color: Color(0xFFF9FAFB)),
                     ),
-                    // 1. 个人信息部
-                    _buildHeader(context, userStoreState, userInfo),
-                    // 2. 内容区域
-                    _buildContent(context, userStoreState, userInfo),
+                    SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          _buildHeader(context, userStoreState, userInfo),
+                          _buildContent(context, userStoreState, userInfo),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               );
