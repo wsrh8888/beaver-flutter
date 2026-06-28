@@ -39,34 +39,44 @@
 
 ### 💬 聊天功能
 <div align="center">
-  <img src="./assets/screenshots/messages.jpg" width="200" alt="消息列表"/>
-  <img src="./assets/screenshots/chat_content.jpg" width="200" alt="聊天内容"/>
-  <img src="./assets/screenshots/chat_settings.jpg" width="200" alt="聊天设置"/>
-  <img src="./assets/screenshots/favorite_emojis.jpg" width="200" alt="收藏表情"/>
-  <img src="./assets/screenshots/default_emojis.jpg" width="200" alt="默认表情"/>
+  <img src="./static/flutter/消息.jpg" width="200" alt="消息列表"/>
+  <img src="./static/flutter/聊天-markdown.jpg" width="200" alt="Markdown 消息"/>
+  <img src="./static/flutter/聊天-图片预览.jpg" width="200" alt="图片预览"/>
+  <img src="./static/flutter/私聊-设置.jpg" width="200" alt="私聊设置"/>
+  <img src="./static/flutter/会话-语言.jpg" width="200" alt="语音会话"/>
+  <img src="./static/flutter/表情-商店.jpg" width="200" alt="表情商店"/>
 </div>
 
 ### 👥 社交功能
 <div align="center">
-  <img src="./assets/screenshots/friend_list.jpg" width="200" alt="好友列表"/>
-  <img src="./assets/screenshots/friend_profile.jpg" width="200" alt="好友详情"/>
-  <img src="./assets/screenshots/new_friend_received.jpg" width="200" alt="收到申请"/>
-  <img src="./assets/screenshots/new_friend_sent.jpg" width="200" alt="发出申请"/>
+  <img src="./static/flutter/朋友.jpg" width="200" alt="好友列表"/>
+  <img src="./static/flutter/好友-详情.jpg" width="200" alt="好友详情"/>
+  <img src="./static/flutter/好友-新的朋友.jpg" width="200" alt="新的朋友"/>
+  <img src="./static/flutter/添加朋友.jpg" width="200" alt="添加朋友"/>
+  <img src="./static/flutter/搜索好友.jpg" width="200" alt="搜索好友"/>
 </div>
 
 ### 👥 群聊功能
 <div align="center">
-  <img src="./assets/screenshots/create_group.jpg" width="200" alt="创建群聊"/>
-  <img src="./assets/screenshots/my_groups.jpg" width="200" alt="我的群聊"/>
+  <img src="./static/flutter/群聊-发起群聊.jpg" width="200" alt="创建群聊"/>
+  <img src="./static/flutter/群聊-列表.jpg" width="200" alt="群聊列表"/>
+  <img src="./static/flutter/群聊-群聊设置.jpg" width="200" alt="群聊设置"/>
+</div>
+
+### 🌐 朋友圈
+<div align="center">
+  <img src="./static/flutter/朋友圈-详情.jpg" width="200" alt="朋友圈详情"/>
+  <img src="./static/flutter/朋友圈-回复.jpg" width="200" alt="朋友圈回复"/>
 </div>
 
 ### ⚙️ 系统功能
 <div align="center">
-  <img src="./assets/screenshots/my_profile.jpg" width="200" alt="个人中心"/>
-  <img src="./assets/screenshots/general_settings.jpg" width="200" alt="通用设置"/>
-  <img src="./assets/screenshots/feedback.jpg" width="200" alt="意见反馈"/>
-  <img src="./assets/screenshots/camera.jpg" width="200" alt="拍照"/>
-  <img src="./assets/screenshots/database.jpg" width="200" alt="数据库同步"/>
+  <img src="./static/flutter/我的.jpg" width="200" alt="个人中心"/>
+  <img src="./static/flutter/我的-二维码.jpg" width="200" alt="我的二维码"/>
+  <img src="./static/flutter/基础-通用设置.jpg" width="200" alt="通用设置"/>
+  <img src="./static/flutter/升级.jpg" width="200" alt="检查更新"/>
+  <img src="./static/flutter/扫码.jpg" width="200" alt="扫码"/>
+  <img src="./static/flutter/账号-登录.jpg" width="200" alt="登录"/>
 </div>
 
 ---

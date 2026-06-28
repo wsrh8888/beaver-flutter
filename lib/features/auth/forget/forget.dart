@@ -19,6 +19,15 @@ class ForgetPasswordPage extends StatefulWidget {
 }
 
 class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
+  static const _pageBackground = BoxDecoration(
+    color: Color(0xFFF9FAFB),
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0x1AFF7D45), Color(0x00FFFFFF)],
+    ),
+  );
+
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -136,54 +145,35 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return BeaverLayout(
-      showBackground: true,
-      showHeader: false,
+      headerBackground: Colors.transparent,
+      showWsStatus: false,
+      fullScreenBackground:
+          const DecoratedBox(decoration: _pageBackground),
       isScrollable: true,
-      child: Stack(
-        children: [
-          // 顶部渐变
-          Container(
-            height: 120.w,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x1AFF7D45), Colors.transparent],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            SizedBox(height: 16.w),
+            _buildLogo(),
+            SizedBox(height: 24.w),
+            _buildTitleSection(),
+            SizedBox(height: 8.w),
+            Text(
+              '请输入您的邮箱地址和验证码，重置密码',
+              style: TextStyle(
+                color: const Color(0xFF636E72),
+                fontSize: 14.sp,
               ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          // 内容区域
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              children: [
-                SizedBox(height: 50.w),
-                // Logo
-                _buildLogo(),
-                SizedBox(height: 24.w),
-                // 标题
-                _buildTitleSection(),
-                SizedBox(height: 8.w),
-                Text(
-                  '请输入您的邮箱地址和验证码，重置密码',
-                  style: TextStyle(
-                    color: const Color(0xFF636E72),
-                    fontSize: 14.sp,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 24.w),
-                // 表单
-                _buildForm(),
-                SizedBox(height: 24.w),
-                // 底部链接
-                _buildBottomLinks(),
-                SizedBox(height: 20.w),
-              ],
-            ),
-          ),
-        ],
+            SizedBox(height: 24.w),
+            _buildForm(),
+            SizedBox(height: 24.w),
+            _buildBottomLinks(),
+            SizedBox(height: 20.w),
+          ],
+        ),
       ),
     );
   }

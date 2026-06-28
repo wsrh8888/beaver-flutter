@@ -123,7 +123,7 @@ class GroupBusiness implements GroupRepositoryInterface {
   /**
    * 按版本号同步群资料 (对标 PC syncGroupByVersion)
    */
-  Future<List<GroupInfo>?> getGroupsByIds(List<String> groupIds) async {
+  Future<List<GroupInfo>> getGroupsByIds(List<String> groupIds) async {
     try {
       final userId = DatabaseManager.currentUserId ?? '';
       if (userId.isEmpty || groupIds.isEmpty) {

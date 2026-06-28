@@ -33,6 +33,15 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  static const _pageBackground = BoxDecoration(
+    color: Color(0xFFF9FAFB),
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0x1AFF7D45), Color(0x00FFFFFF)],
+    ),
+  );
+
   final _emailController = TextEditingController(text: '');
   final _passwordController = TextEditingController(text: '');
   bool _obscurePassword = true;
@@ -94,13 +103,17 @@ class _LoginViewState extends State<LoginView> {
         }
       },
       child: BeaverLayout(
-        showBackground: true,
-        showHeader: false,
+        showBack: false,
+        headerBackground: Colors.transparent,
+        showWsStatus: false,
+        fullScreenBackground:
+            const DecoratedBox(decoration: _pageBackground),
+        isScrollable: true,
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           child: Column(
             children: [
-              SizedBox(height: 60.w),
+              SizedBox(height: 16.w),
               _buildLogo(),
               SizedBox(height: 24.w),
               _buildTitleSection(),
