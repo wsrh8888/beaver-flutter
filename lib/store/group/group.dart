@@ -25,6 +25,8 @@ class GroupStoreState extends Equatable {
     );
   }
 
+  List<GroupInfo> get groupList => groupMap.values.toList();
+
   @override
   List<Object?> get props => [groupMap, version];
 }
@@ -57,46 +59,61 @@ class GroupStore extends Cubit<GroupStoreState> {
   }
 
   Future<void> init() async {
-    try {
-      final groups = await _groupBusiness.getGroupList();
-      final nextMap = <String, GroupInfo>{};
-      if (groups != null) {
-        for (final group in groups) {
-          nextMap[group.conversationId] = group;
-        }
+    final groups = await _groupBusiness.getGroupList();
+    final nextMap = <String, GroupInfo>{};
+    if (groups != null) {
+      for (final group in groups) {
+        nextMap[group.conversationId] = group;
       }
-      emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
-    } catch (e) {
-      print('GroupStore: init failed: $e');
     }
+    emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
   }
 
   Future<void> updateGroupsByIds(List<String> groupIds) async {
     if (groupIds.isEmpty) return;
-    try {
-      final groups = await _groupBusiness.getGroupsByIds(groupIds);
-      if (groups == null || groups.isEmpty) return;
 
-      final nextMap = Map<String, GroupInfo>.from(state.groupMap);
-      var changed = false;
-      for (final group in groups) {
-        final key = group.conversationId;
-        final existing = nextMap[key];
-        if (existing != group) {
-          nextMap[key] = group;
-          changed = true;
-        }
-      }
+    final groups = await _groupBusiness.getGroupsByIds(groupIds);
+    final nextMap = Map<String, GroupInfo>.from(state.groupMap);
+    var changed = false;
 
-      if (changed) {
-        emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
+    final activeIds = <String>{};
+    for (final group in groups) {
+      final groupId = group.conversationId.replaceFirst('group_', '');
+      activeIds.add(groupId);
+      final key = group.conversationId;
+      if (nextMap[key] != group) {
+        nextMap[key] = group;
+        changed = true;
       }
-    } catch (e) {
-      print('GroupStore: updateGroupsByIds failed: $e');
+    }
+
+    for (final groupId in groupIds) {
+      if (!activeIds.contains(groupId) && nextMap.remove('group_$groupId') != null) {
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
     }
   }
 
+  void removeGroup(String groupIdOrConversationId) {
+    final conversationId = groupIdOrConversationId.startsWith('group_')
+        ? groupIdOrConversationId
+        : 'group_$groupIdOrConversationId';
+    if (!state.groupMap.containsKey(conversationId)) {
+      return;
+    }
+    final nextMap = Map<String, GroupInfo>.from(state.groupMap)
+      ..remove(conversationId);
+    emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
+  }
+
   GroupInfo? getGroup(String groupId) {
-    return state.groupMap[groupId];
+    if (groupId.startsWith('group_')) {
+      return state.groupMap[groupId];
+    }
+    return state.groupMap['group_$groupId'];
   }
 }
