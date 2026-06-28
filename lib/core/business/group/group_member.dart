@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/api/group.dart';
@@ -30,6 +31,7 @@ class GroupMemberBusiness {
         print(
           '[GroupMemberBusiness] 群成员同步成功: count=${response.result!.groupMembers.length}',
         );
+        getIt<GroupBusiness>().notifyGroupUpdate([groupId]);
       }
     } catch (e) {
       print('[GroupMemberBusiness] syncGroupMembersByVersion failed: $e');
