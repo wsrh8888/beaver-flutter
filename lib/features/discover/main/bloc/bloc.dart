@@ -8,7 +8,6 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
 
   DiscoverBloc(this._repository) : super(const DiscoverState()) {
     on<LoadDiscoverItemsEvent>(_onLoadDiscoverItems);
-    on<NavigateToEvent>(_onNavigateTo);
   }
 
   Future<void> _onLoadDiscoverItems(
@@ -17,25 +16,11 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
   ) async {
     emit(state.copyWith(status: DiscoverStatus.loading));
 
-    try {
-      final discoverItems = await _repository.getDiscoverItems();
-      emit(state.copyWith(
-        status: DiscoverStatus.success,
-        discoverItems: discoverItems,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        status: DiscoverStatus.error,
-        errorMessage: '加载发现项目失败: $e',
-      ));
-    }
-  }
-
-  Future<void> _onNavigateTo(
-    NavigateToEvent event,
-    Emitter<DiscoverState> emit,
-  ) async {
-    // 导航逻辑
+    final discoverItems = await _repository.getDiscoverItems();
+    emit(state.copyWith(
+      status: DiscoverStatus.success,
+      discoverItems: discoverItems,
+    ));
   }
 }
 

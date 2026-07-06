@@ -41,6 +41,12 @@ class AppRoutes {
   
   // 发现模块
   static const String discoverMain = '/discover';
+
+  // 工作台模块
+  static const String workbenchHome = '/workbench';
+
+  // 圈子模块
+  static const String circleList = '/circle/list';
   
   // 设置模块
   static const String settingMain = '/setting';

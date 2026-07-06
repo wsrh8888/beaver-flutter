@@ -14,17 +14,25 @@ import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/types/business/chat.dart';
 import 'package:beaver/features/calls/widgets/incoming_call_banner.dart';
 
+import 'package:beaver/shared/ui/avatar/index.dart';
+import 'package:beaver/store/contact/contact.dart';
+import 'package:beaver/store/user/user.dart';
+
 class ChatListPage extends StatelessWidget {
-  const ChatListPage({super.key});
+  final VoidCallback? onOpenProfile;
+
+  const ChatListPage({super.key, this.onOpenProfile});
 
   @override
   Widget build(BuildContext context) {
-    return const ChatListView();
+    return ChatListView(onOpenProfile: onOpenProfile);
   }
 }
 
 class ChatListView extends StatefulWidget {
-  const ChatListView({super.key});
+  final VoidCallback? onOpenProfile;
+
+  const ChatListView({super.key, this.onOpenProfile});
 
   @override
   State<ChatListView> createState() => _ChatListViewState();
@@ -33,12 +41,32 @@ class ChatListView extends StatefulWidget {
 class _ChatListViewState extends State<ChatListView> {
   @override
   Widget build(BuildContext context) {
-    return BeaverLayout(
-      title: '消息',
-      showHeader: true,
-      showBack: false,
-      isScrollable: false,
-      rightSlot: GestureDetector(
+    return BlocBuilder<UserStore, UserStoreState>(
+      builder: (context, userState) {
+        final userInfo = context
+            .watch<ContactStore>()
+            .getContact(userState.currentUserId);
+
+        return BeaverLayout(
+          title: '消息',
+          showHeader: true,
+          showBack: false,
+          isScrollable: false,
+          leftSlot: GestureDetector(
+            onTap: widget.onOpenProfile,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 44.w,
+              height: 44.w,
+              child: Center(
+                child: BeaverAvatar(
+                  avatar: userInfo?.avatar,
+                  size: 32,
+                ),
+              ),
+            ),
+          ),
+          rightSlot: GestureDetector(
         onTap: () => _showTopMenu(context),
         child: Container(
           width: 24.w,
@@ -81,6 +109,8 @@ class _ChatListViewState extends State<ChatListView> {
           );
         },
       ),
+        );
+      },
     );
   }
 

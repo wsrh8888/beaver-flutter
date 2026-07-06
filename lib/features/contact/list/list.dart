@@ -54,7 +54,7 @@ class _ContactListViewState extends State<ContactListView> {
   @override
   Widget build(BuildContext context) {
     return BeaverLayout(
-      title: '好友',
+      title: '通讯录',
       showHeader: true,
       showBack: false,
       isScrollable: false,
