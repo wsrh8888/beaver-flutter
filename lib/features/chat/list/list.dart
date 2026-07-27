@@ -5,8 +5,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/chat/chat.dart';
+import 'package:beaver/store/group/group.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -410,8 +412,23 @@ class _ChatListViewState extends State<ChatListView> {
     }
   }
 
-  void _handleChatClick(ChatModel chat) {
-    context.push('/chat/detail?id=${chat.conversationId}');
+  Future<void> _handleChatClick(ChatModel chat) async {
+    if (chat.conversationId.startsWith('group_')) {
+      final active = await getIt<GroupBusiness>().isGroupConversationActive(
+        chat.conversationId,
+      );
+      if (!active) {
+        if (mounted) {
+          BeaverToast.show(context, '群聊已解散');
+        }
+        await getIt<ChatStore>().deleteChat(chat.conversationId);
+        getIt<GroupStore>().removeGroup(chat.conversationId);
+        return;
+      }
+    }
+    if (mounted) {
+      context.push('/chat/detail?id=${chat.conversationId}');
+    }
   }
 
   void _handleMenuClick(int id) {

@@ -11,9 +11,12 @@ import 'package:beaver/api/group.dart';
 import 'package:beaver/core/business/group/group_join_request.dart';
 import 'package:beaver/core/business/group/group_member.dart';
 
+const int groupStatusActive = 1;
+
 /// Group business logic.
 class GroupBusiness implements GroupRepositoryInterface {
   final _groupService = getIt<GroupService>();
+  final _groupMemberService = getIt<GroupMemberService>();
   final _friendBusiness = getIt<FriendBusiness>();
 
   // 响应式数据流 (对标 PC 的 Notification 机制)
@@ -71,13 +74,23 @@ class GroupBusiness implements GroupRepositoryInterface {
 
   @override
   Future<List<GroupInfo>?> getGroupList() async {
-    final groups = await _groupService.getActiveGroups();
-    if (groups.isEmpty) {
+    final userId = DatabaseManager.currentUserId ?? '';
+    if (userId.isEmpty) {
       return [];
     }
 
+    final memberships = await _groupMemberService.getUserMemberships(userId);
+    if (memberships.isEmpty) {
+      return [];
+    }
+
+    final groupIds = memberships.map((m) => m.groupId).toList();
+    final groups = await _groupService.getGroupsByIds(groupIds);
+    final activeGroups =
+        groups.where((group) => group.status == groupStatusActive).toList();
+
     final result = <GroupInfo>[];
-    for (final group in groups) {
+    for (final group in activeGroups) {
       final memberCount =
           await getIt<GroupMemberBusiness>().countHumanMembers(group.groupId);
       result.add(
@@ -110,11 +123,24 @@ class GroupBusiness implements GroupRepositoryInterface {
   /**
    * 按版本号同步群资料 (对标 PC syncGroupByVersion)
    */
-  Future<List<GroupInfo>?> getGroupsByIds(List<String> groupIds) async {
+  Future<List<GroupInfo>> getGroupsByIds(List<String> groupIds) async {
     try {
+      final userId = DatabaseManager.currentUserId ?? '';
+      if (userId.isEmpty || groupIds.isEmpty) {
+        return [];
+      }
+
+      final memberships = await _groupMemberService.getUserMemberships(userId);
+      final activeGroupIds = memberships.map((m) => m.groupId).toSet();
       final groups = await _groupService.getGroupsByIds(groupIds);
       final List<GroupInfo> result = [];
       for (final g in groups) {
+        if (!activeGroupIds.contains(g.groupId)) {
+          continue;
+        }
+        if (g.status != groupStatusActive) {
+          continue;
+        }
         final memberCount =
             await getIt<GroupMemberBusiness>().countHumanMembers(g.groupId);
         result.add(
@@ -132,8 +158,20 @@ class GroupBusiness implements GroupRepositoryInterface {
       return result;
     } catch (e) {
       print('GroupBusiness: getGroupsByIds 失败: $e');
-      return null;
+      rethrow;
     }
+  }
+
+  Future<bool> isGroupConversationActive(String conversationId) async {
+    if (!conversationId.startsWith('group_')) {
+      return true;
+    }
+    final groupId = conversationId.replaceFirst('group_', '');
+    if (groupId.isEmpty) {
+      return true;
+    }
+    final groups = await getGroupsByIds([groupId]);
+    return groups.isNotEmpty;
   }
 
   Future<void> syncGroupByVersion(String groupId, int version) async {
@@ -177,7 +215,6 @@ class GroupBusiness implements GroupRepositoryInterface {
           version: group.version,
         );
 
-        // 通知外部更新 (通过 Stream)
         notifyGroupUpdate([group.groupId]);
         getIt<ConversationBusiness>().notifyConversationUpdate();
       }

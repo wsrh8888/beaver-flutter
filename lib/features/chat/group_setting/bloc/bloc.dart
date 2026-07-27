@@ -6,6 +6,7 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/chat/group_setting/bloc/event.dart';
 import 'package:beaver/features/chat/group_setting/bloc/state.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/store/group/group.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   final _conversationBusiness = getIt<ConversationBusiness>();
   final _groupMemberStore = getIt<GroupMemberStore>();
+  final _groupStore = getIt<GroupStore>();
 
   GroupSettingBloc() : super(const GroupSettingState()) {
     on<InitGroupSettingEvent>(_onInit);
@@ -155,6 +157,7 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
         throw Exception(response.msg);
       }
 
+      _groupStore.removeGroup(groupId);
       await _removeLocalConversation(emit);
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
@@ -237,6 +240,7 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
         throw Exception(response.msg);
       }
 
+      _groupStore.removeGroup(groupId);
       await _removeLocalConversation(emit);
     } catch (e) {
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));

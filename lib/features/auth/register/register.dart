@@ -19,6 +19,15 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  static const _pageBackground = BoxDecoration(
+    color: Color(0xFFF9FAFB),
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0x1AFF7D45), Color(0x00FFFFFF)],
+    ),
+  );
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -144,45 +153,26 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return BeaverLayout(
-      showBackground: true,
-      showHeader: false,
+      headerBackground: Colors.transparent,
+      showWsStatus: false,
+      fullScreenBackground:
+          const DecoratedBox(decoration: _pageBackground),
       isScrollable: true,
-      child: Stack(
-        children: [
-          // 顶部渐变
-          Container(
-            height: 120.w,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x1AFF7D45), Colors.transparent],
-              ),
-            ),
-          ),
-          // 内容区域
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              children: [
-                SizedBox(height: 50.w), // 留出一点顶部距离
-                // Logo
-                _buildLogo(),
-                SizedBox(height: 24.w),
-                // 标题
-                _buildTitleSection(),
-                SizedBox(height: 32.w),
-                // 表单
-                _buildForm(),
-                SizedBox(height: 24.w),
-                // 底部链接
-                _buildBottomLinks(),
-                SizedBox(height: 20.w),
-              ],
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        child: Column(
+          children: [
+            SizedBox(height: 16.w),
+            _buildLogo(),
+            SizedBox(height: 24.w),
+            _buildTitleSection(),
+            SizedBox(height: 32.w),
+            _buildForm(),
+            SizedBox(height: 24.w),
+            _buildBottomLinks(),
+            SizedBox(height: 20.w),
+          ],
+        ),
       ),
     );
   }
