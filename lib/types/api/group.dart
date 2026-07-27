@@ -261,3 +261,82 @@ class IGroupQuitReq {
 
   Map<String, dynamic> toJson() => {'groupId': groupId};
 }
+
+/// 获取群信息请求
+class IGroupInfoReq {
+  final String groupId;
+
+  IGroupInfoReq({required this.groupId});
+
+  Map<String, dynamic> toJson() => {'groupId': groupId};
+}
+
+/// 获取群信息响应
+class IGroupInfoRes {
+  final String groupId;
+  final String title;
+  final String avatar;
+  final int memberCount;
+  final String creatorId;
+  final String notice;
+  final int joinType;
+  final int status;
+  final String conversationId;
+  final int? createdAt;
+  final int? updatedAt;
+  final int version;
+
+  IGroupInfoRes({
+    required this.groupId,
+    required this.title,
+    required this.avatar,
+    required this.memberCount,
+    required this.creatorId,
+    required this.notice,
+    required this.joinType,
+    required this.status,
+    required this.conversationId,
+    this.createdAt,
+    this.updatedAt,
+    required this.version,
+  });
+
+  factory IGroupInfoRes.fromJson(Map<String, dynamic> json) => IGroupInfoRes(
+        groupId: json['groupId'] ?? '',
+        title: json['title'] ?? '',
+        avatar: json['avatar'] ?? '',
+        memberCount: json['memberCount'] ?? 0,
+        creatorId: json['creatorId'] ?? '',
+        notice: json['notice'] ?? '',
+        joinType: json['joinType'] ?? 0,
+        status: json['status'] ?? 1,
+        conversationId: json['conversationId'] ?? '',
+        createdAt: json['createdAt'],
+        updatedAt: json['updatedAt'],
+        version: json['version'] ?? 0,
+      );
+}
+
+/// 申请加入群组请求
+class IGroupJoinReq {
+  final String groupId;
+  final String? message;
+
+  IGroupJoinReq({required this.groupId, this.message});
+
+  Map<String, dynamic> toJson() => {
+        'groupId': groupId,
+        if (message != null) 'message': message,
+      };
+}
+
+/// 申请加入群组响应
+class IGroupJoinRes {
+  final int version;
+
+  IGroupJoinRes({required this.version});
+
+  factory IGroupJoinRes.fromJson(Map<String, dynamic> json) => IGroupJoinRes(
+        version: json['version'] ?? 0,
+      );
+}

@@ -2,6 +2,7 @@ import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/chat/detail/detail.dart';
 import 'package:beaver/features/chat/forward_picker/picker_page.dart';
 import 'package:beaver/features/chat/forward_detail/detail_page.dart';
+import 'package:beaver/features/chat/share_picker/picker_page.dart';
 import 'package:beaver/features/chat/private_setting/private_setting.dart';
 import 'package:beaver/features/chat/group_setting/group_setting.dart';
 import 'package:beaver/router/routes.dart';
@@ -59,6 +60,13 @@ List<GoRoute> chatRoutes() {
         final title = extra?['title'] as String? ?? '聊天记录';
         final recordId = extra?['recordId'] as String?;
         return ForwardDetailPage(title: title, recordId: recordId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.chatShareConversation,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+        return ShareConversationPickerPage(payload: extra);
       },
     ),
   ];

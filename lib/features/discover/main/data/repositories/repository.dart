@@ -5,18 +5,18 @@ class DiscoverMainRepository {
   Future<List<DiscoverItem>> getDiscoverItems() async {
     return const [
       DiscoverItem(
+        id: 'workbench',
+        title: '工作台',
+        description: '企业应用与能力入口',
+        iconPath: 'assets/icons/tabbar/workbench.svg',
+        route: AppRoutes.workbenchHome,
+      ),
+      DiscoverItem(
         id: 'moment',
         title: '朋友圈',
         description: '分享生活瞬间',
         iconPath: 'assets/icons/tabbar/moment.svg',
         route: AppRoutes.momentList,
-      ),
-      DiscoverItem(
-        id: 'circle',
-        title: '圈子',
-        description: '通过邀请或分享链接加入',
-        iconPath: 'assets/icons/common/group.svg',
-        route: AppRoutes.circleList,
       ),
       DiscoverItem(
         id: 'ai',

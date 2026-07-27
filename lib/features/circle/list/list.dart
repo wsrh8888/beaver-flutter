@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:beaver/features/circle/list/bloc/bloc.dart';
 import 'package:beaver/features/circle/list/bloc/event.dart';
 import 'package:beaver/features/circle/list/bloc/state.dart';
 import 'package:beaver/features/circle/list/data/repositories/repository.dart';
+import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -80,10 +82,9 @@ class _CircleListPageState extends State<CircleListPage> {
       return;
     }
 
-    _bloc.add(CreateCircleEvent(
-      name: name,
-      description: descController.text.trim(),
-    ));
+    _bloc.add(
+      CreateCircleEvent(name: name, description: descController.text.trim()),
+    );
   }
 
   @override
@@ -149,11 +150,8 @@ class _CircleListPageState extends State<CircleListPage> {
       child: ListView.separated(
         padding: EdgeInsets.symmetric(vertical: 8.w),
         itemCount: state.circles.length,
-        separatorBuilder: (_, __) => Divider(
-          height: 1.w,
-          indent: 72.w,
-          color: const Color(0xFFEBEEF5),
-        ),
+        separatorBuilder: (_, __) =>
+            Divider(height: 1.w, indent: 72.w, color: const Color(0xFFEBEEF5)),
         itemBuilder: (context, index) {
           return _buildCircleItem(state.circles[index]);
         },
@@ -190,17 +188,17 @@ class _CircleListPageState extends State<CircleListPage> {
             Text(
               '圈子仅支持邀请或分享链接加入，暂不提供搜索发现',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: const Color(0xFF636E72),
-              ),
+              style: TextStyle(fontSize: 13.sp, color: const Color(0xFF636E72)),
             ),
             SizedBox(height: 24.w),
             TextButton(
               onPressed: _showCreateDialog,
               child: Text(
                 '创建圈子',
-                style: TextStyle(fontSize: 14.sp, color: const Color(0xFFFF7D45)),
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: const Color(0xFFFF7D45),
+                ),
               ),
             ),
           ],
@@ -212,10 +210,7 @@ class _CircleListPageState extends State<CircleListPage> {
   Widget _buildCircleItem(ICircleListItem circle) {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.w),
-      leading: BeaverAvatar(
-        avatar: circle.avatar,
-        size: 44,
-      ),
+      leading: BeaverAvatar(avatar: circle.avatar, size: 44),
       title: Text(
         circle.name,
         style: TextStyle(
@@ -236,13 +231,22 @@ class _CircleListPageState extends State<CircleListPage> {
         'assets/icons/common/arrow-right.svg',
         width: 16.w,
         height: 16.w,
-        colorFilter: const ColorFilter.mode(
-          Color(0xFFB2BEC3),
-          BlendMode.srcIn,
-        ),
+        colorFilter: const ColorFilter.mode(Color(0xFFB2BEC3), BlendMode.srcIn),
       ),
       onTap: () {
-        BeaverToast.show(context, '圈子详情页开发中');
+        final uri = Uri(
+          path: AppRoutes.circleFeed,
+          queryParameters: {
+            'circleId': circle.circleId,
+            'name': circle.name,
+            'memberCount': '${circle.memberCount}',
+            'role': '${circle.role}',
+            if (circle.avatar?.isNotEmpty == true) 'avatar': circle.avatar!,
+            if (circle.description?.isNotEmpty == true)
+              'desc': circle.description!,
+          },
+        );
+        context.push(uri.toString());
       },
     );
   }

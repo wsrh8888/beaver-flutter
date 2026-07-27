@@ -109,111 +109,123 @@ class _ContactListViewState extends State<ContactListView> {
   }
 
   Widget _buildQuickActions(ContactListState state) {
-    final actions = [
-      {
-        'title': '新朋友',
-        'icon': 'assets/icons/friend/add-friend-icon.svg',
-        'route': AppRoutes.newFriends,
-        'count': state.friendRequestCount,
-      },
-      {
-        'title': '群通知',
-        'icon': 'assets/icons/friend/dropdown-group-icon.svg',
-        'route': AppRoutes.groupNotifications,
-        'count': state.groupNotificationCount,
-      },
-      {
-        'title': '群聊',
-        'icon': 'assets/icons/friend/dropdown-group-icon.svg',
-        'route': AppRoutes.groupList,
-        'count': 0,
-      },
-    ];
+    return Column(
+      children: [
+        _buildActionRow(
+          title: '新的朋友',
+          icon: 'assets/icons/friend/add-friend-icon.svg',
+          route: AppRoutes.newFriends,
+          badgeCount: state.friendRequestCount,
+        ),
+        _buildActionRow(
+          title: '圈子',
+          icon: 'assets/icons/common/group.svg',
+          route: AppRoutes.circleList,
+        ),
+        _buildActionRow(
+          title: '群通知',
+          icon: 'assets/icons/friend/dropdown-group-icon.svg',
+          route: AppRoutes.groupNotifications,
+          badgeCount: state.groupNotificationCount,
+        ),
+        _buildActionRow(
+          title: '群聊',
+          icon: 'assets/icons/friend/dropdown-group-icon.svg',
+          route: AppRoutes.groupList,
+          showDivider: false,
+        ),
+      ],
+    );
+  }
 
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.w),
-      padding: EdgeInsets.all(8.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(6.w),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: actions.map((action) {
-          final count = action['count'] as int? ?? 0;
-          return GestureDetector(
-            onTap: () => context.push(action['route'] as String),
-            child: Column(
-              children: [
-                Stack(
-                  alignment: Alignment.topRight,
-                  children: [
-                    Container(
-                      width: 48.w,
-                      height: 48.w,
-                      padding: EdgeInsets.all(12.w),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(7.w),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            offset: Offset(0, 1.w),
-                            blurRadius: 3.w,
-                          ),
-                        ],
-                      ),
+  Widget _buildActionRow({
+    required String title,
+    required String icon,
+    required String route,
+    int badgeCount = 0,
+    bool showDivider = true,
+  }) {
+    return Column(
+      children: [
+        Material(
+          color: Colors.white,
+          child: InkWell(
+            onTap: () => context.push(route),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40.w,
+                    height: 40.w,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF0E8),
+                      borderRadius: BorderRadius.circular(8.w),
+                    ),
+                    child: Center(
                       child: SvgPicture.asset(
-                        action['icon'] as String,
-                        width: 24.w,
-                        height: 24.w,
+                        icon,
+                        width: 22.w,
+                        height: 22.w,
                         colorFilter: const ColorFilter.mode(
                           Color(0xFFFF7D45),
                           BlendMode.srcIn,
                         ),
                       ),
                     ),
-                    if (count > 0)
-                      Transform.translate(
-                        offset: Offset(4.w, -4.w),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 4.w,
-                            vertical: 2.w,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFF5252),
-                            borderRadius: BorderRadius.circular(10.w),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.5.w,
-                            ),
-                          ),
-                          child: Text(
-                            count > 99 ? '99+' : count.toString(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF2D3436),
+                      ),
+                    ),
+                  ),
+                  if (badgeCount > 0)
+                    Container(
+                      margin: EdgeInsets.only(right: 8.w),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 2.w,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF5252),
+                        borderRadius: BorderRadius.circular(10.w),
+                      ),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : badgeCount.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
-                ),
-                SizedBox(height: 4.w),
-                Text(
-                  action['title'] as String,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: const Color(0xFF636E72),
+                    ),
+                  SvgPicture.asset(
+                    'assets/icons/common/arrow-right.svg',
+                    width: 16.w,
+                    height: 16.w,
+                    colorFilter: const ColorFilter.mode(
+                      Color(0xFFB2BEC3),
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        }).toList(),
-      ),
+          ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1.w,
+            indent: 68.w,
+            color: const Color(0xFFEBEEF5),
+          ),
+      ],
     );
   }
 

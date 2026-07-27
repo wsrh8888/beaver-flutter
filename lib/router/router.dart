@@ -16,6 +16,7 @@ import 'package:beaver/router/modules/user.dart';
 import 'package:beaver/router/modules/emoji.dart';
 import 'package:beaver/router/modules/common.dart';
 import 'package:beaver/router/modules/circle.dart';
+import 'package:beaver/router/modules/workbench.dart';
 import 'package:beaver/router/modules/oauth.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -58,16 +59,20 @@ final GoRouter appRouter = GoRouter(
     ...commonRoutes(),
     // 圈子模块路由
     ...circleRoutes(),
+    // 工作台模块路由
+    ...workbenchRoutes(),
     // OAuth 扫码授权
     ...oauthRoutes(),
     // 深度链接支持
     GoRoute(
       path: '/share/:type/:id',
-      builder: (context, state) {
-        // GoRouter 17.x 使用 pathParameters
+      redirect: (context, state) {
         final type = state.pathParameters['type'];
         final id = state.pathParameters['id'];
-        return const MainScreen();
+        if (type == 'circle' && id != null && id.isNotEmpty) {
+          return '${AppRoutes.circleJoin}?circleId=${Uri.encodeComponent(id)}';
+        }
+        return AppRoutes.root;
       },
     ),
   ],

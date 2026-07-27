@@ -14,7 +14,9 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/types/api/workbench.dart';
 
 class WorkbenchHomePage extends StatefulWidget {
-  const WorkbenchHomePage({super.key});
+  final bool showBack;
+
+  const WorkbenchHomePage({super.key, this.showBack = false});
 
   @override
   State<WorkbenchHomePage> createState() => _WorkbenchHomePageState();
@@ -61,7 +63,7 @@ class _WorkbenchHomePageState extends State<WorkbenchHomePage> {
         builder: (context, state) {
           return BeaverLayout(
             title: '工作台',
-            showBack: false,
+            showBack: widget.showBack,
             isScrollable: false,
             child: RefreshIndicator(
               onRefresh: () async {

@@ -13,6 +13,7 @@ class AppRoutes {
   static const String groupChatSetting = '/chat/setting/group';
   static const String chatForward = '/chat/forward';
   static const String chatForwardDetail = '/chat/forward/detail';
+  static const String chatShareConversation = '/chat/share';
   
   // 联系人模块
   static const String contactList = '/contact/list';
@@ -47,6 +48,10 @@ class AppRoutes {
 
   // 圈子模块
   static const String circleList = '/circle/list';
+  static const String circleFeed = '/circle/feed';
+  static const String circlePost = '/circle/post';
+  static const String circleDetail = '/circle/detail';
+  static const String circleJoin = '/circle/join';
   
   // 设置模块
   static const String settingMain = '/setting';

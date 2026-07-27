@@ -2,6 +2,7 @@ import 'package:beaver/features/chat/group_setting/bloc/bloc.dart';
 import 'package:beaver/features/chat/group_setting/bloc/event.dart';
 import 'package:beaver/features/chat/group_setting/bloc/state.dart';
 import 'package:beaver/features/chat/group_setting/components/group_setting_panel.dart';
+import 'package:beaver/features/circle/invite/invite_sheet.dart';
 import 'package:beaver/features/contact/selector/contact_selector_page.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/shared/ui/dialog/index.dart';
@@ -194,6 +195,11 @@ class _GroupSettingView extends StatelessWidget {
           ),
       onDeleteConversation: () => context.read<GroupSettingBloc>().add(
             const ShowDeleteGroupDialogEvent(true),
+          ),
+      onShare: () => showGroupInviteSheet(
+            context: context,
+            groupId: groupId,
+            groupName: groupName,
           ),
       onAddMember: () async {
         final List<ContactModel>? result = await Navigator.of(context).push(

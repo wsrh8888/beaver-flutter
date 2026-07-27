@@ -33,6 +33,201 @@ class ICircleListItem {
   }
 }
 
+class ICirclePostFile {
+  final String fileKey;
+  final int type;
+
+  const ICirclePostFile({required this.fileKey, required this.type});
+
+  factory ICirclePostFile.fromJson(Map<String, dynamic> json) {
+    return ICirclePostFile(
+      fileKey: json['fileKey'] ?? '',
+      type: json['type'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'fileKey': fileKey,
+        'type': type,
+      };
+}
+
+class ICircleCommentItem {
+  final String commentId;
+  final String userId;
+  final String userName;
+  final String avatar;
+  final String content;
+  final String parentId;
+  final String replyToCommentId;
+  final String replyToUserName;
+  final int childCount;
+  final List<ICircleCommentItem> children;
+  final String createdAt;
+
+  const ICircleCommentItem({
+    required this.commentId,
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.content,
+    this.parentId = '',
+    this.replyToCommentId = '',
+    this.replyToUserName = '',
+    this.childCount = 0,
+    this.children = const [],
+    required this.createdAt,
+  });
+
+  factory ICircleCommentItem.fromJson(Map<String, dynamic> json) {
+    final rawChildren = json['children'] as List<dynamic>? ?? [];
+    return ICircleCommentItem(
+      commentId: json['commentId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      content: json['content'] ?? '',
+      parentId: json['parentId'] ?? '',
+      replyToCommentId: json['replyToCommentId'] ?? '',
+      replyToUserName: json['replyToUserName'] ?? '',
+      childCount: json['childCount'] ?? 0,
+      children: rawChildren
+          .map((e) => ICircleCommentItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+
+  ICircleCommentItem copyWith({
+    int? childCount,
+    List<ICircleCommentItem>? children,
+  }) {
+    return ICircleCommentItem(
+      commentId: commentId,
+      userId: userId,
+      userName: userName,
+      avatar: avatar,
+      content: content,
+      parentId: parentId,
+      replyToCommentId: replyToCommentId,
+      replyToUserName: replyToUserName,
+      childCount: childCount ?? this.childCount,
+      children: children ?? this.children,
+      createdAt: createdAt,
+    );
+  }
+}
+
+class ICirclePreviewComment {
+  final String commentId;
+  final String userId;
+  final String userName;
+  final String content;
+  final String createdAt;
+
+  const ICirclePreviewComment({
+    required this.commentId,
+    required this.userId,
+    required this.userName,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory ICirclePreviewComment.fromJson(Map<String, dynamic> json) {
+    return ICirclePreviewComment(
+      commentId: json['commentId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      content: json['content'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+}
+
+class ICirclePostItem {
+  final String postId;
+  final String circleId;
+  final String userId;
+  final String userName;
+  final String avatar;
+  final String title;
+  final String content;
+  final List<ICirclePostFile> files;
+  final int commentCount;
+  final int likeCount;
+  final bool isLiked;
+  final bool isTop;
+  final List<ICirclePreviewComment> comments;
+  final String createdAt;
+
+  const ICirclePostItem({
+    required this.postId,
+    required this.circleId,
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.title,
+    required this.content,
+    this.files = const [],
+    required this.commentCount,
+    required this.likeCount,
+    required this.isLiked,
+    this.isTop = false,
+    this.comments = const [],
+    required this.createdAt,
+  });
+
+  factory ICirclePostItem.fromJson(Map<String, dynamic> json) {
+    final rawFiles = json['files'] as List<dynamic>? ?? [];
+    final rawComments = json['comments'] as List<dynamic>? ?? [];
+    return ICirclePostItem(
+      postId: json['postId'] ?? '',
+      circleId: json['circleId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      title: json['title'] ?? '',
+      content: json['content'] ?? '',
+      files: rawFiles
+          .map((e) => ICirclePostFile.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      commentCount: json['commentCount'] ?? 0,
+      likeCount: json['likeCount'] ?? 0,
+      isLiked: json['isLiked'] ?? false,
+      isTop: json['isTop'] ?? false,
+      comments: rawComments
+          .map((e) => ICirclePreviewComment.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+
+  ICirclePostItem copyWith({
+    List<ICirclePostFile>? files,
+    int? commentCount,
+    int? likeCount,
+    bool? isLiked,
+    List<ICirclePreviewComment>? comments,
+  }) {
+    return ICirclePostItem(
+      postId: postId,
+      circleId: circleId,
+      userId: userId,
+      userName: userName,
+      avatar: avatar,
+      title: title,
+      content: content,
+      files: files ?? this.files,
+      commentCount: commentCount ?? this.commentCount,
+      likeCount: likeCount ?? this.likeCount,
+      isLiked: isLiked ?? this.isLiked,
+      isTop: isTop,
+      comments: comments ?? this.comments,
+      createdAt: createdAt,
+    );
+  }
+}
+
 class IGetMyCircleListReq {
   final int page;
   final int limit;
@@ -97,6 +292,55 @@ class ICreateCircleRes {
   }
 }
 
+class IGetCircleDetailReq {
+  final String circleId;
+
+  const IGetCircleDetailReq({required this.circleId});
+
+  Map<String, dynamic> toJson() => {'circleId': circleId};
+}
+
+class IGetCircleDetailRes {
+  final String circleId;
+  final String name;
+  final String description;
+  final String avatar;
+  final int joinType;
+  final String creatorId;
+  final int memberCount;
+  final int postCount;
+  final int role;
+  final String createdAt;
+
+  const IGetCircleDetailRes({
+    required this.circleId,
+    required this.name,
+    required this.description,
+    required this.avatar,
+    required this.joinType,
+    required this.creatorId,
+    required this.memberCount,
+    required this.postCount,
+    required this.role,
+    required this.createdAt,
+  });
+
+  factory IGetCircleDetailRes.fromJson(Map<String, dynamic> json) {
+    return IGetCircleDetailRes(
+      circleId: json['circleId'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      avatar: json['avatar'] ?? '',
+      joinType: json['joinType'] ?? 0,
+      creatorId: json['creatorId'] ?? '',
+      memberCount: json['memberCount'] ?? 0,
+      postCount: json['postCount'] ?? 0,
+      role: json['role'] ?? 0,
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+}
+
 class IJoinCircleReq {
   final String circleId;
   final String? reason;
@@ -116,5 +360,323 @@ class IJoinCircleRes {
 
   factory IJoinCircleRes.fromJson(Map<String, dynamic> json) {
     return IJoinCircleRes(status: json['status'] ?? 0);
+  }
+}
+
+class IGetPostListReq {
+  final String circleId;
+  final int page;
+  final int limit;
+
+  const IGetPostListReq({
+    required this.circleId,
+    required this.page,
+    required this.limit,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'circleId': circleId,
+        'page': page,
+        'limit': limit,
+      };
+}
+
+class IGetPostListRes {
+  final int count;
+  final List<ICirclePostItem> list;
+
+  const IGetPostListRes({required this.count, required this.list});
+
+  factory IGetPostListRes.fromJson(Map<String, dynamic> json) {
+    final rawList = json['list'] as List<dynamic>? ?? [];
+    return IGetPostListRes(
+      count: json['count'] ?? 0,
+      list: rawList
+          .map((item) => ICirclePostItem.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class IGetPostDetailReq {
+  final String postId;
+
+  const IGetPostDetailReq({required this.postId});
+
+  Map<String, dynamic> toJson() => {'postId': postId};
+}
+
+class IGetPostDetailRes {
+  final String postId;
+  final String circleId;
+  final String userId;
+  final String userName;
+  final String avatar;
+  final String title;
+  final String content;
+  final List<ICirclePostFile> files;
+  final int commentCount;
+  final int likeCount;
+  final bool isLiked;
+  final bool isTop;
+  final List<ICircleCommentItem> comments;
+  final String createdAt;
+
+  const IGetPostDetailRes({
+    required this.postId,
+    required this.circleId,
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.title,
+    required this.content,
+    this.files = const [],
+    required this.commentCount,
+    required this.likeCount,
+    required this.isLiked,
+    this.isTop = false,
+    this.comments = const [],
+    required this.createdAt,
+  });
+
+  factory IGetPostDetailRes.fromJson(Map<String, dynamic> json) {
+    final rawFiles = json['files'] as List<dynamic>? ?? [];
+    final rawComments = json['comments'] as List<dynamic>? ?? [];
+    return IGetPostDetailRes(
+      postId: json['postId'] ?? '',
+      circleId: json['circleId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      title: json['title'] ?? '',
+      content: json['content'] ?? '',
+      files: rawFiles
+          .map((e) => ICirclePostFile.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      commentCount: json['commentCount'] ?? 0,
+      likeCount: json['likeCount'] ?? 0,
+      isLiked: json['isLiked'] ?? false,
+      isTop: json['isTop'] ?? false,
+      comments: rawComments
+          .map((e) => ICircleCommentItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+
+  IGetPostDetailRes copyWith({
+    int? commentCount,
+    int? likeCount,
+    bool? isLiked,
+    List<ICircleCommentItem>? comments,
+  }) {
+    return IGetPostDetailRes(
+      postId: postId,
+      circleId: circleId,
+      userId: userId,
+      userName: userName,
+      avatar: avatar,
+      title: title,
+      content: content,
+      files: files,
+      commentCount: commentCount ?? this.commentCount,
+      likeCount: likeCount ?? this.likeCount,
+      isLiked: isLiked ?? this.isLiked,
+      isTop: isTop,
+      comments: comments ?? this.comments,
+      createdAt: createdAt,
+    );
+  }
+}
+
+class ICreatePostReq {
+  final String circleId;
+  final String? title;
+  final String content;
+  final List<ICirclePostFile>? files;
+
+  const ICreatePostReq({
+    required this.circleId,
+    this.title,
+    required this.content,
+    this.files,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'circleId': circleId,
+        if (title != null) 'title': title,
+        'content': content,
+        if (files != null) 'files': files!.map((e) => e.toJson()).toList(),
+      };
+}
+
+class ICreatePostRes {
+  final String postId;
+  final String circleId;
+  final String userId;
+  final String userName;
+  final String avatar;
+  final String title;
+  final String content;
+  final String createdAt;
+
+  const ICreatePostRes({
+    required this.postId,
+    required this.circleId,
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.title,
+    required this.content,
+    required this.createdAt,
+  });
+
+  factory ICreatePostRes.fromJson(Map<String, dynamic> json) {
+    return ICreatePostRes(
+      postId: json['postId'] ?? '',
+      circleId: json['circleId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      title: json['title'] ?? '',
+      content: json['content'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+}
+
+class ILikePostReq {
+  final String postId;
+  final bool status;
+
+  const ILikePostReq({required this.postId, required this.status});
+
+  Map<String, dynamic> toJson() => {
+        'postId': postId,
+        'status': status,
+      };
+}
+
+class ILikePostRes {
+  const ILikePostRes();
+
+  factory ILikePostRes.fromJson(Map<String, dynamic>? json) {
+    return const ILikePostRes();
+  }
+}
+
+class ICreateCircleCommentReq {
+  final String postId;
+  final String content;
+  final String? parentId;
+  final String? replyToCommentId;
+
+  const ICreateCircleCommentReq({
+    required this.postId,
+    required this.content,
+    this.parentId,
+    this.replyToCommentId,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'postId': postId,
+        'content': content,
+        if (parentId != null) 'parentId': parentId,
+        if (replyToCommentId != null) 'replyToCommentId': replyToCommentId,
+      };
+}
+
+class ICreateCircleCommentRes {
+  final String commentId;
+  final String postId;
+  final String userId;
+  final String userName;
+  final String avatar;
+  final String content;
+  final String parentId;
+  final String replyToCommentId;
+  final String replyToUserName;
+  final String createdAt;
+
+  const ICreateCircleCommentRes({
+    required this.commentId,
+    required this.postId,
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.content,
+    required this.parentId,
+    required this.replyToCommentId,
+    required this.replyToUserName,
+    required this.createdAt,
+  });
+
+  factory ICreateCircleCommentRes.fromJson(Map<String, dynamic> json) {
+    return ICreateCircleCommentRes(
+      commentId: json['commentId'] ?? '',
+      postId: json['postId'] ?? '',
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      content: json['content'] ?? '',
+      parentId: json['parentId'] ?? '',
+      replyToCommentId: json['replyToCommentId'] ?? '',
+      replyToUserName: json['replyToUserName'] ?? '',
+      createdAt: json['createdAt'] ?? '',
+    );
+  }
+}
+
+class IGetCircleCommentListReq {
+  final String postId;
+  final String? parentId;
+  final int page;
+  final int limit;
+
+  const IGetCircleCommentListReq({
+    required this.postId,
+    this.parentId,
+    required this.page,
+    required this.limit,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'postId': postId,
+        if (parentId != null) 'parentId': parentId,
+        'page': page,
+        'limit': limit,
+      };
+}
+
+class IGetCircleCommentListRes {
+  final int count;
+  final List<ICircleCommentItem> list;
+
+  const IGetCircleCommentListRes({required this.count, required this.list});
+
+  factory IGetCircleCommentListRes.fromJson(Map<String, dynamic> json) {
+    final rawList = json['list'] as List<dynamic>? ?? [];
+    return IGetCircleCommentListRes(
+      count: json['count'] ?? 0,
+      list: rawList
+          .map((e) => ICircleCommentItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class IDeleteCircleCommentReq {
+  final String commentId;
+
+  const IDeleteCircleCommentReq({required this.commentId});
+
+  Map<String, dynamic> toJson() => {'commentId': commentId};
+}
+
+class IDeleteCircleCommentRes {
+  const IDeleteCircleCommentRes();
+
+  factory IDeleteCircleCommentRes.fromJson(Map<String, dynamic>? json) {
+    return const IDeleteCircleCommentRes();
   }
 }

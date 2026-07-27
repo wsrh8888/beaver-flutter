@@ -155,6 +155,8 @@ class MessageBusiness implements MessageRepositoryInterface {
             : (msg.markdownMsg?.content ?? '[Markdown]');
       case MessageType.reply:
         return msg.replyMsg?.replyMsg?.textMsg?.content ?? '[回复]';
+      case MessageType.card:
+        return '[${msg.cardMsg?.typeLabel ?? '名片'}]';
       default:
         return '[消息]';
     }
@@ -441,6 +443,12 @@ class MessageBusiness implements MessageRepositoryInterface {
         return MessageType.mergedForward;
       case 13:
         return MessageType.markdown;
+      case 14:
+        return MessageType.link;
+      case 15:
+        return MessageType.cloudDoc;
+      case 16:
+        return MessageType.card;
       default:
         return MessageType.text;
     }
@@ -474,6 +482,12 @@ class MessageBusiness implements MessageRepositoryInterface {
         return 12;
       case MessageType.markdown:
         return 13;
+      case MessageType.link:
+        return 14;
+      case MessageType.cloudDoc:
+        return 15;
+      case MessageType.card:
+        return 16;
       default:
         return 1;
     }
