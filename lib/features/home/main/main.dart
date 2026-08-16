@@ -3,19 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
-import 'package:beaver/features/discover/main/main.dart';
 import 'package:beaver/features/user/mine/mine.dart';
+import 'package:beaver/features/workbench/home/home.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/store/notification/notification.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// 主界面底栏 Tab 索引。
-/// 当前 4 段：消息 / 通讯录 / 发现 / 我的。
+/// 当前 4 段：消息 / 通讯录 / 工作台 / 我的。
 enum HomeTab {
   chat(0),
   contact(1),
-  discover(2),
+  workbench(2),
   mine(3);
 
   const HomeTab(this.tabIndex);
@@ -35,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = const [
     ChatListPage(),
     ContactListPage(),
-    DiscoverMainPage(),
+    WorkbenchHomePage(showBack: false),
     MinePage(),
   ];
 
@@ -88,10 +88,10 @@ class _MainScreenState extends State<MainScreen> {
                           badgeCount: verifyState.unreadCount,
                         ),
                         _buildSvgNavItem(
-                          '发现',
-                          'assets/icons/tabbar/discover.svg',
-                          'assets/icons/tabbar/discover-active.svg',
-                          HomeTab.discover.tabIndex,
+                          '工作台',
+                          'assets/icons/tabbar/workbench.svg',
+                          'assets/icons/tabbar/workbench-active.svg',
+                          HomeTab.workbench.tabIndex,
                           badgeCount: notificationState.momentUnread,
                         ),
                         _buildNavItem(

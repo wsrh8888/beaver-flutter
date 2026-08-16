@@ -4,6 +4,6 @@ import 'package:beaver/types/api/workbench.dart';
 
 class WorkbenchHomeRepository {
   Future<BaseResponse<IListWorkbenchAppsRes>> loadApps() {
-    return listWorkbenchAppsApi(const IListWorkbenchAppsReq());
+    return listWorkbenchAppsApi(const IListWorkbenchAppsReq(clientScope: 2));
   }
 }

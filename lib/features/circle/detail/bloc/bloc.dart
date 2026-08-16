@@ -125,9 +125,9 @@ class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
 
     final existing = comments[rootIndex];
     final existingChildren = existing.children;
-    final mergedChildren = nextPage == 1
-        ? (res.result?.list ?? [])
-        : [...existingChildren, ...(res.result?.list ?? [])];
+    final more = res.result?.list ?? <ICircleCommentItem>[];
+    final List<ICircleCommentItem> mergedChildren =
+        nextPage == 1 ? more : [...existingChildren, ...more];
 
     comments[rootIndex] = existing.copyWith(
       childCount: res.result?.count ?? existing.childCount,

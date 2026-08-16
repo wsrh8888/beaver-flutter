@@ -99,7 +99,7 @@ class _MomentListViewState extends State<MomentListView> {
     return BeaverLayout(
       title: '朋友圈',
       showHeader: true,
-      showBack: false,
+      showBack: true,
       showBackground: true,
       backgroundHeight: 120, // 375 standard
       isScrollable: false,

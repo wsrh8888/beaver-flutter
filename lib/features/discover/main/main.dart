@@ -36,10 +36,7 @@ class _DiscoverMainPageState extends State<DiscoverMainPage> {
   }
 
   void _onItemTap(DiscoverItem item) {
-    if (item.route.isEmpty) {
-      BeaverToast.show(context, 'AI 助手开发中');
-      return;
-    }
+    if (item.route.isEmpty) return;
     context.push(item.route);
   }
 

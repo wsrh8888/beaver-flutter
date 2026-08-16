@@ -5,27 +5,29 @@ enum WorkbenchHomeStatus { initial, loading, success, error }
 
 class WorkbenchHomeState extends Equatable {
   final WorkbenchHomeStatus status;
-  final List<IWorkbenchAppItem> appList;
+  final List<IWorkbenchAppGroup> groups;
   final String? errorMessage;
 
   const WorkbenchHomeState({
     this.status = WorkbenchHomeStatus.initial,
-    this.appList = const [],
+    this.groups = const [],
     this.errorMessage,
   });
 
+  bool get isEmpty => !groups.any((g) => g.list.isNotEmpty);
+
   WorkbenchHomeState copyWith({
     WorkbenchHomeStatus? status,
-    List<IWorkbenchAppItem>? appList,
+    List<IWorkbenchAppGroup>? groups,
     String? errorMessage,
   }) {
     return WorkbenchHomeState(
       status: status ?? this.status,
-      appList: appList ?? this.appList,
+      groups: groups ?? this.groups,
       errorMessage: errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, appList, errorMessage];
+  List<Object?> get props => [status, groups, errorMessage];
 }

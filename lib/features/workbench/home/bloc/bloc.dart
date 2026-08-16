@@ -27,7 +27,7 @@ class WorkbenchHomeBloc extends Bloc<WorkbenchHomeEvent, WorkbenchHomeState> {
 
     emit(state.copyWith(
       status: WorkbenchHomeStatus.success,
-      appList: res.result?.list ?? [],
+      groups: res.result?.groups ?? [],
     ));
   }
 }
