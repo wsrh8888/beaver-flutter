@@ -72,6 +72,9 @@ final GoRouter appRouter = GoRouter(
         if (type == 'circle' && id != null && id.isNotEmpty) {
           return '${AppRoutes.circleJoin}?circleId=${Uri.encodeComponent(id)}';
         }
+        if (type == 'group' && id != null && id.isNotEmpty) {
+          return '${AppRoutes.groupJoin}?groupId=${Uri.encodeComponent(id)}';
+        }
         return AppRoutes.root;
       },
     ),

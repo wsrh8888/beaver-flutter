@@ -19,6 +19,7 @@ import 'tables/group/groups.dart';
 import 'tables/group/members.dart';
 import 'tables/group/join_requests.dart';
 import 'tables/group/sync_status.dart';
+import 'tables/circle/circles.dart';
 import 'tables/datasync/datasync.dart';
 import 'tables/emoji/emoji.dart';
 import 'tables/emoji/collect.dart';
@@ -47,6 +48,7 @@ part 'db.g.dart';
     GroupMembers,
     GroupJoinRequests,
     GroupSyncStatus,
+    Circles,
     Datasync,
     Emojis,
     EmojiCollectTable,
@@ -63,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -75,6 +77,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (m, from, to) async {
         if (from < 2) {
           await _createChatMessageMediasTable(m.database);
+        }
+        if (from < 3) {
+          await m.createTable(circles);
         }
       },
     );
@@ -100,6 +105,7 @@ class AppDatabase extends _$AppDatabase {
       for (final table in allTables) {
         await delete(table).go();
       }
+      await customStatement('DELETE FROM chat_message_medias');
     });
   }
 }

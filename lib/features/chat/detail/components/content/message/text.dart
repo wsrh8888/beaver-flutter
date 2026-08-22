@@ -1,5 +1,6 @@
 import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/utils/emoji.dart';
+import 'package:beaver/shared/utils/invite/invite.dart';
 import 'package:beaver/shared/utils/qrcode/handlers/join_circle/index.dart';
 import 'package:beaver/shared/utils/qrcode/handlers/join_group/index.dart';
 import 'package:beaver/types/business/message.dart';
@@ -149,6 +150,19 @@ class TextMessage extends StatelessWidget {
   }
 
   void _handleLinkTap(BuildContext context, String raw) {
+    final invite = parseInviteRef(raw);
+    if (invite != null) {
+      final route = invite.kind == InviteKind.circle
+          ? AppRoutes.circleJoin
+          : AppRoutes.groupJoin;
+      final uri = Uri(
+        path: route,
+        queryParameters: {'inviteCode': invite.code},
+      );
+      context.push(uri.toString());
+      return;
+    }
+
     final circleId = parseCircleIdFromShare(raw);
     if (circleId != null && circleId.isNotEmpty) {
       final uri = Uri(
@@ -161,9 +175,11 @@ class TextMessage extends StatelessWidget {
 
     final groupId = parseGroupIdFromShare(raw);
     if (groupId != null && groupId.isNotEmpty) {
-      final conversationId =
-          groupId.startsWith('group_') ? groupId : 'group_$groupId';
-      context.push('${AppRoutes.groupConfig}?id=$conversationId');
+      final uri = Uri(
+        path: AppRoutes.groupJoin,
+        queryParameters: {'groupId': groupId},
+      );
+      context.push(uri.toString());
       return;
     }
 

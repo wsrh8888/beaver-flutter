@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beaver/features/circle/feed/bloc/bloc.dart';
 import 'package:beaver/features/circle/feed/bloc/event.dart';
 import 'package:beaver/features/circle/feed/bloc/state.dart';
 import 'package:beaver/features/circle/feed/components/post_item.dart';
-import 'package:beaver/features/circle/invite/invite_sheet.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/shared/ui/badge/circle_badge.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 
@@ -108,6 +109,54 @@ class _CircleFeedViewState extends State<CircleFeedView> {
     }
   }
 
+  void _openSetting() {
+    final uri = Uri(
+      path: AppRoutes.circleSetting,
+      queryParameters: {'circleId': widget.circleId},
+    );
+    context.push(uri.toString());
+  }
+
+  Widget _buildMoreButton() {
+    return GestureDetector(
+      onTap: _openSetting,
+      child: Container(
+        width: 36.w,
+        height: 36.w,
+        alignment: Alignment.center,
+        child: SvgPicture.asset(
+          'assets/images/chat/more.svg',
+          width: 22.w,
+          height: 22.w,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    final name =
+        widget.circleName.isNotEmpty ? widget.circleName : '圈子';
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: Text(
+            name,
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF333333),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(width: 6.w),
+        const CircleBadge(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<CircleFeedBloc, CircleFeedState>(
@@ -120,52 +169,24 @@ class _CircleFeedViewState extends State<CircleFeedView> {
       },
       builder: (context, state) {
         return BeaverLayout(
-          title: widget.circleName.isNotEmpty ? widget.circleName : '圈子',
+          titleWidget: _buildTitle(),
           isScrollable: false,
-          rightSlot: Row(
-            mainAxisSize: MainAxisSize.min,
+          rightSlot: _buildMoreButton(),
+          child: Stack(
             children: [
+              _buildBody(state),
               if (_canPost)
-                GestureDetector(
-                  onTap: () => showCircleInviteSheet(
-                    context: context,
-                    circleId: widget.circleId,
-                    circleName: widget.circleName,
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 8.w),
-                    child: Icon(
-                      Icons.ios_share,
-                      size: 20.w,
-                      color: const Color(0xFF2D3436),
-                    ),
-                  ),
-                ),
-              if (_canPost)
-                GestureDetector(
-                  onTap: _openPostPage,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 6.w,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF7D45),
-                      borderRadius: BorderRadius.circular(14.w),
-                    ),
-                    child: Text(
-                      '发帖',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                Positioned(
+                  right: 16.w,
+                  bottom: 24.w,
+                  child: FloatingActionButton(
+                    backgroundColor: const Color(0xFFFF7D45),
+                    onPressed: _openPostPage,
+                    child: Icon(Icons.edit, color: Colors.white, size: 22.w),
                   ),
                 ),
             ],
           ),
-          child: _buildBody(state),
         );
       },
     );
@@ -215,7 +236,7 @@ class _CircleFeedViewState extends State<CircleFeedView> {
       },
       child: ListView.builder(
         controller: _scrollController,
-        padding: EdgeInsets.fromLTRB(16.w, 12.w, 16.w, 24.w),
+        padding: EdgeInsets.fromLTRB(16.w, 12.w, 16.w, _canPost ? 88.w : 24.w),
         itemCount: state.posts.length + 1 + (state.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -255,32 +276,20 @@ class _CircleFeedViewState extends State<CircleFeedView> {
   }
 
   Widget _buildHeader(CircleFeedState state) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 12.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${widget.memberCount} 成员 · ${state.posts.length} 帖子',
+    if (state.posts.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: 12.w),
+        child: Center(
+          child: Text(
+            _canPost ? '还没有帖子，来发第一条吧' : '还没有帖子',
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 14.sp,
               color: const Color(0xFF636E72),
             ),
           ),
-          if (state.posts.isEmpty) ...[
-            SizedBox(height: 48.w),
-            Center(
-              child: Text(
-                _canPost ? '还没有帖子，来发第一条吧' : '还没有帖子',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: const Color(0xFF636E72),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+        ),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }

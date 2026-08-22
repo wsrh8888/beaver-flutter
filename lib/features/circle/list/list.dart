@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:beaver/features/circle/list/bloc/bloc.dart';
 import 'package:beaver/features/circle/list/bloc/event.dart';
 import 'package:beaver/features/circle/list/bloc/state.dart';
+import 'package:beaver/features/circle/list/components/create_circle_dialog.dart';
 import 'package:beaver/features/circle/list/data/repositories/repository.dart';
 import 'package:beaver/router/routes.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
@@ -22,6 +23,8 @@ class CircleListPage extends StatefulWidget {
 
 class _CircleListPageState extends State<CircleListPage> {
   late CircleListBloc _bloc;
+  bool _showCreateDialog = false;
+  bool _creating = false;
 
   @override
   void initState() {
@@ -36,55 +39,39 @@ class _CircleListPageState extends State<CircleListPage> {
     super.dispose();
   }
 
-  Future<void> _showCreateDialog() async {
-    final nameController = TextEditingController();
-    final descController = TextEditingController();
+  void _openCreateDialog() {
+    setState(() => _showCreateDialog = true);
+  }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('创建圈子'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(hintText: '圈子名称'),
-              ),
-              SizedBox(height: 12.w),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(hintText: '圈子简介（可选）'),
-                maxLines: 3,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('创建'),
-            ),
-          ],
-        );
-      },
+  void _closeCreateDialog() {
+    if (_creating) return;
+    setState(() => _showCreateDialog = false);
+  }
+
+  Future<void> _handleCreate(String name, String? avatarPath) async {
+    setState(() => _creating = true);
+    _bloc.add(CreateCircleEvent(name: name, avatarPath: avatarPath));
+
+    await _bloc.stream.firstWhere(
+      (s) => s.status != CircleListStatus.creating,
     );
 
-    if (confirmed != true || !mounted) return;
+    if (!mounted) return;
 
-    final name = nameController.text.trim();
-    if (name.isEmpty) {
-      BeaverToast.show(context, '请输入圈子名称');
+    final state = _bloc.state;
+    if (state.status == CircleListStatus.error) {
+      setState(() => _creating = false);
+      if (state.errorMessage != null) {
+        BeaverToast.show(context, state.errorMessage!);
+      }
       return;
     }
 
-    _bloc.add(
-      CreateCircleEvent(name: name, description: descController.text.trim()),
-    );
+    setState(() {
+      _creating = false;
+      _showCreateDialog = false;
+    });
+    BeaverToast.show(context, '圈子创建成功');
   }
 
   @override
@@ -93,7 +80,8 @@ class _CircleListPageState extends State<CircleListPage> {
       value: _bloc,
       child: BlocConsumer<CircleListBloc, CircleListState>(
         listener: (context, state) {
-          if (state.status == CircleListStatus.error &&
+          if (!_creating &&
+              state.status == CircleListStatus.error &&
               state.errorMessage != null) {
             BeaverToast.show(context, state.errorMessage!);
           }
@@ -102,29 +90,19 @@ class _CircleListPageState extends State<CircleListPage> {
           return BeaverLayout(
             title: '我的圈子',
             isScrollable: false,
-            rightSlot: GestureDetector(
-              onTap: _showCreateDialog,
-              child: Container(
-                width: 24.w,
-                height: 24.w,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF7D45),
-                  borderRadius: BorderRadius.circular(12.w),
-                ),
-                child: Center(
-                  child: SvgPicture.asset(
-                    'assets/icons/plus-icon.svg',
-                    width: 12.w,
-                    height: 12.w,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
+            overlay: _showCreateDialog
+                ? CreateCircleDialog(
+                    submitting: _creating,
+                    onCancel: _closeCreateDialog,
+                    onConfirm: _handleCreate,
+                  )
+                : null,
+            child: Stack(
+              children: [
+                _buildBody(state),
+                _buildFab(),
+              ],
             ),
-            child: _buildBody(state),
           );
         },
       ),
@@ -159,6 +137,42 @@ class _CircleListPageState extends State<CircleListPage> {
     );
   }
 
+  Widget _buildFab() {
+    return Positioned(
+      bottom: 20.w,
+      right: 20.w,
+      child: GestureDetector(
+        onTap: _openCreateDialog,
+        child: Container(
+          width: 48.w,
+          height: 48.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFFE86835), Color(0xFFD55A2B)],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFE86835).withValues(alpha: 0.4),
+                offset: Offset(0, 4.w),
+                blurRadius: 12.w,
+              ),
+            ],
+          ),
+          child: Center(
+            child: SvgPicture.asset(
+              'assets/icons/group/add.svg',
+              width: 20.w,
+              height: 20.w,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -167,7 +181,7 @@ class _CircleListPageState extends State<CircleListPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset(
-              'assets/icons/common/group.svg',
+              'assets/icons/friend/circle.svg',
               width: 48.w,
               height: 48.w,
               colorFilter: const ColorFilter.mode(
@@ -190,17 +204,6 @@ class _CircleListPageState extends State<CircleListPage> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.sp, color: const Color(0xFF636E72)),
             ),
-            SizedBox(height: 24.w),
-            TextButton(
-              onPressed: _showCreateDialog,
-              child: Text(
-                '创建圈子',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: const Color(0xFFFF7D45),
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -208,11 +211,18 @@ class _CircleListPageState extends State<CircleListPage> {
   }
 
   Widget _buildCircleItem(ICircleListItem circle) {
+    final avatarSize = 44.w;
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.w),
-      leading: BeaverAvatar(avatar: circle.avatar, size: 44),
+      leading: SizedBox(
+        width: avatarSize,
+        height: avatarSize,
+        child: BeaverAvatar(avatar: circle.avatar, size: 44),
+      ),
       title: Text(
-        circle.name,
+        circle.name.isNotEmpty ? circle.name : '圈子',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 15.sp,
           fontWeight: FontWeight.w500,
@@ -227,11 +237,16 @@ class _CircleListPageState extends State<CircleListPage> {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(fontSize: 12.sp, color: const Color(0xFF636E72)),
       ),
-      trailing: SvgPicture.asset(
-        'assets/icons/common/arrow-right.svg',
+      trailing: SizedBox(
         width: 16.w,
         height: 16.w,
-        colorFilter: const ColorFilter.mode(Color(0xFFB2BEC3), BlendMode.srcIn),
+        child: SvgPicture.asset(
+          'assets/icons/common/arrow-right.svg',
+          width: 16.w,
+          height: 16.w,
+          colorFilter:
+              const ColorFilter.mode(Color(0xFFB2BEC3), BlendMode.srcIn),
+        ),
       ),
       onTap: () {
         final uri = Uri(

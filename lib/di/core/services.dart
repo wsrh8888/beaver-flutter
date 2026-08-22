@@ -41,6 +41,8 @@ void configureServiceDependencies(GetIt getIt) {
     () => const GroupSyncStatusService(),
   );
 
+  getIt.registerLazySingleton<CircleService>(() => const CircleService());
+
   getIt.registerLazySingleton<DatasyncService>(() => const DatasyncService());
   getIt.registerLazySingleton<MediaService>(() => const MediaService());
 

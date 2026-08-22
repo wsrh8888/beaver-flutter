@@ -8,6 +8,7 @@ import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/store/group/group.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
@@ -125,6 +126,7 @@ class AppStore extends Cubit<AppStoreState> {
       final chatStore = getIt<ChatStore>();
       final friendStore = getIt<FriendStore>();
       final groupStore = getIt<GroupStore>();
+      final circleStore = getIt<CircleStore>();
       final notificationStore = getIt<NotificationStore>();
       final messageStore = getIt<MessageStore>();
       final emojiStore = getIt<EmojiStore>();
@@ -143,6 +145,7 @@ class AppStore extends Cubit<AppStoreState> {
         chatStore.init(),
         friendStore.init(),
         groupStore.init(),
+        circleStore.init(),
         notificationStore.init(),
         messageStore.init(),
         emojiStore.init(),

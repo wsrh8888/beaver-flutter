@@ -1,8 +1,9 @@
 import 'package:beaver/api/circle.dart';
 import 'package:beaver/di/injection.dart';
-import 'package:beaver/features/chat/detail/components/content/message/card_preview_dialog.dart';
+import 'package:beaver/features/chat/detail/components/content/message/card/components/preview_dialog.dart';
 import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/group/group.dart';
 import 'package:beaver/theme/colors.dart';
@@ -83,6 +84,22 @@ class _CardMessageState extends State<CardMessage> {
         }
         break;
       case 3:
+        final cached = getIt<CircleStore>().getCircle(widget.msg.id);
+        if (cached != null) {
+          if (mounted) {
+            setState(() {
+              _title = cached.name.isNotEmpty
+                  ? cached.name
+                  : widget.msg.typeLabel;
+              _avatar = cached.avatar;
+              _subtitle = cached.description.isNotEmpty
+                  ? cached.description
+                  : '${cached.memberCount} 位成员';
+              _loading = false;
+            });
+          }
+          break;
+        }
         final res = await getCircleDetailApi(
           IGetCircleDetailReq(circleId: widget.msg.id),
         );
@@ -120,7 +137,7 @@ class _CardMessageState extends State<CardMessage> {
       BeaverToast.show(context, '名片已过期');
       return;
     }
-    if (widget.msg.id.isEmpty) {
+    if (widget.msg.id.isEmpty && widget.msg.inviteToken.isEmpty) {
       BeaverToast.show(context, '名片信息不完整');
       return;
     }

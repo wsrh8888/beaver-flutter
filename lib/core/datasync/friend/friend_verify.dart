@@ -13,13 +13,13 @@ class FriendVerifySync {
     final datasyncService = getIt<DatasyncService>();
     final friendService = getIt<FriendService>();
 
-    // 1. 获取本地同步最后游标
+    // 1. 获取本地同步游标（version=-1 表示发现全部变更，对齐 PC）
     final cursor = await datasyncService.get('friend_verifies');
-    final lastSyncTime = cursor?.updatedAt ?? 0;
+    final lastSyncVersion = cursor?.version ?? 0;
 
     // 2. 获取服务器上变更的好友验证列表 (摘要)
     final response = await datasyncGetSyncFriendVerifiesApi(
-      IGetSyncFriendVerifiesReq(since: lastSyncTime),
+      IGetSyncFriendVerifiesReq(since: lastSyncVersion),
     );
 
     if (response.code != 0 || response.result == null) {

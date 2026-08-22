@@ -4,6 +4,7 @@ import 'package:beaver/features/circle/feed/feed.dart';
 import 'package:beaver/features/circle/join/join.dart';
 import 'package:beaver/features/circle/list/list.dart';
 import 'package:beaver/features/circle/post/post.dart';
+import 'package:beaver/features/circle/setting/setting.dart';
 import 'package:beaver/router/routes.dart';
 
 List<GoRoute> circleRoutes() {
@@ -55,7 +56,18 @@ List<GoRoute> circleRoutes() {
       path: AppRoutes.circleJoin,
       builder: (context, state) {
         final circleId = state.uri.queryParameters['circleId'] ?? '';
-        return CircleJoinPage(circleId: circleId);
+        final inviteCode = state.uri.queryParameters['inviteCode'] ?? '';
+        return CircleJoinPage(
+          circleId: circleId,
+          inviteCode: inviteCode,
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.circleSetting,
+      builder: (context, state) {
+        final circleId = state.uri.queryParameters['circleId'] ?? '';
+        return CircleSettingPage(circleId: circleId);
       },
     ),
   ];

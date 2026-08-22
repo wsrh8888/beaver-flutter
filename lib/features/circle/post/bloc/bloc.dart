@@ -89,14 +89,12 @@ class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
 
     emit(state.copyWith(status: CirclePostStatus.loading));
 
-    final title = state.title.trim();
     final files = state.mediaList
         .map((url) => ICirclePostFile(fileKey: url, type: 2))
         .toList();
 
     final res = await _repository.createPost(
       circleId: circleId,
-      title: title.isEmpty ? null : title,
       content: state.content.trim(),
       files: files.isEmpty ? null : files,
     );

@@ -8,7 +8,9 @@ import 'package:beaver/router/routes.dart';
 import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/chat/chat.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/group/group.dart';
+import 'package:beaver/shared/ui/badge/circle_badge.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -148,15 +150,25 @@ class _ChatListViewState extends State<ChatListView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            chat.nickname,
-                            style: TextStyle(
-                              fontSize: 12.w,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF2D3436),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  chat.nickname,
+                                  style: TextStyle(
+                                    fontSize: 12.w,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF2D3436),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isCircleConversation(chat.conversationId)) ...[
+                                SizedBox(width: 6.w),
+                                const CircleBadge(),
+                              ],
+                            ],
                           ),
                           SizedBox(height: 2.w),
                           Text(
@@ -249,15 +261,27 @@ class _ChatListViewState extends State<ChatListView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Text(
-                                chat.nickname,
-                                style: TextStyle(
-                                  fontSize: 16.w,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2D3436),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      chat.nickname,
+                                      style: TextStyle(
+                                        fontSize: 16.w,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF2D3436),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (isCircleConversation(
+                                    chat.conversationId,
+                                  )) ...[
+                                    SizedBox(width: 6.w),
+                                    const CircleBadge(),
+                                  ],
+                                ],
                               ),
                             ),
                             Text(
@@ -394,6 +418,33 @@ class _ChatListViewState extends State<ChatListView> {
         return;
       }
     }
+
+    // 圈子会话：进入圈子动态（对标 PC 右侧圈子面板，非聊天页）
+    if (chat.conversationId.startsWith('circle_')) {
+      final circleId = chat.conversationId.substring('circle_'.length);
+      final circle = getIt<CircleStore>().getCircle(chat.conversationId);
+      if (!mounted) return;
+      final uri = Uri(
+        path: AppRoutes.circleFeed,
+        queryParameters: {
+          'circleId': circleId,
+          'name': circle?.name.isNotEmpty == true
+              ? circle!.name
+              : (chat.nickname.isNotEmpty ? chat.nickname : '圈子'),
+          'memberCount': '${circle?.memberCount ?? 0}',
+          'role': '${circle?.role ?? 1}',
+          if (circle?.avatar.isNotEmpty == true)
+            'avatar': circle!.avatar
+          else if (chat.avatar != null && chat.avatar!.isNotEmpty)
+            'avatar': chat.avatar!,
+          if (circle?.description.isNotEmpty == true)
+            'desc': circle!.description,
+        },
+      );
+      context.push(uri.toString());
+      return;
+    }
+
     if (mounted) {
       context.push('/chat/detail?id=${chat.conversationId}');
     }

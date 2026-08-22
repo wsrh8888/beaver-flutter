@@ -425,11 +425,14 @@ class CardMsg {
   final String id;
   /// 过期时间戳(秒)，0=不过期
   final int expireAt;
+  /// 分享邀请凭证（从 inviteUrl 解析的 code）
+  final String inviteToken;
 
   CardMsg({
     required this.cardType,
     required this.id,
     this.expireAt = 0,
+    this.inviteToken = '',
   });
 
   bool get isExpired {
@@ -455,12 +458,14 @@ class CardMsg {
         cardType: json['cardType'] as int? ?? 0,
         id: json['id']?.toString() ?? '',
         expireAt: (json['expireAt'] as num?)?.toInt() ?? 0,
+        inviteToken: json['inviteToken']?.toString() ?? '',
       );
 
   Map<String, dynamic> toJson() => {
         'cardType': cardType,
         'id': id,
         'expireAt': expireAt,
+        if (inviteToken.isNotEmpty) 'inviteToken': inviteToken,
       };
 }
 

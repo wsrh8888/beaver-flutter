@@ -70,3 +70,15 @@ Future<BaseResponse<IGroupJoinRes>> joinGroupApi(IGroupJoinReq data) {
   );
 }
 
+/// 解析群邀请短码
+Future<BaseResponse<IResolveGroupInviteRes>> resolveGroupInviteApi(
+  IResolveGroupInviteReq data,
+) {
+  final url = '$baseUrl/api/group/v1/invite_code';
+  return httpClient.get<IResolveGroupInviteRes>(
+    url,
+    queryParameters: data.toJson(),
+    fromJsonT: (json) => IResolveGroupInviteRes.fromJson(json),
+  );
+}
+

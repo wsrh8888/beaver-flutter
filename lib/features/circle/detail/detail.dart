@@ -125,19 +125,17 @@ class _CircleDetailViewState extends State<CircleDetailView> {
         return BeaverLayout(
           title: '帖子详情',
           isScrollable: false,
-          child: state.status == CircleDetailStatus.loading && post == null
-              ? const Center(child: CircularProgressIndicator())
-              : state.status == CircleDetailStatus.error && post == null
-                  ? Center(
-                      child: Text(
-                        state.errorMessage ?? '加载失败',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: const Color(0xFF636E72),
-                        ),
-                      ),
-                    )
-                  : Column(
+          child: state.status == CircleDetailStatus.error && post == null
+              ? Center(
+                  child: Text(
+                    state.errorMessage ?? '加载失败',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: const Color(0xFF636E72),
+                    ),
+                  ),
+                )
+              : Column(
                       children: [
                         Expanded(
                           child: RefreshIndicator(

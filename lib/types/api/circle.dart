@@ -292,6 +292,58 @@ class ICreateCircleRes {
   }
 }
 
+class ICircleSyncReq {
+  final int version;
+
+  const ICircleSyncReq({required this.version});
+
+  Map<String, dynamic> toJson() => {'version': version};
+}
+
+class ICircleSyncItem {
+  final String circleId;
+  final String name;
+  final String avatar;
+  final int memberCount;
+  final int role;
+  final int version;
+
+  const ICircleSyncItem({
+    required this.circleId,
+    required this.name,
+    required this.avatar,
+    required this.memberCount,
+    required this.role,
+    required this.version,
+  });
+
+  factory ICircleSyncItem.fromJson(Map<String, dynamic> json) {
+    return ICircleSyncItem(
+      circleId: json['circleId'] ?? '',
+      name: json['name'] ?? '',
+      avatar: json['avatar'] ?? '',
+      memberCount: json['memberCount'] ?? 0,
+      role: json['role'] ?? 0,
+      version: json['version'] ?? 0,
+    );
+  }
+}
+
+class ICircleSyncRes {
+  final List<ICircleSyncItem> list;
+
+  const ICircleSyncRes({required this.list});
+
+  factory ICircleSyncRes.fromJson(Map<String, dynamic> json) {
+    final raw = json['list'] as List<dynamic>? ?? [];
+    return ICircleSyncRes(
+      list: raw
+          .map((e) => ICircleSyncItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 class IGetCircleDetailReq {
   final String circleId;
 
@@ -311,6 +363,8 @@ class IGetCircleDetailRes {
   final int postCount;
   final int role;
   final String createdAt;
+  /// 成员可见：稳定邀请链接（复制 / 二维码 / 分享共用）
+  final String inviteUrl;
 
   const IGetCircleDetailRes({
     required this.circleId,
@@ -323,6 +377,7 @@ class IGetCircleDetailRes {
     required this.postCount,
     required this.role,
     required this.createdAt,
+    this.inviteUrl = '',
   });
 
   factory IGetCircleDetailRes.fromJson(Map<String, dynamic> json) {
@@ -337,29 +392,88 @@ class IGetCircleDetailRes {
       postCount: json['postCount'] ?? 0,
       role: json['role'] ?? 0,
       createdAt: json['createdAt'] ?? '',
+      inviteUrl: json['inviteUrl'] ?? '',
     );
   }
 }
 
 class IJoinCircleReq {
-  final String circleId;
+  /// 有 inviteCode 时可空
+  final String? circleId;
   final String? reason;
+  final String? inviteCode;
 
-  const IJoinCircleReq({required this.circleId, this.reason});
+  const IJoinCircleReq({
+    this.circleId,
+    this.reason,
+    this.inviteCode,
+  });
 
   Map<String, dynamic> toJson() => {
-        'circleId': circleId,
+        if (circleId != null && circleId!.isNotEmpty) 'circleId': circleId,
         if (reason != null) 'reason': reason,
+        if (inviteCode != null && inviteCode!.isNotEmpty)
+          'inviteCode': inviteCode,
       };
 }
 
 class IJoinCircleRes {
   final int status;
+  final String? circleId;
 
-  const IJoinCircleRes({required this.status});
+  const IJoinCircleRes({required this.status, this.circleId});
 
   factory IJoinCircleRes.fromJson(Map<String, dynamic> json) {
-    return IJoinCircleRes(status: json['status'] ?? 0);
+    return IJoinCircleRes(
+      status: json['status'] ?? 0,
+      circleId: json['circleId'],
+    );
+  }
+}
+
+class IResolveCircleInviteReq {
+  final String code;
+
+  const IResolveCircleInviteReq({required this.code});
+
+  Map<String, dynamic> toJson() => {'code': code};
+}
+
+class IResolveCircleInviteRes {
+  final String code;
+  final String circleId;
+  final String name;
+  final String avatar;
+  final String description;
+  final int memberCount;
+  final int joinType;
+  final bool valid;
+  final bool alreadyJoined;
+
+  const IResolveCircleInviteRes({
+    required this.code,
+    required this.circleId,
+    required this.name,
+    required this.avatar,
+    required this.description,
+    required this.memberCount,
+    required this.joinType,
+    required this.valid,
+    required this.alreadyJoined,
+  });
+
+  factory IResolveCircleInviteRes.fromJson(Map<String, dynamic> json) {
+    return IResolveCircleInviteRes(
+      code: json['code'] ?? '',
+      circleId: json['circleId'] ?? '',
+      name: json['name'] ?? '',
+      avatar: json['avatar'] ?? '',
+      description: json['description'] ?? '',
+      memberCount: json['memberCount'] ?? 0,
+      joinType: json['joinType'] ?? 0,
+      valid: json['valid'] == true,
+      alreadyJoined: json['alreadyJoined'] == true,
+    );
   }
 }
 
@@ -678,5 +792,141 @@ class IDeleteCircleCommentRes {
 
   factory IDeleteCircleCommentRes.fromJson(Map<String, dynamic>? json) {
     return const IDeleteCircleCommentRes();
+  }
+}
+
+class ICircleMemberItem {
+  final String userId;
+  final String userName;
+  final String avatar;
+  final int role;
+
+  const ICircleMemberItem({
+    required this.userId,
+    required this.userName,
+    required this.avatar,
+    required this.role,
+  });
+
+  factory ICircleMemberItem.fromJson(Map<String, dynamic> json) {
+    return ICircleMemberItem(
+      userId: json['userId'] ?? '',
+      userName: json['userName'] ?? '',
+      avatar: json['avatar'] ?? '',
+      role: json['role'] ?? 0,
+    );
+  }
+}
+
+class IGetCircleMembersReq {
+  final String circleId;
+  final int page;
+  final int limit;
+
+  const IGetCircleMembersReq({
+    required this.circleId,
+    this.page = 1,
+    this.limit = 100,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'circleId': circleId,
+        'page': page,
+        'limit': limit,
+      };
+}
+
+class IGetCircleMembersRes {
+  final int count;
+  final List<ICircleMemberItem> list;
+
+  const IGetCircleMembersRes({required this.count, required this.list});
+
+  factory IGetCircleMembersRes.fromJson(Map<String, dynamic> json) {
+    final raw = json['list'] as List<dynamic>? ?? [];
+    return IGetCircleMembersRes(
+      count: json['count'] ?? 0,
+      list: raw
+          .map((e) => ICircleMemberItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class IInviteCircleMembersReq {
+  final String circleId;
+  final List<String> userIds;
+
+  const IInviteCircleMembersReq({
+    required this.circleId,
+    required this.userIds,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'circleId': circleId,
+        'userIds': userIds,
+      };
+}
+
+class IInviteCircleMembersRes {
+  const IInviteCircleMembersRes();
+
+  factory IInviteCircleMembersRes.fromJson(Map<String, dynamic>? json) {
+    return const IInviteCircleMembersRes();
+  }
+}
+
+class IRemoveCircleMembersReq {
+  final String circleId;
+  final List<String> userIds;
+
+  const IRemoveCircleMembersReq({
+    required this.circleId,
+    required this.userIds,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'circleId': circleId,
+        'userIds': userIds,
+      };
+}
+
+class IRemoveCircleMembersRes {
+  const IRemoveCircleMembersRes();
+
+  factory IRemoveCircleMembersRes.fromJson(Map<String, dynamic>? json) {
+    return const IRemoveCircleMembersRes();
+  }
+}
+
+class IQuitCircleReq {
+  final String circleId;
+
+  const IQuitCircleReq({required this.circleId});
+
+  Map<String, dynamic> toJson() => {'circleId': circleId};
+}
+
+class IQuitCircleRes {
+  const IQuitCircleRes();
+
+  factory IQuitCircleRes.fromJson(Map<String, dynamic>? json) {
+    return const IQuitCircleRes();
+  }
+}
+
+class IDeleteCircleReq {
+  final String circleId;
+
+  const IDeleteCircleReq({required this.circleId});
+
+  Map<String, dynamic> toJson() => {'circleId': circleId};
+}
+
+class IDeleteCircleRes {
+  const IDeleteCircleRes();
+
+  factory IDeleteCircleRes.fromJson(Map<String, dynamic>? json) {
+    return const IDeleteCircleRes();
   }
 }

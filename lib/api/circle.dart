@@ -22,6 +22,16 @@ Future<BaseResponse<ICreateCircleRes>> createCircleApi(ICreateCircleReq data) {
   );
 }
 
+/// 圈子资料增量同步
+Future<BaseResponse<ICircleSyncRes>> circleSyncApi(ICircleSyncReq data) {
+  final url = '$baseUrl/api/circle/v1/circle/sync';
+  return httpClient.post<ICircleSyncRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => ICircleSyncRes.fromJson(json),
+  );
+}
+
 Future<BaseResponse<IGetCircleDetailRes>> getCircleDetailApi(
   IGetCircleDetailReq data,
 ) {
@@ -112,6 +122,82 @@ Future<BaseResponse<IDeleteCircleCommentRes>> deleteCircleCommentApi(
     url,
     queryParameters: data.toJson(),
     fromJsonT: (json) => IDeleteCircleCommentRes.fromJson(
+      json is Map<String, dynamic> ? json : null,
+    ),
+  );
+}
+
+/// 解析圈子邀请短码
+Future<BaseResponse<IResolveCircleInviteRes>> resolveCircleInviteApi(
+  IResolveCircleInviteReq data,
+) {
+  final url = '$baseUrl/api/circle/v1/circle/invite_code';
+  return httpClient.get<IResolveCircleInviteRes>(
+    url,
+    queryParameters: data.toJson(),
+    fromJsonT: (json) => IResolveCircleInviteRes.fromJson(json),
+  );
+}
+
+/// 圈子成员列表
+Future<BaseResponse<IGetCircleMembersRes>> getCircleMembersApi(
+  IGetCircleMembersReq data,
+) {
+  final url = '$baseUrl/api/circle/v1/circle/members';
+  return httpClient.get<IGetCircleMembersRes>(
+    url,
+    queryParameters: data.toJson(),
+    fromJsonT: (json) => IGetCircleMembersRes.fromJson(json),
+  );
+}
+
+/// 邀请成员入圈
+Future<BaseResponse<IInviteCircleMembersRes>> inviteCircleMembersApi(
+  IInviteCircleMembersReq data,
+) {
+  final url = '$baseUrl/api/circle/v1/circle/invite';
+  return httpClient.post<IInviteCircleMembersRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IInviteCircleMembersRes.fromJson(
+      json is Map<String, dynamic> ? json : null,
+    ),
+  );
+}
+
+/// 移除圈成员
+Future<BaseResponse<IRemoveCircleMembersRes>> removeCircleMembersApi(
+  IRemoveCircleMembersReq data,
+) {
+  final url = '$baseUrl/api/circle/v1/circle/member_remove';
+  return httpClient.post<IRemoveCircleMembersRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IRemoveCircleMembersRes.fromJson(
+      json is Map<String, dynamic> ? json : null,
+    ),
+  );
+}
+
+/// 退出圈子
+Future<BaseResponse<IQuitCircleRes>> quitCircleApi(IQuitCircleReq data) {
+  final url = '$baseUrl/api/circle/v1/circle/quit';
+  return httpClient.post<IQuitCircleRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IQuitCircleRes.fromJson(
+      json is Map<String, dynamic> ? json : null,
+    ),
+  );
+}
+
+/// 解散圈子（圈主）
+Future<BaseResponse<IDeleteCircleRes>> deleteCircleApi(IDeleteCircleReq data) {
+  final url = '$baseUrl/api/circle/v1/circle/delete';
+  return httpClient.get<IDeleteCircleRes>(
+    url,
+    queryParameters: data.toJson(),
+    fromJsonT: (json) => IDeleteCircleRes.fromJson(
       json is Map<String, dynamic> ? json : null,
     ),
   );

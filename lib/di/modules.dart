@@ -8,6 +8,7 @@ import 'store.dart';
 import 'business/user.dart';
 import 'business/friend.dart';
 import 'business/group.dart';
+import 'business/circle.dart';
 import 'business/chat.dart';
 import 'business/message.dart';
 import 'business/notification.dart';
@@ -30,6 +31,7 @@ void registerModules(GetIt getIt) {
   configureUserBusinessDependencies(getIt);
   configureFriendBusinessDependencies(getIt);
   configureGroupBusinessDependencies(getIt);
+  configureCircleBusinessDependencies(getIt);
   configureChatBusinessDependencies(getIt);
   configureMessageBusinessDependencies(getIt);
   configureNotificationBusinessDependencies(getIt);

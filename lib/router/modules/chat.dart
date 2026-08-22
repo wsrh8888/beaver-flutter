@@ -1,8 +1,8 @@
-import 'package:beaver/features/chat/list/list.dart';
+﻿import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/chat/detail/detail.dart';
 import 'package:beaver/features/chat/forward_picker/picker_page.dart';
 import 'package:beaver/features/chat/forward_detail/detail_page.dart';
-import 'package:beaver/features/chat/share_picker/picker_page.dart';
+import 'package:beaver/features/common/select_conversation/select_conversation_page.dart';
 import 'package:beaver/features/chat/private_setting/private_setting.dart';
 import 'package:beaver/features/chat/group_setting/group_setting.dart';
 import 'package:beaver/router/routes.dart';
@@ -62,11 +62,18 @@ List<GoRoute> chatRoutes() {
         return ForwardDetailPage(title: title, recordId: recordId);
       },
     ),
+    // 兼容旧路由：转发到通用选会话页
     GoRoute(
       path: AppRoutes.chatShareConversation,
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>? ?? {};
-        return ShareConversationPickerPage(payload: extra);
+        final hasNested = extra.containsKey('payload');
+        return SelectConversationPage(
+          title: extra['title'] as String? ?? '选择会话',
+          payload: hasNested
+              ? extra['payload'] as Map<String, dynamic>?
+              : extra,
+        );
       },
     ),
   ];

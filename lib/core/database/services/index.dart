@@ -15,6 +15,9 @@ export 'group/group_join_request.dart';
 export 'group/group_member.dart';
 export 'group/group_sync_status.dart';
 
+// Circle Services
+export 'circle/circle.dart';
+
 // Friend Services
 export 'friend/friend.dart';
 export 'friend/friend_verify.dart';

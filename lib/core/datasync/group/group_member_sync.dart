@@ -17,13 +17,13 @@ class GroupMemberSync {
       final groupMemberService = getIt<GroupMemberService>();
       final syncStatusService = getIt<GroupSyncStatusService>();
 
-      // 获取本地最后同步时间 (时间戳游标)
+      // 获取本地同步游标（version=-1 表示按版本发现变更，对齐 PC）
       final cursor = await datasyncService.get('group_members');
-      final lastSyncTime = cursor?.updatedAt ?? 0;
+      final lastSyncVersion = cursor?.version ?? 0;
 
       // 获取服务器上变更的群成员版本信息
       final response = await datasyncGetSyncGroupMembersApi(
-        IGetSyncGroupMembersReq(since: lastSyncTime),
+        IGetSyncGroupMembersReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
         // print('[GroupMemberSync] 获取群成员版本失败: ${response.msg}');

@@ -13,10 +13,10 @@ class LoadCircleListEvent extends CircleListEvent {
 
 class CreateCircleEvent extends CircleListEvent {
   final String name;
-  final String description;
+  final String? avatarPath;
 
-  const CreateCircleEvent({required this.name, required this.description});
+  const CreateCircleEvent({required this.name, this.avatarPath});
 
   @override
-  List<Object?> get props => [name, description];
+  List<Object?> get props => [name, avatarPath];
 }

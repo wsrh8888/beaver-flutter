@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:beaver/types/api/circle.dart';
 
-enum CircleListStatus { initial, loading, success, error }
+enum CircleListStatus { initial, loading, creating, success, error }
 
 class CircleListState extends Equatable {
   final CircleListStatus status;

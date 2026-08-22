@@ -1,0 +1,115 @@
+import 'dart:async';
+
+import 'package:beaver/core/business/circle/circle.dart';
+import 'package:beaver/di/injection.dart';
+import 'package:beaver/types/business/circle.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+class CircleStoreState extends Equatable {
+  final Map<String, CircleInfo> circleMap;
+  final int version;
+
+  const CircleStoreState({
+    this.circleMap = const {},
+    this.version = 0,
+  });
+
+  CircleStoreState copyWith({
+    Map<String, CircleInfo>? circleMap,
+    int? version,
+  }) {
+    return CircleStoreState(
+      circleMap: circleMap ?? this.circleMap,
+      version: version ?? this.version,
+    );
+  }
+
+  List<CircleInfo> get circleList => circleMap.values.toList();
+
+  @override
+  List<Object?> get props => [circleMap, version];
+}
+
+class CircleStore extends Cubit<CircleStoreState> {
+  final CircleBusiness _circleBusiness;
+  StreamSubscription? _subscription;
+  Timer? _debounce;
+  final Set<String> _pendingIds = <String>{};
+
+  CircleStore({CircleBusiness? circleBusiness})
+      : _circleBusiness = circleBusiness ?? getIt<CircleBusiness>(),
+        super(const CircleStoreState()) {
+    _subscription = _circleBusiness.circleUpdateStream.listen((ids) {
+      _pendingIds.addAll(ids.where((id) => id.trim().isNotEmpty));
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 200), () {
+        final pending = _pendingIds.toList(growable: false);
+        _pendingIds.clear();
+        updateCirclesByIds(pending);
+      });
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _subscription?.cancel();
+    _debounce?.cancel();
+    return super.close();
+  }
+
+  Future<void> init() async {
+    final list = await _circleBusiness.getCircleList();
+    final nextMap = <String, CircleInfo>{};
+    for (final item in list) {
+      nextMap[item.conversationId] = item;
+    }
+    emit(state.copyWith(circleMap: nextMap, version: state.version + 1));
+  }
+
+  Future<void> updateCirclesByIds(List<String> circleIds) async {
+    if (circleIds.isEmpty) return;
+
+    final circles = await _circleBusiness.getCirclesByIds(circleIds);
+    final nextMap = Map<String, CircleInfo>.from(state.circleMap);
+    var changed = false;
+    final activeIds = <String>{};
+
+    for (final circle in circles) {
+      activeIds.add(circle.circleId);
+      if (nextMap[circle.conversationId] != circle) {
+        nextMap[circle.conversationId] = circle;
+        changed = true;
+      }
+    }
+
+    for (final id in circleIds) {
+      final circleId = id.startsWith('circle_') ? id.substring(7) : id;
+      if (!activeIds.contains(circleId) &&
+          nextMap.remove('circle_$circleId') != null) {
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      emit(state.copyWith(circleMap: nextMap, version: state.version + 1));
+    }
+  }
+
+  void removeCircle(String circleIdOrConversationId) {
+    final conversationId = circleIdOrConversationId.startsWith('circle_')
+        ? circleIdOrConversationId
+        : 'circle_$circleIdOrConversationId';
+    if (!state.circleMap.containsKey(conversationId)) return;
+    final nextMap = Map<String, CircleInfo>.from(state.circleMap)
+      ..remove(conversationId);
+    emit(state.copyWith(circleMap: nextMap, version: state.version + 1));
+  }
+
+  CircleInfo? getCircle(String circleIdOrConversationId) {
+    if (circleIdOrConversationId.startsWith('circle_')) {
+      return state.circleMap[circleIdOrConversationId];
+    }
+    return state.circleMap['circle_$circleIdOrConversationId'];
+  }
+}

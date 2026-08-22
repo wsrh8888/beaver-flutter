@@ -10,6 +10,7 @@ export 'group/groups.dart';
 export 'group/members.dart';
 export 'group/join_requests.dart';
 export 'group/sync_status.dart';
+export 'circle/circles.dart';
 export 'datasync/datasync.dart';
 export 'emoji/emoji.dart';
 export 'emoji/collect.dart';

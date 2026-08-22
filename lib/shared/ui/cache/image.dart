@@ -108,6 +108,8 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
 
   Widget _buildDefaultLoading() {
     return Container(
+      width: widget.width,
+      height: widget.height,
       color: Colors.grey[100],
       alignment: Alignment.center,
       child: const SizedBox(
@@ -120,6 +122,8 @@ class _BeaverCachedImageState extends State<BeaverCachedImage> {
 
   Widget _buildDefaultError() {
     return Container(
+      width: widget.width,
+      height: widget.height,
       color: Colors.grey[200],
       alignment: Alignment.center,
       child: const Icon(Icons.image_outlined, color: Colors.grey, size: 24),

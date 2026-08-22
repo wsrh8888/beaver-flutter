@@ -30,7 +30,7 @@ class AuthGuard {
       return AppRoutes.login;
     }
 
-    // 未登录访问圈子加入/分享深链，暂存 circleId
+    // 未登录访问圈子分享深链，暂存 circleId
     if (!isLoggedIn) {
       String? circleId;
       if (currentPath == AppRoutes.circleJoin) {

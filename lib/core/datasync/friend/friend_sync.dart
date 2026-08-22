@@ -20,13 +20,13 @@ class FriendSyncModule {
       final datasyncService = getIt<DatasyncService>();
       final friendService = getIt<FriendService>();
 
-      // 获取本地同步游标 (时间戳)
+      // 获取本地同步游标（version=-1 表示发现全部变更，对齐 PC）
       final localCursor = await datasyncService.get('friends');
-      final lastSyncTime = localCursor?.updatedAt ?? 0;
+      final lastSyncVersion = localCursor?.version ?? 0;
 
       // 获取服务器上变更的好友版本信息
       final response = await datasyncGetSyncFriendsApi(
-        IGetSyncFriendsReq(since: lastSyncTime),
+        IGetSyncFriendsReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
         // print('[FriendSyncModule] 获取好友版本失败: ${response.msg}');

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beaver/common/config/config.dart';
 import 'package:beaver/router/routes.dart';
+import 'package:beaver/shared/utils/invite/invite.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 
 const pendingCircleShareKey = 'pending_circle_share';
@@ -18,6 +19,7 @@ bool isJoinCircleQr(String code) {
       return false;
     }
   }
+  if (isCircleInviteUrl(value)) return true;
   return parseCircleIdFromShare(value) != null;
 }
 
@@ -47,10 +49,12 @@ String? parseCircleIdFromShare(String raw) {
   return match?.group(1);
 }
 
+/// 兼容旧版客户端拼装链接（新链路请用服务端 inviteUrl）
 String buildCircleShareLink(String circleId) {
   return 'beaver://share/circle/$circleId';
 }
 
+/// 兼容旧版 JSON 二维码；正式分享请直接用 inviteUrl 作为二维码内容
 String buildCircleInviteQrValue(String circleId) {
   return jsonEncode({
     'action': 'joinCircle',
@@ -75,23 +79,56 @@ Future<String?> consumePendingCircleShare() async {
 
 class JoinCircleQrHandler {
   void handle(BuildContext context, String code) {
-    String? circleId;
     final value = code.trim();
+
+    // 正式邀请链接：带 inviteCode
+    final invite = parseInviteRef(value);
+    if (invite != null && invite.kind == InviteKind.circle) {
+      _openJoin(
+        context,
+        queryParameters: {'inviteCode': invite.code},
+      );
+      return;
+    }
+
+    String? circleId;
     if (value.startsWith('{')) {
       final data = jsonDecode(value) as Map<String, dynamic>;
       final payload = data['payload'] as Map<String, dynamic>? ?? {};
       circleId = payload['circleId'] as String?;
+      final token = payload['inviteToken'] as String? ??
+          payload['inviteCode'] as String?;
+      if (token != null && token.isNotEmpty) {
+        _openJoin(
+          context,
+          queryParameters: {
+            if (circleId != null && circleId.isNotEmpty) 'circleId': circleId,
+            'inviteCode': token,
+          },
+        );
+        return;
+      }
     } else {
       circleId = parseCircleIdFromShare(value);
     }
 
     if (circleId == null || circleId.isEmpty) return;
 
-    final uri = Uri(
-      path: AppRoutes.circleJoin,
+    _openJoin(
+      context,
       queryParameters: {'circleId': circleId},
     );
-    context.push(uri.toString());
+  }
+
+  void _openJoin(
+    BuildContext context, {
+    required Map<String, String> queryParameters,
+  }) {
+    final uri = Uri(
+      path: AppRoutes.circleJoin,
+      queryParameters: queryParameters,
+    );
+    context.replace(uri.toString());
   }
 }
 

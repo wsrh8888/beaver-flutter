@@ -14,7 +14,7 @@ import 'package:beaver/features/chat/detail/components/content/message/reply.dar
 import 'package:beaver/features/chat/detail/components/content/message/forward.dart';
 import 'package:beaver/features/chat/detail/components/content/message/call.dart';
 import 'package:beaver/features/chat/detail/components/content/message/markdown.dart';
-import 'package:beaver/features/chat/detail/components/content/message/card.dart';
+import 'package:beaver/features/chat/detail/components/content/message/card/card.dart';
 import 'package:beaver/features/chat/detail/components/content/popup/action_menu.dart';
 import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/cache.dart';

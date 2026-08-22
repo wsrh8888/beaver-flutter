@@ -20,13 +20,13 @@ class MessageSync {
       final datasyncService = getIt<DatasyncService>();
       final syncStatusService = getIt<ChatSyncStatusService>();
 
-      // 获取本地最后同步时间 (时间戳游标)
+      // 获取本地同步游标（version=-1 表示发现全部变更，对齐 PC）
       final localCursor = await datasyncService.get('chat_messages');
-      final lastSyncTime = localCursor?.updatedAt ?? 0;
+      final lastSyncVersion = localCursor?.version ?? 0;
 
       // 获取服务器上变更的消息版本信息
       final response = await datasyncGetSyncChatMessagesApi(
-        IGetSyncChatMessagesReq(since: lastSyncTime),
+        IGetSyncChatMessagesReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
         // print('[MessageSync] 获取消息摘要失败: ${response.msg}');

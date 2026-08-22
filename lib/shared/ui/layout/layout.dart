@@ -9,6 +9,7 @@ class BeaverLayout extends StatelessWidget {
   final bool showHeader;
   final HeaderMode headerMode;
   final String? title;
+  final Widget? titleWidget;
   final Color? titleColor;
   final bool showBack;
   final Color? backButtonColor;
@@ -38,6 +39,7 @@ class BeaverLayout extends StatelessWidget {
     this.showHeader = true,
     this.headerMode = HeaderMode.static,
     this.title,
+    this.titleWidget,
     this.titleColor,
     this.showBack = true,
     this.backButtonColor,
@@ -127,6 +129,7 @@ class BeaverLayout extends StatelessWidget {
                   BeaverHeader(
                     mode: headerMode,
                     title: title,
+                    titleWidget: titleWidget,
                     titleColor: titleColor,
                     showBack: showBack,
                     backButtonColor: backButtonColor,

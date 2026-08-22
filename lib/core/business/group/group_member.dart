@@ -3,6 +3,7 @@ import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/api/group.dart';
+import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/types/business/group.dart';
 
@@ -27,9 +28,30 @@ class GroupMemberBusiness {
       if (response.code == 0 &&
           response.result != null &&
           response.result!.groupMembers.isNotEmpty) {
-        await _groupMemberService.batchCreateFromApi(response.result!.groupMembers);
+        final members = response.result!.groupMembers;
+        await _groupMemberService.batchCreateFromApi(members);
+
+        final syncStatusService = getIt<GroupSyncStatusService>();
+        final maxVersionByGroup = <String, int>{};
+        for (final member in members) {
+          final current = maxVersionByGroup[member.groupId] ?? 0;
+          if (member.version > current) {
+            maxVersionByGroup[member.groupId] = member.version;
+          }
+        }
+        for (final entry in maxVersionByGroup.entries) {
+          await syncStatusService.upsertSyncStatus(
+            module: 'members',
+            groupId: entry.key,
+            version: entry.value,
+          );
+        }
+
+        await getIt<GroupMemberStore>().updateMembersByGroupIds(
+          maxVersionByGroup.keys.toList(),
+        );
         print(
-          '[GroupMemberBusiness] 群成员同步成功: count=${response.result!.groupMembers.length}',
+          '[GroupMemberBusiness] 群成员同步成功: count=${members.length}',
         );
         getIt<GroupBusiness>().notifyGroupUpdate([groupId]);
       }
@@ -43,7 +65,15 @@ class GroupMemberBusiness {
     String groupId,
     int version,
   ) async {
-    await syncGroupMembersByVersion(groupId, version);
+    final syncStatusService = getIt<GroupSyncStatusService>();
+    final localVersions = await syncStatusService.getModuleVersions(
+      'members',
+      [groupId],
+    );
+    final localVersion = localVersions.isNotEmpty
+        ? (localVersions.first['version'] as int? ?? 0)
+        : 0;
+    await syncGroupMembersByVersion(groupId, localVersion);
   }
 
   /// 获取群成员（仅返回普通用户，不含 bot/robot）

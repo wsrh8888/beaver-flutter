@@ -33,12 +33,10 @@ class CirclePostView extends StatefulWidget {
 }
 
 class _CirclePostViewState extends State<CirclePostView> {
-  final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
 
   @override
   void dispose() {
-    _titleController.dispose();
     _contentController.dispose();
     super.dispose();
   }
@@ -120,31 +118,6 @@ class _CirclePostViewState extends State<CirclePostView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextField(
-                  controller: _titleController,
-                  onChanged: (value) {
-                    context
-                        .read<CirclePostBloc>()
-                        .add(UpdateCirclePostTitleEvent(value));
-                  },
-                  maxLength: 50,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '标题（可选）',
-                    hintStyle: TextStyle(
-                      fontSize: 16.sp,
-                      color: const Color(0xFFB2BEC3),
-                    ),
-                    counterText: '',
-                  ),
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D3436),
-                  ),
-                ),
-                Divider(height: 1.w, color: const Color(0xFFEBEEF5)),
-                SizedBox(height: 8.w),
                 TextField(
                   controller: _contentController,
                   onChanged: (value) {

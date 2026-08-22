@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/group/group.dart';
 import 'package:beaver/types/business/chat.dart';
@@ -34,8 +35,10 @@ class ChatStoreState extends Equatable {
 class ChatStore extends Cubit<ChatStoreState> {
   final ConversationBusiness _conversationBusiness;
   final GroupStore _groupStore;
+  final CircleStore _circleStore;
   final ContactStore _contactStore;
   StreamSubscription? _groupSubscription;
+  StreamSubscription? _circleSubscription;
   StreamSubscription? _contactSubscription;
   StreamSubscription? _conversationBusinessSubscription;
   Timer? _initDebounceTimer;
@@ -43,14 +46,17 @@ class ChatStore extends Cubit<ChatStoreState> {
   ChatStore({
     ConversationBusiness? conversationBusiness,
     GroupStore? groupStore,
+    CircleStore? circleStore,
     ContactStore? contactStore,
   }) : _conversationBusiness =
             conversationBusiness ?? getIt<ConversationBusiness>(),
        _groupStore = groupStore ?? getIt<GroupStore>(),
+       _circleStore = circleStore ?? getIt<CircleStore>(),
        _contactStore = contactStore ?? getIt<ContactStore>(),
        super(const ChatStoreState()) {
-    // 监听群组和联系人 Store，实现响应式重组 (对标 PC 的 Computed Getters)
+    // 监听群组 / 圈子 / 联系人 Store，实现响应式重组 (对标 PC 的 Computed Getters)
     _groupSubscription = _groupStore.stream.listen((_) => _onStoreUpdate());
+    _circleSubscription = _circleStore.stream.listen((_) => _onStoreUpdate());
     _contactSubscription = _contactStore.stream.listen((_) => _onStoreUpdate());
 
     // 监听业务层会话流，实现响应式初始化 (防抖处理，避免 WS 批量推送时高频刷新)
@@ -73,6 +79,7 @@ class ChatStore extends Cubit<ChatStoreState> {
   @override
   Future<void> close() {
     _groupSubscription?.cancel();
+    _circleSubscription?.cancel();
     _contactSubscription?.cancel();
     _conversationBusinessSubscription?.cancel();
     _initDebounceTimer?.cancel();
@@ -97,6 +104,21 @@ class ChatStore extends Cubit<ChatStoreState> {
               nickname: groupInfo.title,
             );
           }
+        }
+      } else if (conversationId.startsWith('circle_')) {
+        final circleInfo = _circleStore.getCircle(conversationId);
+        if (circleInfo != null) {
+          final name =
+              circleInfo.name.isNotEmpty ? circleInfo.name : '圈子';
+          if (newConv.avatar != circleInfo.avatar ||
+              newConv.nickname != name) {
+            newConv = newConv.copyWith(
+              avatar: circleInfo.avatar,
+              nickname: name,
+            );
+          }
+        } else if (newConv.nickname.isEmpty) {
+          newConv = newConv.copyWith(nickname: '圈子');
         }
       } else if (conversationId.startsWith('private_')) {
         // 私聊逻辑：解析出对方 userId，从 ContactStore 获取最新头像/备注

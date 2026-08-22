@@ -14,6 +14,9 @@ class AppRoutes {
   static const String chatForward = '/chat/forward';
   static const String chatForwardDetail = '/chat/forward/detail';
   static const String chatShareConversation = '/chat/share';
+  /// 与 chatShareConversation 同页，推荐新代码使用此路由
+  static const String selectConversation = '/common/select_conversation';
+  static const String selectFriend = '/common/select_friend';
   
   // 联系人模块
   static const String contactList = '/contact/list';
@@ -34,6 +37,7 @@ class AppRoutes {
   static const String groupCreate = '/group/create';
   static const String groupConfig = '/group/config';
   static const String groupMember = '/group/member';
+  static const String groupJoin = '/group/join';
   
   // 通话模块
   static const String callsPage = '/calls';
@@ -52,6 +56,7 @@ class AppRoutes {
   static const String circlePost = '/circle/post';
   static const String circleDetail = '/circle/detail';
   static const String circleJoin = '/circle/join';
+  static const String circleSetting = '/circle/setting';
   
   // 设置模块
   static const String settingMain = '/setting';
@@ -82,5 +87,6 @@ class AppRoutes {
   // 通用模块
   static const String webview = '/common/webview';
   static const String scan = '/common/scan';
+  static const String entityShare = '/common/share';
   static const String oauthScanConfirm = '/oauth/scan-confirm';
 }

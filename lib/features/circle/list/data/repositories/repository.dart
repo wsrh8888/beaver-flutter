@@ -9,12 +9,12 @@ class CircleListRepository {
 
   Future<BaseResponse<ICreateCircleRes>> createCircle({
     required String name,
-    required String description,
+    String? avatar,
   }) {
     return createCircleApi(
       ICreateCircleReq(
         name: name.trim(),
-        description: description.trim(),
+        avatar: avatar,
         joinType: 0,
       ),
     );

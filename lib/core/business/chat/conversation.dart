@@ -14,6 +14,7 @@ class ConversationBusiness implements ConversationRepositoryInterface {
   final _userConversationService = getIt<ChatUserConversationService>();
   final _friendService = getIt<FriendService>();
   final _groupService = getIt<GroupService>();
+  final _circleService = getIt<CircleService>();
   final _userService = getIt<UserService>();
 
   // 响应式数据流 (对标 PC 的 Notification 机制)
@@ -72,9 +73,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       return (b.meta.updatedAt ?? 0).compareTo(a.meta.updatedAt ?? 0);
     });
 
-    // 4) collect private peer ids + group ids by conversationId
+    // 4) collect private peer ids + group ids + circle ids by conversationId
     final privatePeerIds = <String>{};
     final groupIds = <String>{};
+    final circleIds = <String>{};
     for (final item in merged) {
       if (_isPrivateConversation(item.meta.conversationId)) {
         final peerId = _parsePrivatePeerId(
@@ -88,6 +90,11 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         final groupId = _parseGroupId(item.meta.conversationId);
         if (groupId != null && groupId.isNotEmpty) {
           groupIds.add(groupId);
+        }
+      } else if (_isCircleConversation(item.meta.conversationId)) {
+        final circleId = _parseCircleId(item.meta.conversationId);
+        if (circleId != null && circleId.isNotEmpty) {
+          circleIds.add(circleId);
         }
       }
     }
@@ -139,6 +146,15 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       }
     }
 
+    // circle details
+    final circleMap = <String, Circle>{};
+    if (circleIds.isNotEmpty) {
+      final circles = await _circleService.getCirclesByIds(circleIds.toList());
+      for (final circle in circles) {
+        circleMap[circle.circleId] = circle;
+      }
+    }
+
     // 5) render mapping
     final list = <ChatModel>[];
     for (final item in merged) {
@@ -163,6 +179,15 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         if (group != null) {
           avatar = group.avatar;
           nickname = group.title;
+        }
+      } else if (_isCircleConversation(conversationId)) {
+        final circleId = _parseCircleId(conversationId);
+        final circle = circleId == null ? null : circleMap[circleId];
+        if (circle != null) {
+          avatar = circle.avatar;
+          nickname = circle.name.isNotEmpty ? circle.name : '圈子';
+        } else if (nickname.isEmpty) {
+          nickname = '圈子';
         }
       }
 
@@ -241,6 +266,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     return conversationId.startsWith('group_');
   }
 
+  bool _isCircleConversation(String conversationId) {
+    return conversationId.startsWith('circle_');
+  }
+
   String? _parsePrivatePeerId(String conversationId, String currentUserId) {
     final parts = conversationId.split('_');
     if (parts.length < 3) return null;
@@ -255,6 +284,12 @@ class ConversationBusiness implements ConversationRepositoryInterface {
   String? _parseGroupId(String conversationId) {
     final parts = conversationId.split('_');
     if (parts.length < 2 || parts.first != 'group') return null;
+    return parts.sublist(1).join('_');
+  }
+
+  String? _parseCircleId(String conversationId) {
+    final parts = conversationId.split('_');
+    if (parts.length < 2 || parts.first != 'circle') return null;
     return parts.sublist(1).join('_');
   }
 
@@ -326,6 +361,18 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         nickname = groups.first.title;
       } else {
         avatar = 'assets/images/friend/group.svg';
+      }
+    } else if (_isCircleConversation(conversationId)) {
+      final circleId = _parseCircleId(conversationId);
+      final circles = circleId == null
+          ? <Circle>[]
+          : await _circleService.getCirclesByIds([circleId]);
+      if (circles.isNotEmpty) {
+        avatar = circles.first.avatar;
+        nickname =
+            circles.first.name.isNotEmpty ? circles.first.name : '圈子';
+      } else if (nickname.isEmpty) {
+        nickname = '圈子';
       }
     }
 

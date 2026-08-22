@@ -1,10 +1,11 @@
+import 'package:beaver/api/group.dart';
 import 'package:beaver/features/chat/group_setting/bloc/bloc.dart';
 import 'package:beaver/features/chat/group_setting/bloc/event.dart';
 import 'package:beaver/features/chat/group_setting/bloc/state.dart';
 import 'package:beaver/features/chat/group_setting/components/group_setting_panel.dart';
-import 'package:beaver/features/circle/invite/invite_sheet.dart';
-import 'package:beaver/features/contact/selector/contact_selector_page.dart';
-import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/features/common/select_friend/open_select_friend.dart';
+import 'package:beaver/features/common/share/open_share.dart';
+import 'package:beaver/types/api/group.dart';
 import 'package:beaver/shared/ui/dialog/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
@@ -196,19 +197,17 @@ class _GroupSettingView extends StatelessWidget {
       onDeleteConversation: () => context.read<GroupSettingBloc>().add(
             const ShowDeleteGroupDialogEvent(true),
           ),
-      onShare: () => showGroupInviteSheet(
-            context: context,
+      onShare: () => _shareGroup(
+            context,
             groupId: groupId,
             groupName: groupName,
+            avatar: groupInfo?.avatar,
           ),
       onAddMember: () async {
-        final List<ContactModel>? result = await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ContactSelectorPage(
-              title: '添加群成员',
-              disabledUserIds: members.map((m) => m.userId).toList(),
-            ),
-          ),
+        final result = await openSelectFriend(
+          context,
+          title: '添加群成员',
+          disabledUserIds: members.map((m) => m.userId).toList(),
         );
 
         if (result != null && result.isNotEmpty) {
@@ -223,4 +222,33 @@ class _GroupSettingView extends StatelessWidget {
       },
     );
   }
+}
+
+Future<void> _shareGroup(
+  BuildContext context, {
+  required String groupId,
+  required String groupName,
+  String? avatar,
+}) async {
+  final res = await getGroupInfoApi(IGroupInfoReq(groupId: groupId));
+  if (!context.mounted) return;
+  if (res.code != 0 || res.result == null) {
+    BeaverToast.show(
+      context,
+      res.msg.isNotEmpty ? res.msg : '获取邀请链接失败',
+    );
+    return;
+  }
+  final inviteUrl = res.result!.inviteUrl.trim();
+  if (inviteUrl.isEmpty) {
+    BeaverToast.show(context, '暂无可用邀请链接');
+    return;
+  }
+  await openGroupShare(
+    context,
+    groupId: groupId,
+    groupName: groupName.isNotEmpty ? groupName : res.result!.title,
+    inviteUrl: inviteUrl,
+    avatar: avatar ?? res.result!.avatar,
+  );
 }

@@ -12,8 +12,7 @@ import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
-import 'package:beaver/features/contact/selector/contact_selector_page.dart';
-import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/features/common/select_friend/open_select_friend.dart';
 
 class CallPage extends StatefulWidget {
   final String conversationId;
@@ -604,13 +603,10 @@ class _CallPageState extends State<CallPage> {
         .map((p) => p.userId)
         .toList();
 
-    final List<ContactModel>? result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ContactSelectorPage(
-          title: '邀请成员',
-          disabledUserIds: currentParticipantIds,
-        ),
-      ),
+    final result = await openSelectFriend(
+      context,
+      title: '邀请成员',
+      disabledUserIds: currentParticipantIds,
     );
 
     if (result != null && result.isNotEmpty) {

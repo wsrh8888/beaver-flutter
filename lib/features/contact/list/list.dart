@@ -113,24 +113,24 @@ class _ContactListViewState extends State<ContactListView> {
       children: [
         _buildActionRow(
           title: '新的朋友',
-          icon: 'assets/icons/friend/add-friend-icon.svg',
+          icon: 'assets/icons/friend/new-friend.svg',
           route: AppRoutes.newFriends,
           badgeCount: state.friendRequestCount,
         ),
         _buildActionRow(
           title: '圈子',
-          icon: 'assets/icons/common/group.svg',
+          icon: 'assets/icons/friend/circle.svg',
           route: AppRoutes.circleList,
         ),
         _buildActionRow(
           title: '群通知',
-          icon: 'assets/icons/friend/dropdown-group-icon.svg',
+          icon: 'assets/icons/common/message.svg',
           route: AppRoutes.groupNotifications,
           badgeCount: state.groupNotificationCount,
         ),
         _buildActionRow(
           title: '群聊',
-          icon: 'assets/icons/friend/dropdown-group-icon.svg',
+          icon: 'assets/icons/friend/group-chat.svg',
           route: AppRoutes.groupList,
           showDivider: false,
         ),
