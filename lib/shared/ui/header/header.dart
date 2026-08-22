@@ -8,6 +8,7 @@ enum HeaderMode { fixed, static, transparent }
 class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
   final HeaderMode mode;
   final String? title;
+  final Widget? titleWidget;
   final Color? titleColor;
   final String leftIcon;
   final Color? backButtonColor;
@@ -23,6 +24,7 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.mode = HeaderMode.static,
     this.title,
+    this.titleWidget,
     this.titleColor = const Color(0xFF333333), // Standard text color
     this.leftIcon =
         'assets/images/common/arrow-back.svg', // Final asset path from rule
@@ -53,7 +55,11 @@ class BeaverHeader extends StatelessWidget implements PreferredSizeWidget {
             child: Stack(
               children: [
                 // 1. 标题层 (居中，且不响应点击，防止遮挡按钮)
-                if (title != null)
+                if (titleWidget != null)
+                  IgnorePointer(
+                    child: Center(child: titleWidget),
+                  )
+                else if (title != null)
                   IgnorePointer(
                     child: Center(
                       child: Text(

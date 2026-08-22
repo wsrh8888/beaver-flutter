@@ -6999,6 +6999,691 @@ class GroupSyncStatusCompanion extends UpdateCompanion<GroupSyncStatusData> {
   }
 }
 
+class $CirclesTable extends Circles with TableInfo<$CirclesTable, Circle> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CirclesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _circleIdMeta = const VerificationMeta(
+    'circleId',
+  );
+  @override
+  late final GeneratedColumn<String> circleId = GeneratedColumn<String>(
+    'circle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
+  @override
+  late final GeneratedColumn<String> avatar = GeneratedColumn<String>(
+    'avatar',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _creatorIdMeta = const VerificationMeta(
+    'creatorId',
+  );
+  @override
+  late final GeneratedColumn<String> creatorId = GeneratedColumn<String>(
+    'creator_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _memberCountMeta = const VerificationMeta(
+    'memberCount',
+  );
+  @override
+  late final GeneratedColumn<int> memberCount = GeneratedColumn<int>(
+    'member_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<int> role = GeneratedColumn<int>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _joinTypeMeta = const VerificationMeta(
+    'joinType',
+  );
+  @override
+  late final GeneratedColumn<int> joinType = GeneratedColumn<int>(
+    'join_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+    'created_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    circleId,
+    name,
+    avatar,
+    description,
+    creatorId,
+    memberCount,
+    role,
+    joinType,
+    version,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'circles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Circle> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('circle_id')) {
+      context.handle(
+        _circleIdMeta,
+        circleId.isAcceptableOrUnknown(data['circle_id']!, _circleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_circleIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('avatar')) {
+      context.handle(
+        _avatarMeta,
+        avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('creator_id')) {
+      context.handle(
+        _creatorIdMeta,
+        creatorId.isAcceptableOrUnknown(data['creator_id']!, _creatorIdMeta),
+      );
+    }
+    if (data.containsKey('member_count')) {
+      context.handle(
+        _memberCountMeta,
+        memberCount.isAcceptableOrUnknown(
+          data['member_count']!,
+          _memberCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    }
+    if (data.containsKey('join_type')) {
+      context.handle(
+        _joinTypeMeta,
+        joinType.isAcceptableOrUnknown(data['join_type']!, _joinTypeMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Circle map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Circle(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      circleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}circle_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      avatar: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}avatar'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      creatorId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}creator_id'],
+      )!,
+      memberCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}member_count'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}role'],
+      )!,
+      joinType: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}join_type'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}created_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}updated_at'],
+      ),
+    );
+  }
+
+  @override
+  $CirclesTable createAlias(String alias) {
+    return $CirclesTable(attachedDatabase, alias);
+  }
+}
+
+class Circle extends DataClass implements Insertable<Circle> {
+  final int id;
+  final String circleId;
+  final String name;
+  final String avatar;
+  final String description;
+  final String creatorId;
+  final int memberCount;
+  final int role;
+  final int joinType;
+  final int version;
+  final int? createdAt;
+  final int? updatedAt;
+  const Circle({
+    required this.id,
+    required this.circleId,
+    required this.name,
+    required this.avatar,
+    required this.description,
+    required this.creatorId,
+    required this.memberCount,
+    required this.role,
+    required this.joinType,
+    required this.version,
+    this.createdAt,
+    this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['circle_id'] = Variable<String>(circleId);
+    map['name'] = Variable<String>(name);
+    map['avatar'] = Variable<String>(avatar);
+    map['description'] = Variable<String>(description);
+    map['creator_id'] = Variable<String>(creatorId);
+    map['member_count'] = Variable<int>(memberCount);
+    map['role'] = Variable<int>(role);
+    map['join_type'] = Variable<int>(joinType);
+    map['version'] = Variable<int>(version);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<int>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<int>(updatedAt);
+    }
+    return map;
+  }
+
+  CirclesCompanion toCompanion(bool nullToAbsent) {
+    return CirclesCompanion(
+      id: Value(id),
+      circleId: Value(circleId),
+      name: Value(name),
+      avatar: Value(avatar),
+      description: Value(description),
+      creatorId: Value(creatorId),
+      memberCount: Value(memberCount),
+      role: Value(role),
+      joinType: Value(joinType),
+      version: Value(version),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory Circle.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Circle(
+      id: serializer.fromJson<int>(json['id']),
+      circleId: serializer.fromJson<String>(json['circleId']),
+      name: serializer.fromJson<String>(json['name']),
+      avatar: serializer.fromJson<String>(json['avatar']),
+      description: serializer.fromJson<String>(json['description']),
+      creatorId: serializer.fromJson<String>(json['creatorId']),
+      memberCount: serializer.fromJson<int>(json['memberCount']),
+      role: serializer.fromJson<int>(json['role']),
+      joinType: serializer.fromJson<int>(json['joinType']),
+      version: serializer.fromJson<int>(json['version']),
+      createdAt: serializer.fromJson<int?>(json['createdAt']),
+      updatedAt: serializer.fromJson<int?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'circleId': serializer.toJson<String>(circleId),
+      'name': serializer.toJson<String>(name),
+      'avatar': serializer.toJson<String>(avatar),
+      'description': serializer.toJson<String>(description),
+      'creatorId': serializer.toJson<String>(creatorId),
+      'memberCount': serializer.toJson<int>(memberCount),
+      'role': serializer.toJson<int>(role),
+      'joinType': serializer.toJson<int>(joinType),
+      'version': serializer.toJson<int>(version),
+      'createdAt': serializer.toJson<int?>(createdAt),
+      'updatedAt': serializer.toJson<int?>(updatedAt),
+    };
+  }
+
+  Circle copyWith({
+    int? id,
+    String? circleId,
+    String? name,
+    String? avatar,
+    String? description,
+    String? creatorId,
+    int? memberCount,
+    int? role,
+    int? joinType,
+    int? version,
+    Value<int?> createdAt = const Value.absent(),
+    Value<int?> updatedAt = const Value.absent(),
+  }) => Circle(
+    id: id ?? this.id,
+    circleId: circleId ?? this.circleId,
+    name: name ?? this.name,
+    avatar: avatar ?? this.avatar,
+    description: description ?? this.description,
+    creatorId: creatorId ?? this.creatorId,
+    memberCount: memberCount ?? this.memberCount,
+    role: role ?? this.role,
+    joinType: joinType ?? this.joinType,
+    version: version ?? this.version,
+    createdAt: createdAt.present ? createdAt.value : this.createdAt,
+    updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+  );
+  Circle copyWithCompanion(CirclesCompanion data) {
+    return Circle(
+      id: data.id.present ? data.id.value : this.id,
+      circleId: data.circleId.present ? data.circleId.value : this.circleId,
+      name: data.name.present ? data.name.value : this.name,
+      avatar: data.avatar.present ? data.avatar.value : this.avatar,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      creatorId: data.creatorId.present ? data.creatorId.value : this.creatorId,
+      memberCount: data.memberCount.present
+          ? data.memberCount.value
+          : this.memberCount,
+      role: data.role.present ? data.role.value : this.role,
+      joinType: data.joinType.present ? data.joinType.value : this.joinType,
+      version: data.version.present ? data.version.value : this.version,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Circle(')
+          ..write('id: $id, ')
+          ..write('circleId: $circleId, ')
+          ..write('name: $name, ')
+          ..write('avatar: $avatar, ')
+          ..write('description: $description, ')
+          ..write('creatorId: $creatorId, ')
+          ..write('memberCount: $memberCount, ')
+          ..write('role: $role, ')
+          ..write('joinType: $joinType, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    circleId,
+    name,
+    avatar,
+    description,
+    creatorId,
+    memberCount,
+    role,
+    joinType,
+    version,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Circle &&
+          other.id == this.id &&
+          other.circleId == this.circleId &&
+          other.name == this.name &&
+          other.avatar == this.avatar &&
+          other.description == this.description &&
+          other.creatorId == this.creatorId &&
+          other.memberCount == this.memberCount &&
+          other.role == this.role &&
+          other.joinType == this.joinType &&
+          other.version == this.version &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CirclesCompanion extends UpdateCompanion<Circle> {
+  final Value<int> id;
+  final Value<String> circleId;
+  final Value<String> name;
+  final Value<String> avatar;
+  final Value<String> description;
+  final Value<String> creatorId;
+  final Value<int> memberCount;
+  final Value<int> role;
+  final Value<int> joinType;
+  final Value<int> version;
+  final Value<int?> createdAt;
+  final Value<int?> updatedAt;
+  const CirclesCompanion({
+    this.id = const Value.absent(),
+    this.circleId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.avatar = const Value.absent(),
+    this.description = const Value.absent(),
+    this.creatorId = const Value.absent(),
+    this.memberCount = const Value.absent(),
+    this.role = const Value.absent(),
+    this.joinType = const Value.absent(),
+    this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CirclesCompanion.insert({
+    this.id = const Value.absent(),
+    required String circleId,
+    required String name,
+    this.avatar = const Value.absent(),
+    this.description = const Value.absent(),
+    this.creatorId = const Value.absent(),
+    this.memberCount = const Value.absent(),
+    this.role = const Value.absent(),
+    this.joinType = const Value.absent(),
+    this.version = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : circleId = Value(circleId),
+       name = Value(name);
+  static Insertable<Circle> custom({
+    Expression<int>? id,
+    Expression<String>? circleId,
+    Expression<String>? name,
+    Expression<String>? avatar,
+    Expression<String>? description,
+    Expression<String>? creatorId,
+    Expression<int>? memberCount,
+    Expression<int>? role,
+    Expression<int>? joinType,
+    Expression<int>? version,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (circleId != null) 'circle_id': circleId,
+      if (name != null) 'name': name,
+      if (avatar != null) 'avatar': avatar,
+      if (description != null) 'description': description,
+      if (creatorId != null) 'creator_id': creatorId,
+      if (memberCount != null) 'member_count': memberCount,
+      if (role != null) 'role': role,
+      if (joinType != null) 'join_type': joinType,
+      if (version != null) 'version': version,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  CirclesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? circleId,
+    Value<String>? name,
+    Value<String>? avatar,
+    Value<String>? description,
+    Value<String>? creatorId,
+    Value<int>? memberCount,
+    Value<int>? role,
+    Value<int>? joinType,
+    Value<int>? version,
+    Value<int?>? createdAt,
+    Value<int?>? updatedAt,
+  }) {
+    return CirclesCompanion(
+      id: id ?? this.id,
+      circleId: circleId ?? this.circleId,
+      name: name ?? this.name,
+      avatar: avatar ?? this.avatar,
+      description: description ?? this.description,
+      creatorId: creatorId ?? this.creatorId,
+      memberCount: memberCount ?? this.memberCount,
+      role: role ?? this.role,
+      joinType: joinType ?? this.joinType,
+      version: version ?? this.version,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (circleId.present) {
+      map['circle_id'] = Variable<String>(circleId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (avatar.present) {
+      map['avatar'] = Variable<String>(avatar.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (creatorId.present) {
+      map['creator_id'] = Variable<String>(creatorId.value);
+    }
+    if (memberCount.present) {
+      map['member_count'] = Variable<int>(memberCount.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<int>(role.value);
+    }
+    if (joinType.present) {
+      map['join_type'] = Variable<int>(joinType.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CirclesCompanion(')
+          ..write('id: $id, ')
+          ..write('circleId: $circleId, ')
+          ..write('name: $name, ')
+          ..write('avatar: $avatar, ')
+          ..write('description: $description, ')
+          ..write('creatorId: $creatorId, ')
+          ..write('memberCount: $memberCount, ')
+          ..write('role: $role, ')
+          ..write('joinType: $joinType, ')
+          ..write('version: $version, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DatasyncTable extends Datasync
     with TableInfo<$DatasyncTable, DatasyncData> {
   @override
@@ -12578,6 +13263,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GroupSyncStatusTable groupSyncStatus = $GroupSyncStatusTable(
     this,
   );
+  late final $CirclesTable circles = $CirclesTable(this);
   late final $DatasyncTable datasync = $DatasyncTable(this);
   late final $EmojisTable emojis = $EmojisTable(this);
   late final $EmojiCollectTableTable emojiCollectTable =
@@ -12612,6 +13298,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     groupMembers,
     groupJoinRequests,
     groupSyncStatus,
+    circles,
     datasync,
     emojis,
     emojiCollectTable,
@@ -16104,6 +16791,331 @@ typedef $$GroupSyncStatusTableProcessedTableManager =
       GroupSyncStatusData,
       PrefetchHooks Function()
     >;
+typedef $$CirclesTableCreateCompanionBuilder =
+    CirclesCompanion Function({
+      Value<int> id,
+      required String circleId,
+      required String name,
+      Value<String> avatar,
+      Value<String> description,
+      Value<String> creatorId,
+      Value<int> memberCount,
+      Value<int> role,
+      Value<int> joinType,
+      Value<int> version,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+typedef $$CirclesTableUpdateCompanionBuilder =
+    CirclesCompanion Function({
+      Value<int> id,
+      Value<String> circleId,
+      Value<String> name,
+      Value<String> avatar,
+      Value<String> description,
+      Value<String> creatorId,
+      Value<int> memberCount,
+      Value<int> role,
+      Value<int> joinType,
+      Value<int> version,
+      Value<int?> createdAt,
+      Value<int?> updatedAt,
+    });
+
+class $$CirclesTableFilterComposer
+    extends Composer<_$AppDatabase, $CirclesTable> {
+  $$CirclesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get circleId => $composableBuilder(
+    column: $table.circleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get avatar => $composableBuilder(
+    column: $table.avatar,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get creatorId => $composableBuilder(
+    column: $table.creatorId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get memberCount => $composableBuilder(
+    column: $table.memberCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get joinType => $composableBuilder(
+    column: $table.joinType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CirclesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CirclesTable> {
+  $$CirclesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get circleId => $composableBuilder(
+    column: $table.circleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get avatar => $composableBuilder(
+    column: $table.avatar,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get creatorId => $composableBuilder(
+    column: $table.creatorId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get memberCount => $composableBuilder(
+    column: $table.memberCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get joinType => $composableBuilder(
+    column: $table.joinType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CirclesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CirclesTable> {
+  $$CirclesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get circleId =>
+      $composableBuilder(column: $table.circleId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get avatar =>
+      $composableBuilder(column: $table.avatar, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get creatorId =>
+      $composableBuilder(column: $table.creatorId, builder: (column) => column);
+
+  GeneratedColumn<int> get memberCount => $composableBuilder(
+    column: $table.memberCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<int> get joinType =>
+      $composableBuilder(column: $table.joinType, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$CirclesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CirclesTable,
+          Circle,
+          $$CirclesTableFilterComposer,
+          $$CirclesTableOrderingComposer,
+          $$CirclesTableAnnotationComposer,
+          $$CirclesTableCreateCompanionBuilder,
+          $$CirclesTableUpdateCompanionBuilder,
+          (Circle, BaseReferences<_$AppDatabase, $CirclesTable, Circle>),
+          Circle,
+          PrefetchHooks Function()
+        > {
+  $$CirclesTableTableManager(_$AppDatabase db, $CirclesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CirclesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CirclesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CirclesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> circleId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> avatar = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> creatorId = const Value.absent(),
+                Value<int> memberCount = const Value.absent(),
+                Value<int> role = const Value.absent(),
+                Value<int> joinType = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => CirclesCompanion(
+                id: id,
+                circleId: circleId,
+                name: name,
+                avatar: avatar,
+                description: description,
+                creatorId: creatorId,
+                memberCount: memberCount,
+                role: role,
+                joinType: joinType,
+                version: version,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String circleId,
+                required String name,
+                Value<String> avatar = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> creatorId = const Value.absent(),
+                Value<int> memberCount = const Value.absent(),
+                Value<int> role = const Value.absent(),
+                Value<int> joinType = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int?> createdAt = const Value.absent(),
+                Value<int?> updatedAt = const Value.absent(),
+              }) => CirclesCompanion.insert(
+                id: id,
+                circleId: circleId,
+                name: name,
+                avatar: avatar,
+                description: description,
+                creatorId: creatorId,
+                memberCount: memberCount,
+                role: role,
+                joinType: joinType,
+                version: version,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CirclesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CirclesTable,
+      Circle,
+      $$CirclesTableFilterComposer,
+      $$CirclesTableOrderingComposer,
+      $$CirclesTableAnnotationComposer,
+      $$CirclesTableCreateCompanionBuilder,
+      $$CirclesTableUpdateCompanionBuilder,
+      (Circle, BaseReferences<_$AppDatabase, $CirclesTable, Circle>),
+      Circle,
+      PrefetchHooks Function()
+    >;
 typedef $$DatasyncTableCreateCompanionBuilder =
     DatasyncCompanion Function({
       Value<int> id,
@@ -18993,6 +20005,8 @@ class $AppDatabaseManager {
       $$GroupJoinRequestsTableTableManager(_db, _db.groupJoinRequests);
   $$GroupSyncStatusTableTableManager get groupSyncStatus =>
       $$GroupSyncStatusTableTableManager(_db, _db.groupSyncStatus);
+  $$CirclesTableTableManager get circles =>
+      $$CirclesTableTableManager(_db, _db.circles);
   $$DatasyncTableTableManager get datasync =>
       $$DatasyncTableTableManager(_db, _db.datasync);
   $$EmojisTableTableManager get emojis =>

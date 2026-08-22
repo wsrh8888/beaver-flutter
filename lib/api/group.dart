@@ -50,3 +50,35 @@ Future<BaseResponse> quitGroupApi(IGroupQuitReq data) {
   return httpClient.post(url, data: data.toJson());
 }
 
+/// 获取群信息
+Future<BaseResponse<IGroupInfoRes>> getGroupInfoApi(IGroupInfoReq data) {
+  final url = '$baseUrl/api/group/v1/info';
+  return httpClient.post<IGroupInfoRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IGroupInfoRes.fromJson(json),
+  );
+}
+
+/// 申请加入群组
+Future<BaseResponse<IGroupJoinRes>> joinGroupApi(IGroupJoinReq data) {
+  final url = '$baseUrl/api/group/v1/join';
+  return httpClient.post<IGroupJoinRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IGroupJoinRes.fromJson(json),
+  );
+}
+
+/// 解析群邀请短码
+Future<BaseResponse<IResolveGroupInviteRes>> resolveGroupInviteApi(
+  IResolveGroupInviteReq data,
+) {
+  final url = '$baseUrl/api/group/v1/invite_code';
+  return httpClient.get<IResolveGroupInviteRes>(
+    url,
+    queryParameters: data.toJson(),
+    fromJsonT: (json) => IResolveGroupInviteRes.fromJson(json),
+  );
+}
+

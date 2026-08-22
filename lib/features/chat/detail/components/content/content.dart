@@ -14,6 +14,7 @@ import 'package:beaver/features/chat/detail/components/content/message/reply.dar
 import 'package:beaver/features/chat/detail/components/content/message/forward.dart';
 import 'package:beaver/features/chat/detail/components/content/message/call.dart';
 import 'package:beaver/features/chat/detail/components/content/message/markdown.dart';
+import 'package:beaver/features/chat/detail/components/content/message/card/card.dart';
 import 'package:beaver/features/chat/detail/components/content/popup/action_menu.dart';
 import 'package:beaver/theme/colors.dart';
 import 'package:beaver/types/cache.dart';
@@ -268,6 +269,10 @@ class ChatContent extends StatelessWidget {
         return m.markdownMsg == null
             ? const SizedBox()
             : MarkdownMessage(msg: m.markdownMsg!, isSelf: isSelf);
+      case MessageType.card:
+        return m.cardMsg == null
+            ? const SizedBox()
+            : CardMessage(msg: m.cardMsg!, isSelf: isSelf);
       default:
         return TextMessage(msg: m.textMsg ?? TextMsg(content: '未知消息'), isSelf: isSelf);
     }

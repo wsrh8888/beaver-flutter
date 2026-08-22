@@ -30,6 +30,21 @@ class AuthGuard {
       return AppRoutes.login;
     }
 
+    // 未登录访问圈子分享深链，暂存 circleId
+    if (!isLoggedIn) {
+      String? circleId;
+      if (currentPath == AppRoutes.circleJoin) {
+        circleId = state.uri.queryParameters['circleId'];
+      } else if (currentPath.startsWith('/share/circle/')) {
+        circleId = state.pathParameters['id'] ??
+            parseCircleIdFromShare(state.uri.toString());
+      }
+      if (circleId != null && circleId.isNotEmpty) {
+        savePendingCircleShare(circleId);
+        return AppRoutes.login;
+      }
+    }
+
     // 未登录用户访问需要认证的页面，跳转到登录页
     if (!isLoggedIn &&
         currentPath != AppRoutes.login &&

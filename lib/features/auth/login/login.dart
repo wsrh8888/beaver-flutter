@@ -97,6 +97,11 @@ class _LoginViewState extends State<LoginView> {
             context.go('${AppRoutes.oauthScanConfirm}?sceneId=${Uri.encodeComponent(pendingScene)}');
             return;
           }
+          final pendingCircle = await consumePendingCircleShare();
+          if (pendingCircle != null && pendingCircle.isNotEmpty && context.mounted) {
+            context.go('${AppRoutes.circleJoin}?circleId=${Uri.encodeComponent(pendingCircle)}');
+            return;
+          }
           context.go(AppRoutes.root);
         } else if (state.status == LoginStatus.error) {
           BeaverToast.show(context, state.errorMessage ?? '登录失败');

@@ -15,6 +15,9 @@ enum MessageType {
   reply, // 11
   mergedForward, // 12
   markdown, // 13
+  link, // 14
+  cloudDoc, // 15
+  card, // 16
   system,
 }
 
@@ -48,6 +51,7 @@ class MessageContentModel {
   final ForwardMsg? forwardMsg;
   final NotificationMsg? notificationMsg;
   final MarkdownMsg? markdownMsg;
+  final CardMsg? cardMsg;
 
   MessageContentModel({
     required this.type,
@@ -62,6 +66,7 @@ class MessageContentModel {
     this.forwardMsg,
     this.notificationMsg,
     this.markdownMsg,
+    this.cardMsg,
   });
 
   factory MessageContentModel.fromJson(Map<String, dynamic> json) {
@@ -102,6 +107,9 @@ class MessageContentModel {
       markdownMsg: json['markdownMsg'] != null
           ? MarkdownMsg.fromJson(json['markdownMsg'])
           : null,
+      cardMsg: json['cardMsg'] != null
+          ? CardMsg.fromJson(json['cardMsg'])
+          : null,
     );
   }
 
@@ -119,6 +127,7 @@ class MessageContentModel {
       'forwardMsg': forwardMsg?.toJson(),
       'notificationMsg': notificationMsg?.toJson(),
       'markdownMsg': markdownMsg?.toJson(),
+      'cardMsg': cardMsg?.toJson(),
     };
   }
 
@@ -150,6 +159,12 @@ class MessageContentModel {
         return 12;
       case MessageType.markdown:
         return 13;
+      case MessageType.link:
+        return 14;
+      case MessageType.cloudDoc:
+        return 15;
+      case MessageType.card:
+        return 16;
       default:
         return 1;
     }
@@ -183,6 +198,12 @@ class MessageContentModel {
         return MessageType.mergedForward;
       case 13:
         return MessageType.markdown;
+      case 14:
+        return MessageType.link;
+      case 15:
+        return MessageType.cloudDoc;
+      case 16:
+        return MessageType.card;
       default:
         return MessageType.text;
     }
@@ -398,6 +419,56 @@ class MarkdownMsg {
       };
 }
 
+class CardMsg {
+  /// 1=个人 2=群 3=圈子
+  final int cardType;
+  final String id;
+  /// 过期时间戳(秒)，0=不过期
+  final int expireAt;
+  /// 分享邀请凭证（从 inviteUrl 解析的 code）
+  final String inviteToken;
+
+  CardMsg({
+    required this.cardType,
+    required this.id,
+    this.expireAt = 0,
+    this.inviteToken = '',
+  });
+
+  bool get isExpired {
+    if (expireAt <= 0) return false;
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return now >= expireAt;
+  }
+
+  String get typeLabel {
+    switch (cardType) {
+      case 1:
+        return '个人名片';
+      case 2:
+        return '群名片';
+      case 3:
+        return '圈子名片';
+      default:
+        return '名片';
+    }
+  }
+
+  factory CardMsg.fromJson(Map<String, dynamic> json) => CardMsg(
+        cardType: json['cardType'] as int? ?? 0,
+        id: json['id']?.toString() ?? '',
+        expireAt: (json['expireAt'] as num?)?.toInt() ?? 0,
+        inviteToken: json['inviteToken']?.toString() ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'cardType': cardType,
+        'id': id,
+        'expireAt': expireAt,
+        if (inviteToken.isNotEmpty) 'inviteToken': inviteToken,
+      };
+}
+
 class ChatMessageSendBody {
   final String conversationId;
   final String messageId;
@@ -482,6 +553,8 @@ class MessageModel {
         return msg.replyMsg?.replyMsg?.textMsg?.content ??
             msg.replyMsg?.originMsg?.textMsg?.content ??
             '[回复]';
+      case MessageType.card:
+        return '[${msg.cardMsg?.typeLabel ?? '名片'}]';
       default:
         return content;
     }

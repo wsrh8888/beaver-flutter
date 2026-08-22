@@ -109,7 +109,7 @@ class _QrcodePageState extends State<QrcodePage> {
       'appName': 'beaver',
       'version': AppConfig.version,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
-      'expireAt': -1,
+      'expireAt': 0,
       'payload': {
         'userId': userId,
       },

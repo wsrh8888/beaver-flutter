@@ -21,6 +21,7 @@ class GroupSettingPanel extends StatelessWidget {
   final VoidCallback onClearHistory;
   final VoidCallback onDeleteConversation;
   final VoidCallback onAddMember;
+  final VoidCallback? onShare;
   final Function(String userId) onRemoveMember;
 
   const GroupSettingPanel({
@@ -40,6 +41,7 @@ class GroupSettingPanel extends StatelessWidget {
     required this.onClearHistory,
     required this.onDeleteConversation,
     required this.onAddMember,
+    this.onShare,
     required this.onRemoveMember,
   });
 
@@ -253,6 +255,27 @@ class GroupSettingPanel extends StatelessWidget {
   Widget _buildActionList() {
     return Column(
       children: [
+        if (onShare != null)
+          Container(
+            margin: EdgeInsets.only(bottom: 12.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.w),
+            ),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 14.w),
+              title: Text(
+                '分享群聊',
+                style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
+              ),
+              trailing: Icon(
+                Icons.chevron_right,
+                size: 20.w,
+                color: const Color(0xFFCBD2DA),
+              ),
+              onTap: onShare,
+            ),
+          ),
         Container(
           margin: EdgeInsets.only(bottom: 12.w),
           decoration: BoxDecoration(

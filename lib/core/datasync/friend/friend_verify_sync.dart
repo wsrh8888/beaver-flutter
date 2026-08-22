@@ -21,13 +21,13 @@ class FriendVerifySyncModule {
       final datasyncService = getIt<DatasyncService>();
       final friendVerifyService = getIt<FriendVerifyService>();
 
-      // 获取本地同步时间戳
+      // 获取本地同步游标（version=-1 表示发现全部变更，对齐 PC）
       final localCursor = await datasyncService.get('friend_verifies');
-      final lastSyncTime = localCursor?.updatedAt ?? 0;
+      final lastSyncVersion = localCursor?.version ?? 0;
 
       // 获取服务器上变更的好友验证版本信息
       final serverResponse = await datasyncGetSyncFriendVerifiesApi(
-        IGetSyncFriendVerifiesReq(since: lastSyncTime),
+        IGetSyncFriendVerifiesReq(since: lastSyncVersion),
       );
       if (serverResponse.code != 0 || serverResponse.result == null) {
         // print('[FriendVerifySyncModule] 获取好友验证版本失败: ${serverResponse.msg}');

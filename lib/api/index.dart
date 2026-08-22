@@ -1,6 +1,7 @@
 export 'auth.dart';
 export 'call.dart';
 export 'chat.dart';
+export 'circle.dart';
 export 'datasync.dart';
 export 'emoji.dart';
 export 'file.dart';
@@ -11,3 +12,4 @@ export 'mcp.dart';
 export 'moment.dart';
 export 'notification.dart';
 export 'user.dart';
+export 'workbench.dart';

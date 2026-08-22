@@ -10,6 +10,7 @@ import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/store/group/group.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/group/group_join_request.dart';
 import 'package:beaver/store/notification/notification.dart';
@@ -80,6 +81,7 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
               create: (_) => getIt<FriendVerifyStore>(),
             ),
             BlocProvider<GroupStore>(create: (_) => getIt<GroupStore>()),
+            BlocProvider<CircleStore>(create: (_) => getIt<CircleStore>()),
             BlocProvider<GroupMemberStore>(
               create: (_) => getIt<GroupMemberStore>(),
             ),

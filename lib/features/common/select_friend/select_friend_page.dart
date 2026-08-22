@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:beaver/features/contact/selector/bloc/bloc.dart';
-import 'package:beaver/features/contact/selector/bloc/event.dart';
-import 'package:beaver/features/contact/selector/bloc/state.dart';
+import 'package:beaver/features/common/select_friend/bloc/bloc.dart';
+import 'package:beaver/features/common/select_friend/bloc/event.dart';
+import 'package:beaver/features/common/select_friend/bloc/state.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 
-class ContactSelectorPage extends StatefulWidget {
+/// 选择好友（对齐 PC selectFriend）
+class SelectFriendPage extends StatefulWidget {
   final String title;
   final List<ContactModel> initialSelected;
   final List<String> disabledUserIds;
 
-  const ContactSelectorPage({
+  const SelectFriendPage({
     super.key,
-    this.title = '选择联系人',
+    this.title = '选择好友',
     this.initialSelected = const [],
     this.disabledUserIds = const [],
   });
 
   @override
-  State<ContactSelectorPage> createState() => _ContactSelectorPageState();
+  State<SelectFriendPage> createState() => _SelectFriendPageState();
 }
 
-class _ContactSelectorPageState extends State<ContactSelectorPage> {
+class _SelectFriendPageState extends State<SelectFriendPage> {
   late ContactSelectorBloc _bloc;
   final TextEditingController _searchController = TextEditingController();
 
@@ -98,8 +99,9 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
                 controller: _searchController,
                 style: TextStyle(fontSize: 15.sp, color: const Color(0xFF2D3436)),
                 decoration: InputDecoration(
-                  hintText: '搜索联系人',
-                  hintStyle: TextStyle(fontSize: 15.sp, color: const Color(0xFFB2BEC3)),
+                  hintText: '搜索好友',
+                  hintStyle:
+                      TextStyle(fontSize: 15.sp, color: const Color(0xFFB2BEC3)),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
@@ -108,9 +110,7 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
             ),
             if (_searchController.text.isNotEmpty)
               GestureDetector(
-                onTap: () {
-                  _searchController.clear();
-                },
+                onTap: () => _searchController.clear(),
                 child: Icon(Icons.cancel, color: const Color(0xFFB2BEC3), size: 18.w),
               ),
           ],
@@ -119,11 +119,14 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
     );
   }
 
-  Widget _buildContactList(List<ContactModel> contacts, ContactSelectorState state) {
+  Widget _buildContactList(
+    List<ContactModel> contacts,
+    ContactSelectorState state,
+  ) {
     if (contacts.isEmpty) {
       return Center(
         child: Text(
-          _searchController.text.isNotEmpty ? '未搜索到联系人' : '无联系人',
+          _searchController.text.isNotEmpty ? '未搜索到好友' : '暂无好友',
           style: TextStyle(fontSize: 14.sp, color: const Color(0xFFB2BEC3)),
         ),
       );
@@ -138,8 +141,10 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
       itemBuilder: (context, index) {
         final contact = contacts[index];
         final isDisabled = widget.disabledUserIds.contains(contact.userId);
-        final isSelected = state.selectedContacts.any((c) => c.userId == contact.userId);
-        final displayName = contact.notice?.isNotEmpty == true ? contact.notice! : contact.nickname;
+        final isSelected =
+            state.selectedContacts.any((c) => c.userId == contact.userId);
+        final displayName =
+            contact.notice?.isNotEmpty == true ? contact.notice! : contact.nickname;
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -155,9 +160,13 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
                     height: 24.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected ? const Color(0xFFFF7D45) : Colors.transparent,
+                      color: isSelected
+                          ? const Color(0xFFFF7D45)
+                          : Colors.transparent,
                       border: Border.all(
-                        color: isSelected ? const Color(0xFFFF7D45) : const Color(0xFFDFE6E9),
+                        color: isSelected
+                            ? const Color(0xFFFF7D45)
+                            : const Color(0xFFDFE6E9),
                         width: 1.5.w,
                       ),
                     ),
@@ -184,7 +193,9 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w500,
-                      color: isDisabled ? const Color(0xFFB2BEC3) : const Color(0xFF2D3436),
+                      color: isDisabled
+                          ? const Color(0xFFB2BEC3)
+                          : const Color(0xFF2D3436),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -192,8 +203,11 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
                 ),
                 if (isDisabled)
                   Text(
-                    '已在通话中',
-                    style: TextStyle(fontSize: 12.sp, color: const Color(0xFFB2BEC3)),
+                    '不可选',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: const Color(0xFFB2BEC3),
+                    ),
                   ),
               ],
             ),
@@ -211,7 +225,9 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
-        border: Border(top: BorderSide(color: const Color(0xFFEBEEF5), width: 1.w)),
+        border: Border(
+          top: BorderSide(color: const Color(0xFFEBEEF5), width: 1.w),
+        ),
       ),
       child: SafeArea(
         top: false,
@@ -219,19 +235,25 @@ class _ContactSelectorPageState extends State<ContactSelectorPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              hasSelection ? '已选择 $count 人' : '请选择联系人',
+              hasSelection ? '已选择 $count 人' : '请从列表选择好友',
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: hasSelection ? FontWeight.w600 : FontWeight.w400,
-                color: hasSelection ? const Color(0xFF2D3436) : const Color(0xFFB2BEC3),
+                color: hasSelection
+                    ? const Color(0xFF2D3436)
+                    : const Color(0xFFB2BEC3),
               ),
             ),
             GestureDetector(
-              onTap: hasSelection ? () => Navigator.of(context).pop(state.selectedContacts) : null,
+              onTap: hasSelection
+                  ? () => Navigator.of(context).pop(state.selectedContacts)
+                  : null,
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.w),
                 decoration: BoxDecoration(
-                  color: hasSelection ? const Color(0xFFFF7D45) : const Color(0xFFFFD1BD),
+                  color: hasSelection
+                      ? const Color(0xFFFF7D45)
+                      : const Color(0xFFFFD1BD),
                   borderRadius: BorderRadius.circular(6.w),
                 ),
                 child: Text(

@@ -5,6 +5,7 @@ import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/store/group/group.dart';
+import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/store/notification/notification.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/emoji/emoji.dart';
@@ -30,6 +31,7 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<FriendStore>(() => FriendStore());
   getIt.registerLazySingleton<FriendVerifyStore>(() => FriendVerifyStore());
   getIt.registerLazySingleton<GroupStore>(() => GroupStore());
+  getIt.registerLazySingleton<CircleStore>(() => CircleStore());
   getIt.registerLazySingleton<NotificationStore>(() => NotificationStore());
   getIt.registerLazySingleton<MessageStore>(() => MessageStore());
   getIt.registerLazySingleton<EmojiStore>(() => EmojiStore());

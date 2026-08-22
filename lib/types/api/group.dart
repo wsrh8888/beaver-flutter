@@ -261,3 +261,143 @@ class IGroupQuitReq {
 
   Map<String, dynamic> toJson() => {'groupId': groupId};
 }
+
+/// 获取群信息请求
+class IGroupInfoReq {
+  final String groupId;
+
+  IGroupInfoReq({required this.groupId});
+
+  Map<String, dynamic> toJson() => {'groupId': groupId};
+}
+
+/// 获取群信息响应
+class IGroupInfoRes {
+  final String groupId;
+  final String title;
+  final String avatar;
+  final int memberCount;
+  final String creatorId;
+  final String notice;
+  final int joinType;
+  final int status;
+  final String conversationId;
+  final int? createdAt;
+  final int? updatedAt;
+  final int version;
+  /// 成员可见：稳定邀请链接
+  final String inviteUrl;
+
+  IGroupInfoRes({
+    required this.groupId,
+    required this.title,
+    required this.avatar,
+    required this.memberCount,
+    required this.creatorId,
+    required this.notice,
+    required this.joinType,
+    required this.status,
+    required this.conversationId,
+    this.createdAt,
+    this.updatedAt,
+    required this.version,
+    this.inviteUrl = '',
+  });
+
+  factory IGroupInfoRes.fromJson(Map<String, dynamic> json) => IGroupInfoRes(
+        groupId: json['groupId'] ?? '',
+        title: json['title'] ?? '',
+        avatar: json['avatar'] ?? '',
+        memberCount: json['memberCount'] ?? 0,
+        creatorId: json['creatorId'] ?? '',
+        notice: json['notice'] ?? '',
+        joinType: json['joinType'] ?? 0,
+        status: json['status'] ?? 1,
+        conversationId: json['conversationId'] ?? '',
+        createdAt: json['createdAt'],
+        updatedAt: json['updatedAt'],
+        version: json['version'] ?? 0,
+        inviteUrl: json['inviteUrl'] ?? '',
+      );
+}
+
+/// 申请加入群组请求
+class IGroupJoinReq {
+  /// 有 inviteCode 时可空
+  final String? groupId;
+  final String? message;
+  final String? inviteCode;
+
+  IGroupJoinReq({this.groupId, this.message, this.inviteCode});
+
+  Map<String, dynamic> toJson() => {
+        if (groupId != null && groupId!.isNotEmpty) 'groupId': groupId,
+        if (message != null) 'message': message,
+        if (inviteCode != null && inviteCode!.isNotEmpty)
+          'inviteCode': inviteCode,
+      };
+}
+
+/// 申请加入群组响应
+class IGroupJoinRes {
+  final int version;
+  final int status;
+  final String? groupId;
+
+  IGroupJoinRes({
+    required this.version,
+    this.status = 1,
+    this.groupId,
+  });
+
+  factory IGroupJoinRes.fromJson(Map<String, dynamic> json) => IGroupJoinRes(
+        version: json['version'] ?? 0,
+        status: json['status'] ?? 1,
+        groupId: json['groupId'],
+      );
+}
+
+class IResolveGroupInviteReq {
+  final String code;
+
+  IResolveGroupInviteReq({required this.code});
+
+  Map<String, dynamic> toJson() => {'code': code};
+}
+
+class IResolveGroupInviteRes {
+  final String code;
+  final String groupId;
+  final String title;
+  final String avatar;
+  final String notice;
+  final int memberCount;
+  final int joinType;
+  final bool valid;
+  final bool alreadyJoined;
+
+  IResolveGroupInviteRes({
+    required this.code,
+    required this.groupId,
+    required this.title,
+    required this.avatar,
+    required this.notice,
+    required this.memberCount,
+    required this.joinType,
+    required this.valid,
+    required this.alreadyJoined,
+  });
+
+  factory IResolveGroupInviteRes.fromJson(Map<String, dynamic> json) =>
+      IResolveGroupInviteRes(
+        code: json['code'] ?? '',
+        groupId: json['groupId'] ?? '',
+        title: json['title'] ?? '',
+        avatar: json['avatar'] ?? '',
+        notice: json['notice'] ?? '',
+        memberCount: json['memberCount'] ?? 0,
+        joinType: json['joinType'] ?? 0,
+        valid: json['valid'] == true,
+        alreadyJoined: json['alreadyJoined'] == true,
+      );
+}

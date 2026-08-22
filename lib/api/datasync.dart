@@ -14,6 +14,18 @@ Future<BaseResponse<IGetSyncGroupInfoRes>> datasyncGetSyncGroupInfoApi(IGetSyncG
   return httpClient.post<IGetSyncGroupInfoRes>(url, data: data.toJson(), fromJsonT: (json) => IGetSyncGroupInfoRes.fromJson(json));
 }
 
+/// 获取所有需要更新的圈子信息版本
+Future<BaseResponse<IGetSyncCircleInfoRes>> datasyncGetSyncCircleInfoApi(
+  IGetSyncCircleInfoReq data,
+) {
+  final url = '$baseUrl/api/datasync/v1/getSyncCircleInfo';
+  return httpClient.post<IGetSyncCircleInfoRes>(
+    url,
+    data: data.toJson(),
+    fromJsonT: (json) => IGetSyncCircleInfoRes.fromJson(json),
+  );
+}
+
 /// 获取所有需要更新的聊天消息版本
 Future<BaseResponse<IGetSyncChatMessagesRes>> datasyncGetSyncChatMessagesApi(IGetSyncChatMessagesReq data) {
   final url = '$baseUrl/api/datasync/v1/getSyncChatMessages';

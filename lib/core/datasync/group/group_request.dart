@@ -14,13 +14,13 @@ class GroupJoinRequestSync {
       final groupJoinRequestService = getIt<GroupJoinRequestService>();
       final syncStatusService = getIt<GroupSyncStatusService>();
 
-      // 获取本地最后同步时间 (时间戳游标)
+      // 获取本地同步游标（version=-1 表示按版本发现变更，对齐 PC）
       final cursor = await datasyncService.get('group_join_requests');
-      final lastSyncTime = cursor?.updatedAt ?? 0;
+      final lastSyncVersion = cursor?.version ?? 0;
 
       // 获取服务器上变更的版本信息
       final response = await datasyncGetSyncGroupRequestsApi(
-        IGetSyncGroupRequestsReq(since: lastSyncTime),
+        IGetSyncGroupRequestsReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
         // print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');

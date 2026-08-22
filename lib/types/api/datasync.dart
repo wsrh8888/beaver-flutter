@@ -345,6 +345,51 @@ class IGetSyncGroupInfoRes {
   );
 }
 
+/// 圈子信息版本
+class ICircleInfoVersionItem {
+  final String circleId;
+  final int version;
+
+  ICircleInfoVersionItem({required this.circleId, required this.version});
+
+  factory ICircleInfoVersionItem.fromJson(Map<String, dynamic> json) =>
+      ICircleInfoVersionItem(
+        circleId: json['circleId'] ?? '',
+        version: json['version'] ?? 0,
+      );
+}
+
+/// 获取圈子信息同步请求
+class IGetSyncCircleInfoReq {
+  final int? since;
+
+  IGetSyncCircleInfoReq({this.since});
+
+  Map<String, dynamic> toJson() => {
+        if (since != null) 'since': since,
+      };
+}
+
+/// 获取圈子信息同步响应
+class IGetSyncCircleInfoRes {
+  final List<ICircleInfoVersionItem> circleVersions;
+  final int serverTimestamp;
+
+  IGetSyncCircleInfoRes({
+    required this.circleVersions,
+    required this.serverTimestamp,
+  });
+
+  factory IGetSyncCircleInfoRes.fromJson(Map<String, dynamic> json) =>
+      IGetSyncCircleInfoRes(
+        circleVersions: (json['circleVersions'] as List?)
+                ?.map((e) => ICircleInfoVersionItem.fromJson(e))
+                .toList() ??
+            [],
+        serverTimestamp: json['serverTimestamp'] ?? 0,
+      );
+}
+
 /// 聊天消息版本信息
 class IChatMessageVersionItem {
   final String conversationId;

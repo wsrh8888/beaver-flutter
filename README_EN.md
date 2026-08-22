@@ -1,14 +1,14 @@
 # 🦫 Beaver IM - Mobile Instant Messaging Client
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](VERSION)
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-blue.svg)](https://flutter.dev/)
 [![Dart](https://img.shields.io/badge/Dart-3.x-blue.svg)](https://dart.dev/)
 [![QQ Groups](https://img.shields.io/badge/QQ_Groups-1013328597%2B-blue.svg)](https://qm.qq.com/q/82rbf7QBzO)
 
 > 🚀 **Modern Mobile Instant Messaging Application** - Built with Flutter + Dart, providing native mobile experience for Android/iOS/Web with complete social chat features.
 
-**Current Version: [2.0.2](VERSION)** (see [`VERSION`](VERSION) at repository root, synced with `pubspec.yaml`)
+**Current Version: [2.1.0](VERSION)** (see [`VERSION`](VERSION) at repository root, synced with `pubspec.yaml`)
 
 [English](README_EN.md) | [中文](README.md)
 

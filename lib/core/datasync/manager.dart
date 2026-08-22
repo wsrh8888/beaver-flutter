@@ -51,9 +51,11 @@ class DataSyncManager {
       await friendDatasync.checkAndSync();
       // 4. 群组资料同步 (含群资料、群成员、入群申请)
       await groupDatasync.checkAndSync();
-      // 5. 表情同步
+      // 5. 圈子资料同步
+      await circleDatasync.checkAndSync();
+      // 6. 表情同步
       await emojiSync.checkAndSync();
-      // 6. 通知事件同步
+      // 7. 通知事件同步
       await notificationSync.checkAndSync();
 
       _isSyncing = false;

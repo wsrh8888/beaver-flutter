@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:beaver/features/common/webview/bloc/bloc.dart';
 import 'package:beaver/features/common/webview/bloc/event.dart';
 import 'package:beaver/features/common/webview/bloc/state.dart';
+import 'package:beaver/features/common/webview/bridge/beaver_bridge.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,7 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
   late final WebViewBloc _bloc;
+  late final BeaverBridge _bridge;
   late final String _fallbackTitle;
 
   @override
@@ -44,6 +46,7 @@ class _WebViewPageState extends State<WebViewPage> {
             _bloc.add(WebViewPageStarted());
           },
           onPageFinished: (String url) async {
+            await _bridge.inject();
             final pageTitle = await _readPageTitle();
             if (!mounted) return;
             _bloc.add(WebViewPageFinished(pageTitle: pageTitle));
@@ -52,8 +55,12 @@ class _WebViewPageState extends State<WebViewPage> {
             _bloc.add(WebViewErrorOccurred(error.description));
           },
         ),
-      )
-      ..loadRequest(Uri.parse(widget.url));
+      );
+
+    _bridge = BeaverBridge(_controller);
+    _bridge.attach().then((_) {
+      _controller.loadRequest(Uri.parse(widget.url));
+    });
   }
 
   String _resolveFallbackTitle(String url) {

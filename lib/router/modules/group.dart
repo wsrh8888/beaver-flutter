@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:beaver/features/group/join/join.dart';
 import 'package:beaver/features/group/list/list.dart';
 import 'package:beaver/features/group/create/create.dart';
 import 'package:beaver/features/group/config/config.dart';
@@ -23,6 +24,17 @@ List<GoRoute> groupRoutes() {
     GoRoute(
       path: AppRoutes.groupMember,
       builder: (context, state) => GroupMemberPage(groupId: state.extra as String? ?? ''),
+    ),
+    GoRoute(
+      path: AppRoutes.groupJoin,
+      builder: (context, state) {
+        final groupId = state.uri.queryParameters['groupId'] ?? '';
+        final inviteCode = state.uri.queryParameters['inviteCode'] ?? '';
+        return GroupJoinPage(
+          groupId: groupId,
+          inviteCode: inviteCode,
+        );
+      },
     ),
     GoRoute(
       path: AppRoutes.groupNotifications,

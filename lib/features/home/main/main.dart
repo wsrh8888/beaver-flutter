@@ -1,14 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
-import 'package:beaver/features/moment/list/list.dart';
 import 'package:beaver/features/user/mine/mine.dart';
+import 'package:beaver/features/workbench/home/home.dart';
 import 'package:beaver/store/chat/chat.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/store/notification/notification.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// 主界面底栏 Tab 索引。
+/// 当前 4 段：消息 / 通讯录 / 工作台 / 我的。
+enum HomeTab {
+  chat(0),
+  contact(1),
+  workbench(2),
+  mine(3);
+
+  const HomeTab(this.tabIndex);
+  final int tabIndex;
+}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,13 +30,13 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = HomeTab.chat.tabIndex;
 
-  final List<Widget> _pages = [
-    const ChatListPage(),
-    const ContactListPage(),
-    const MomentListPage(),
-    const MinePage(),
+  final List<Widget> _pages = const [
+    ChatListPage(),
+    ContactListPage(),
+    WorkbenchHomePage(showBack: false),
+    MinePage(),
   ];
 
   @override
@@ -65,28 +77,28 @@ class _MainScreenState extends State<MainScreen> {
                           '消息',
                           'new-chat.png',
                           'new-chat-active.png',
-                          0,
+                          HomeTab.chat.tabIndex,
                           badgeCount: chatState.totalUnreadCount,
                         ),
                         _buildNavItem(
-                          '好友',
+                          '通讯录',
                           'new-friend.png',
                           'new-friend-active.png',
-                          1,
+                          HomeTab.contact.tabIndex,
                           badgeCount: verifyState.unreadCount,
                         ),
-                        _buildNavItem(
-                          '朋友圈',
-                          'moment.png',
-                          'moment-active.png',
-                          2,
+                        _buildSvgNavItem(
+                          '工作台',
+                          'assets/icons/tabbar/workbench.svg',
+                          'assets/icons/tabbar/workbench-active.svg',
+                          HomeTab.workbench.tabIndex,
                           badgeCount: notificationState.momentUnread,
                         ),
                         _buildNavItem(
                           '我的',
                           'new-mine.png',
                           'new-mine-active.png',
-                          3,
+                          HomeTab.mine.tabIndex,
                         ),
                       ],
                     ),
@@ -100,7 +112,13 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(String label, String iconName, String activeIconName, int index, {int badgeCount = 0}) {
+  BottomNavigationBarItem _buildNavItem(
+    String label,
+    String iconName,
+    String activeIconName,
+    int index, {
+    int badgeCount = 0,
+  }) {
     return BottomNavigationBarItem(
       icon: Badge(
         label: badgeCount > 0 ? Text(badgeCount.toString()) : null,
@@ -122,6 +140,49 @@ class _MainScreenState extends State<MainScreen> {
           padding: EdgeInsets.only(bottom: 4.w),
           child: Image.asset(
             'assets/icons/$activeIconName',
+            width: 22.w,
+            height: 22.w,
+          ),
+        ),
+      ),
+      label: label,
+    );
+  }
+
+  BottomNavigationBarItem _buildSvgNavItem(
+    String label,
+    String iconPath,
+    String activeIconPath,
+    int index, {
+    int badgeCount = 0,
+  }) {
+    final isActive = _currentIndex == index;
+    return BottomNavigationBarItem(
+      icon: Badge(
+        label: badgeCount > 0 ? Text(badgeCount.toString()) : null,
+        isLabelVisible: badgeCount > 0,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 4.w),
+          child: SvgPicture.asset(
+            iconPath,
+            width: 22.w,
+            height: 22.w,
+            colorFilter: isActive
+                ? null
+                : const ColorFilter.mode(
+                    Color(0xFFB2BEC3),
+                    BlendMode.srcIn,
+                  ),
+          ),
+        ),
+      ),
+      activeIcon: Badge(
+        label: badgeCount > 0 ? Text(badgeCount.toString()) : null,
+        isLabelVisible: badgeCount > 0,
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 4.w),
+          child: SvgPicture.asset(
+            isActive ? activeIconPath : iconPath,
             width: 22.w,
             height: 22.w,
           ),

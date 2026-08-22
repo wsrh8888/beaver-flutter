@@ -25,6 +25,10 @@ export 'group/group_sync.dart';
 export 'group/group_member_sync.dart';
 export 'group/group_request.dart';
 
+// Circle Syncers
+export 'circle/circle.dart';
+export 'circle/circle_sync.dart';
+
 // Notification Syncers
 export 'notification/notification.dart';
 
