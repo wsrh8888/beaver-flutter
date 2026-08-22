@@ -7,7 +7,7 @@ import 'package:beaver/common/ua/ua.dart';
 
 /// 应用级配置 (Dart 规范化重构)
 class AppConfig {
-  static const String env = 'dev';
+  static const String env = 'prod';
   static String version = '1.0.0';
   static late String deviceId;
   static String deviceArch = 'arm64';
