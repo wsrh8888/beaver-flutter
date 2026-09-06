@@ -23,6 +23,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('qrcode-add-friend');
 
 bool isAddFriendQr(String code) {
   if (!code.startsWith('{')) {
@@ -34,10 +37,15 @@ bool isAddFriendQr(String code) {
 
 class AddFriendQrHandler {
   void handle(BuildContext context, String code) {
-    final data = jsonDecode(code) as Map<String, dynamic>;
-    final payload = data['payload'] as Map<String, dynamic>;
-    final userId = payload['userId'] as String;
-    context.replace('/contact/detail/$userId');
+    try {
+      final data = jsonDecode(code) as Map<String, dynamic>;
+      final payload = data['payload'] as Map<String, dynamic>;
+      final userId = payload['userId'] as String;
+      _logger.info({'text': '识别到加好友二维码，跳转联系人详情', 'data': {'userId': userId}});
+      context.replace('/contact/detail/$userId');
+    } catch (e) {
+      _logger.error({'text': '解析加好友二维码失败', 'data': {'code': code, 'error': e.toString()}});
+    }
   }
 }
 

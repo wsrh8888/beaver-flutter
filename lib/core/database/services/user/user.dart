@@ -23,25 +23,43 @@ import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-user-user');
 
 class UserService extends BaseService {
   const UserService();
 
   /// 创建用户
   Future<void> create(UsersCompanion user) async {
+    try {
+
     await db.into(db.users).insert(user);
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.create 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 创建或更新用户（upsert操作）
   Future<void> upsert(UsersCompanion user) async {
+    try {
+
     await db.into(db.users).insert(
           user,
           mode: InsertMode.insertOrReplace,
         );
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建用户（调用upsert方法，避免重复数据错误）
   Future<void> batchCreate(List<IUserSyncItem> users) async {
+    try {
+    _logger.info({'text':'UserService.batchCreate 开始执行','data':{}});
+
     if (users.isEmpty) {
       return;
     }
@@ -68,10 +86,16 @@ class UserService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据用户ID获取用户信息
   Future<Map<String, dynamic>?> getUserById(String userId) async {
+    try {
+
     final userData = await (db.select(db.users)..where((t) => t.userId.equals(userId))).getSingleOrNull();
     
     if (userData == null) {
@@ -90,10 +114,16 @@ class UserService extends BaseService {
         'version': userData.version,
       }
     };
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.getUserById 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据用户ID获取用户基本信息（包括版本号）
   Future<Map<String, dynamic>?> getUserBasicInfo(String userId) async {
+    try {
+
     final userData = await (db.select(db.users)
           ..where((t) => t.userId.equals(userId))
           ..map((row) => {
@@ -107,10 +137,16 @@ class UserService extends BaseService {
     }
 
     return {'userInfo': userData};
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.getUserBasicInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量获取用户基本信息（用于消息发送者信息）
   Future<List<Map<String, dynamic>>> getUsersBasicInfo(List<String> userIds) async {
+    try {
+
     if (userIds.isEmpty) {
       return [];
     }
@@ -123,10 +159,17 @@ class UserService extends BaseService {
           'avatar': user.avatar ?? '',
           'userType': user.userType,
         }).toList();
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.getUsersBasicInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取所有用户基本信息（用于contactStore初始化）
   Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+    _logger.info({'text':'UserService.getAllUsers 开始执行','data':{}});
+
     final userData = await db.select(db.users).get();
 
     return userData.map((user) => {
@@ -143,11 +186,21 @@ class UserService extends BaseService {
           'createdAt': user.createdAt ?? 0,
           'updatedAt': user.updatedAt ?? 0,
         }).toList();
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.getAllUsers 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据 userId 获取用户
   Future<User?> getUserByUserId(String userId) async {
+    try {
+
     return (db.select(db.users)..where((t) => t.userId.equals(userId))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.getUserByUserId 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新用户信息
@@ -160,6 +213,8 @@ class UserService extends BaseService {
     int? gender,
     int? version,
   }) async {
+    try {
+
     await (db.update(db.users)..where((t) => t.userId.equals(userId))).write(
       UsersCompanion(
         nickName: nickName != null ? Value(nickName) : const Value.absent(),
@@ -171,5 +226,9 @@ class UserService extends BaseService {
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'UserService.updateUser 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

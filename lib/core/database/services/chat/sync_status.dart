@@ -22,22 +22,37 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-chat-sync_status');
 
 class ChatSyncStatusService extends BaseService {
   const ChatSyncStatusService();
 
   /// 获取多个会话的版本/seq信息
   Future<List<ChatSyncStatusData>> getModuleVersions(String module, List<String> conversationIds) async {
+    try {
+
     return (db.select(db.chatSyncStatus)
       ..where((t) => t.module.equals(module))
       ..where((t) => t.conversationId.isIn(conversationIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatSyncStatusService.getModuleVersions 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取单个会话的同步状态
   Future<ChatSyncStatusData?> getSyncStatus(String module, String conversationId) async {
+    try {
+
     return (db.select(db.chatSyncStatus)
       ..where((t) => t.module.equals(module))
       ..where((t) => t.conversationId.equals(conversationId))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatSyncStatusService.getSyncStatus 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新同步状态
@@ -47,6 +62,8 @@ class ChatSyncStatusService extends BaseService {
     int? seq,
     int? version,
   }) async {
+    try {
+
     await db.into(db.chatSyncStatus).insertOnConflictUpdate(
       ChatSyncStatusCompanion(
         conversationId: Value(conversationId),
@@ -56,5 +73,9 @@ class ChatSyncStatusService extends BaseService {
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch ~/ 1000),
       ),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'ChatSyncStatusService.upsertSyncStatus 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

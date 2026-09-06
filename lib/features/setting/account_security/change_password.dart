@@ -30,6 +30,9 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('change-password');
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -89,6 +92,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       return;
     }
     if (oldPassword == newPassword) {
+      _logger.warn({'text': '修改密码被拒：新密码与当前密码相同', 'data': {}});
       BeaverToast.show(context, '新密码不能与当前密码相同');
       return;
     }
@@ -97,6 +101,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       return;
     }
 
+    _logger.info({'text': '提交修改密码', 'data': {}});
     setState(() => _isLoading = true);
     try {
       final res = await updatePasswordApi(
@@ -109,12 +114,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         return;
       }
       if (res.isSuccess) {
+        _logger.info({'text': '密码修改成功', 'data': {}});
         BeaverToast.show(context, '密码修改成功');
         context.pop();
         return;
       }
+      _logger.warn({
+        'text': '修改密码失败（接口返回失败）',
+        'data': {'msg': res.msg},
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '密码修改失败');
     } catch (_) {
+      _logger.error({'text': '修改密码异常', 'data': {}});
       if (mounted) {
         BeaverToast.show(context, '密码修改失败');
       }

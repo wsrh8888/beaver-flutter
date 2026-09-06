@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/discover/main/bloc/event.dart';
 import 'package:beaver/features/discover/main/bloc/state.dart';
 import 'package:beaver/features/discover/main/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('discover-main');
 
 class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
   final DiscoverMainRepository _repository;
@@ -36,8 +39,13 @@ class DiscoverBloc extends Bloc<DiscoverEvent, DiscoverState> {
     Emitter<DiscoverState> emit,
   ) async {
     emit(state.copyWith(status: DiscoverStatus.loading));
+    _logger.info({'text': '加载发现页内容'});
 
     final discoverItems = await _repository.getDiscoverItems();
+    _logger.info({
+      'text': '加载发现页内容成功',
+      'data': {'count': discoverItems.length},
+    });
     emit(state.copyWith(
       status: DiscoverStatus.success,
       discoverItems: discoverItems,

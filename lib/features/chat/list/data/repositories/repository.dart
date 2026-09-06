@@ -21,6 +21,9 @@
 
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-chat-list');
 
 class ChatListRepository {
   final ConversationRepositoryInterface _conversationRepository;
@@ -29,14 +32,32 @@ class ChatListRepository {
     : _conversationRepository = conversationRepository ?? getIt<ConversationRepositoryInterface>();
 
   Future<List<ChatModel>> getChatList() async {
+    try {
+
     return _conversationRepository.getChatList();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatListRepository.getChatList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> togglePinChat(String conversationId, bool isPinned) async {
+    try {
+
     return _conversationRepository.togglePinChat(conversationId, isPinned);
+    } catch (e, st) {
+      _logger.warn({'text':'ChatListRepository.togglePinChat 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> deleteChat(String conversationId) async {
+    try {
+
     return _conversationRepository.deleteChat(conversationId);
+    } catch (e, st) {
+      _logger.warn({'text':'ChatListRepository.deleteChat 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

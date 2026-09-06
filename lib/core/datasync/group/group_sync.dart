@@ -29,11 +29,15 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-group');
 
 /// 群资料同步器（对应服务器 group 表）
 class GroupSync {
   /// 检查并同步群资料
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步群资料数据'});
     try {
       final datasyncService = getIt<DatasyncService>();
       final groupService = getIt<GroupService>();
@@ -48,7 +52,7 @@ class GroupSync {
         IGetSyncGroupInfoReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[GroupSync] 获取群组版本失败: ${response.msg}');
+        _logger.warn({'text': '获取群组版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -57,6 +61,7 @@ class GroupSync {
         syncStatusService,
         response.result!.groupVersions,
       );
+      _logger.info({'text': '群资料数据对比完成', 'data': {'needUpdate': needUpdateGroups.length}});
 
       if (needUpdateGroups.isNotEmpty) {
         // 有需要更新的群资料
@@ -69,8 +74,9 @@ class GroupSync {
         -1, // 使用时间戳而不是版本号
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '群资料数据同步完成'});
     } catch (error) {
-      // print('[GroupSync] 群资料同步失败: $error');
+      _logger.warn({'text': '群资料同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -123,9 +129,11 @@ class GroupSync {
     final response = await groupSyncApi(
       IGroupSyncReq(groups: groupsWithVersions),
     );
-    if (response.code == 0 &&
-        response.result != null &&
-        response.result!.groups.isNotEmpty) {
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '同步群资料数据失败', 'data': {'code': response.code, 'msg': response.msg, 'groupCount': groupsWithVersions.length}});
+      return;
+    }
+    if (response.result!.groups.isNotEmpty) {
       for (final group in response.result!.groups) {
         await groupService.upsert(
           GroupsCompanion(

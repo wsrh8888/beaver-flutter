@@ -20,9 +20,14 @@
  */
 
 import 'package:beaver/features/group/config/data/models/config.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-group-config');
 
 class GroupConfigRepository {
   Future<GroupInfo> getGroupInfo(String groupId) async {
+    try {
+
     // 模拟获取群组信息
     await Future.delayed(const Duration(seconds: 1));
     return GroupInfo(
@@ -31,9 +36,15 @@ class GroupConfigRepository {
       fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=group%20avatar&size=512x512',
       memberCount: 5,
     );
+    } catch (e, st) {
+      _logger.warn({'text':'GroupConfigRepository.getGroupInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<GroupMember>> getGroupMembers(String groupId) async {
+    try {
+
     // 模拟获取群组成员
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -56,18 +67,34 @@ class GroupConfigRepository {
         role: 1,
       ),
     ];
+    } catch (e, st) {
+      _logger.warn({'text':'GroupConfigRepository.getGroupMembers 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> updateGroupName(String groupId, String name) async {
+    try {
+
     // 模拟更新群名?
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupConfigRepository.updateGroupName 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> quitGroup(String groupId) async {
+    try {
+
     // 模拟退出群?
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupConfigRepository.quitGroup 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

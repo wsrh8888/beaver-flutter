@@ -21,20 +21,35 @@
 
 import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-moment-list');
 
 class MomentListRepository {
   MomentListRepository();
 
   Future<List<IMomentListItem>> getMomentList(int page, int limit) async {
+    try {
+
     final response = await getMomentListApi(IGetMomentListReq(page: page, limit: limit));
     if (response.isSuccess && response.result != null) {
       return response.result!.list;
     }
     return [];
+    } catch (e, st) {
+      _logger.warn({'text':'MomentListRepository.getMomentList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> toggleLike(String momentId, bool status) async {
+    try {
+
     final response = await likeMomentApi(ILikeMomentReq(momentId: momentId, status: status));
     return response.isSuccess;
+    } catch (e, st) {
+      _logger.warn({'text':'MomentListRepository.toggleLike 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

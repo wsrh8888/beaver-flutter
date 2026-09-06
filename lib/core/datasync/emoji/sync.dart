@@ -25,17 +25,22 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/core/datasync/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('emoji-sync');
 
 class EmojiSync {
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步表情数据'});
     try {
       // 1. 同步表情详情
       await EmojiDetailSync().sync();
 
       // 2. 同步收藏与关联数据
       await _syncEmojiCollects();
+      _logger.info({'text': '表情数据同步完成'});
     } catch (e) {
-      print('[EmojiSync] 同步过程中发生错误: $e');
+      _logger.error({'text': '表情同步过程出错', 'data': {'error': e.toString()}});
     }
   }
 
@@ -57,19 +62,28 @@ class EmojiSync {
 
     // 1. 同步单个表情收藏详情 (Collects)
     if (result.emojiCollectVersions.isNotEmpty) {
-      print('同步表情收藏详情');
+      _logger.info({
+        'text': '同步表情收藏详情',
+        'data': {'count': result.emojiCollectVersions.length},
+      });
       syncTasks.add(EmojiCollectSync().sync(result.emojiCollectVersions));
     }
 
     // 2. 同步表情包元数据 (Packages)
     if (result.emojiPackageVersions.isNotEmpty) {
-      print('同步表情包元数据');
+      _logger.info({
+        'text': '同步表情包元数据',
+        'data': {'count': result.emojiPackageVersions.length},
+      });
       syncTasks.add(EmojiPackageSync().sync(result.emojiPackageVersions));
     }
 
     // 3. 同步表情包订阅记录 (PackageCollects)
     if (result.emojiPackageCollectVersions.isNotEmpty) {
-      print('同步表情包订阅记录');
+      _logger.info({
+        'text': '同步表情包订阅记录',
+        'data': {'count': result.emojiPackageCollectVersions.length},
+      });
       syncTasks.add(
         EmojiPackageCollectSync().sync(result.emojiPackageCollectVersions),
       );
@@ -77,7 +91,10 @@ class EmojiSync {
 
     // 4. 同步表情包内容详情 (PackageContents)
     if (result.emojiPackageContentVersions.isNotEmpty) {
-      print('同步表情包内容详情');
+      _logger.info({
+        'text': '同步表情包内容详情',
+        'data': {'count': result.emojiPackageContentVersions.length},
+      });
       syncTasks.add(
         EmojiPackageEmojiSync().sync(result.emojiPackageContentVersions),
       );
@@ -113,7 +130,7 @@ Future<void> clearEmojiSyncState() async {
     batch.deleteAll(db.emojis);
   });
 
-  print('[EmojiSync] 表情同步状态与本地数据已清空');
+  _logger.info({'text': '表情同步状态与本地数据已清空'});
 }
 
 final emojiSync = EmojiSync();

@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/group/group_join_request.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-group-join-request');
 
 /// 群加入请求接收器 - 处理 group_join_requests 表的操作 (对标 PC receivers/group/group-join-request-receiver.ts)
 class GroupJoinRequestReceiver {
@@ -28,7 +31,11 @@ class GroupJoinRequestReceiver {
 
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tables'] ?? body['tableUpdates']) as List?;
-    if (updates == null) return;
+    if (updates == null) {
+      _logger.warn({'text': '收到加群请求表更新但 updates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理加群请求表更新', 'data': {'count': updates.length}});
 
     for (final update in updates) {
       final table = update['table'] as String?;
@@ -40,7 +47,11 @@ class GroupJoinRequestReceiver {
         for (final item in data) {
           final version = item['version'] as int?;
           if (version != null) {
-            await _groupJoinRequestBusiness.handleTableUpdates(userId, groupId, version);
+            try {
+              await _groupJoinRequestBusiness.handleTableUpdates(userId, groupId, version);
+            } catch (e) {
+              _logger.warn({'text': '处理加群请求更新失败', 'data': {'userId': userId, 'groupId': groupId, 'version': version, 'error': e.toString()}});
+            }
           }
         }
       }

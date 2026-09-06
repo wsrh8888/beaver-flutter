@@ -22,6 +22,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/common/webview/bloc/event.dart';
 import 'package:beaver/features/common/webview/bloc/state.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('webview');
 
 class WebViewBloc extends Bloc<WebViewEvent, WebViewState> {
   WebViewBloc({required String url}) : super(WebViewState(url: url)) {
@@ -36,10 +39,12 @@ class WebViewBloc extends Bloc<WebViewEvent, WebViewState> {
   }
 
   void _onPageStarted(WebViewPageStarted event, Emitter<WebViewState> emit) {
+    _logger.info({'text': '网页开始加载', 'data': {'url': state.url}});
     emit(state.copyWith(status: WebViewStatus.loading, progress: 0));
   }
 
   void _onPageFinished(WebViewPageFinished event, Emitter<WebViewState> emit) {
+    _logger.info({'text': '网页加载完成', 'data': {'url': state.url, 'pageTitle': event.pageTitle}});
     emit(state.copyWith(
       status: WebViewStatus.success,
       progress: 100,
@@ -48,6 +53,7 @@ class WebViewBloc extends Bloc<WebViewEvent, WebViewState> {
   }
 
   void _onErrorOccurred(WebViewErrorOccurred event, Emitter<WebViewState> emit) {
+    _logger.warn({'text': '网页加载出错', 'data': {'url': state.url, 'errorMessage': event.errorMessage}});
     emit(state.copyWith(status: WebViewStatus.error, errorMessage: event.errorMessage));
   }
 }

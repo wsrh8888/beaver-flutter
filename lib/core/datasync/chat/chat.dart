@@ -20,17 +20,25 @@
  */
 
 import 'package:beaver/core/datasync/index.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-chat');
 
 /// 聊天数据同步统一入口
 class ChatDatasync {
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步聊天数据（会话/消息/媒体）'});
     // 并行执行聊天相关同步器
     await Future.wait([
       userConversationSync.checkAndSync(), // 用户会话设置同步
       conversationMetaSync.checkAndSync(), // 会话元数据同步
       messageSync.checkAndSync(), // 消息同步
       messageMediaSync.checkAndSync(), // 消息媒体状态同步（语音已听等）
-    ]);
+    ]).then((_) {
+      _logger.info({'text': '聊天数据同步完成'});
+    }).catchError((e) {
+      _logger.warn({'text': '聊天数据同步部分失败', 'data': {'error': e.toString()}});
+    });
   }
 }
 

@@ -21,11 +21,14 @@
 
 import 'dart:async';
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/user.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+final _logger = Logger('store-contact');
 
 class ContactStoreState extends Equatable {
   final Map<String, UserInfo> userMap;
@@ -74,11 +77,13 @@ class ContactStore extends Cubit<ContactStoreState> {
   }
 
   Future<void> init() async {
+    _logger.info({'text': '初始化联系人', 'data': {}});
     final users = await _userBusiness.getAllUsers();
     final nextMap = <String, UserInfo>{};
     for (final user in users) {
       nextMap[user.userId] = user;
     }
+    _logger.info({'text': '联系人初始化完成', 'data': {'count': nextMap.length}});
     emit(state.copyWith(userMap: nextMap, version: state.version + 1));
   }
 
@@ -87,6 +92,7 @@ class ContactStore extends Cubit<ContactStoreState> {
     UserInfo contactInfo, {
     bool force = false,
   }) {
+    _logger.info({'text': '更新单个联系人', 'data': {'userId': userId, 'force': force}});
     final existing = state.userMap[userId];
 
     if (existing != null) {
@@ -125,6 +131,7 @@ class ContactStore extends Cubit<ContactStoreState> {
 
   Future<void> updateContactsByIds(List<String> userIds) async {
     if (userIds.isEmpty) return;
+    _logger.info({'text': '按ID批量刷新联系人', 'data': {'count': userIds.length}});
     final users = await _userBusiness.getUsersBasicInfo(userIds);
     if (users.isEmpty) return;
 

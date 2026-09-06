@@ -25,9 +25,13 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-emoji-package-emoji');
 
 class EmojiPackageEmojiSync {
   Future<void> sync(List<IEmojiPackageContentVersionItem> versions) async {
+    _logger.info({'text': '开始同步表情包内表情数据', 'data': {'count': versions.length}});
     final service = getIt<EmojiPackageEmojiService>();
     final ids = versions.map((v) => v.packageId).toList();
 
@@ -53,7 +57,10 @@ class EmojiPackageEmojiSync {
           );
         }).toList();
         await service.batchCreate(companions);
+      } else {
+        _logger.warn({'text': '批量获取表情包内表情失败', 'data': {'code': detailRes.code, 'msg': detailRes.msg, 'batchCount': batchIds.length}});
       }
     }
+    _logger.info({'text': '表情包内表情数据同步完成'});
   }
 }

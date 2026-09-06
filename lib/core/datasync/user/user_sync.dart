@@ -26,15 +26,22 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/user.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/logger/index.dart';
 
 /// 用户数据同步模块（两阶段增量同步）
+final _logger = Logger('datasync-user');
+
 class UserSyncModule {
   String _syncStatus = 'PENDING';
 
   /// 检查并同步用户数据
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步用户数据', 'data': {}});
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '未获取到用户ID，跳过用户数据同步', 'data': {}});
+      return;
+    }
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -51,6 +58,10 @@ class UserSyncModule {
       );
 
       if (response.code != 0 || response.result == null) {
+        _logger.warn({
+          'text': '获取用户版本变更失败',
+          'data': {'code': response.code, 'msg': response.msg},
+        });
         return;
       }
 
@@ -62,6 +73,11 @@ class UserSyncModule {
         userSyncStatusService,
         changedUserVersions,
       );
+
+      _logger.info({
+        'text': '用户数据对比完成',
+        'data': {'needUpdate': needUpdateUsers.length},
+      });
 
       if (needUpdateUsers.isNotEmpty) {
         // 有需要更新的用户数据
@@ -86,6 +102,10 @@ class UserSyncModule {
       _syncStatus = 'COMPLETED';
     } catch (error) {
       _syncStatus = 'FAILED';
+      _logger.warn({
+        'text': '用户数据同步异常',
+        'data': {'error': error.toString()},
+      });
     }
   }
 
@@ -142,7 +162,21 @@ class UserSyncModule {
           .toList();
       await userSyncStatusService.batchUpsertUserSyncStatus(statusUpdates);
 
+      _logger.info({
+        'text': '用户数据同步成功',
+        'data': {'count': syncResponse.result!.users.length},
+      });
+
       // TODO: 发送通知到渲染进程
+    } else {
+      _logger.warn({
+        'text': '同步用户数据失败',
+        'data': {
+          'code': syncResponse.code,
+          'msg': syncResponse.msg,
+          'userCount': syncResponse.result?.users.length ?? 0,
+        },
+      });
     }
   }
 

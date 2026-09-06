@@ -22,9 +22,14 @@
 import 'package:beaver/types/call.dart';
 import 'package:beaver/api/call.dart';
 import 'package:beaver/types/api/call.dart' as api;
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-calls-incoming');
 
 class CallIncomingRepository {
   Future<CallInfo> getCallInfo(String conversationId, String roomId) async {
+    try {
+
     final response = await getCallInfoApi(roomId);
     if (response.code == 0 && response.result != null) {
       final res = response.result!;
@@ -40,19 +45,35 @@ class CallIncomingRepository {
       );
     }
     throw Exception(response.msg);
+    } catch (e, st) {
+      _logger.warn({'text':'CallIncomingRepository.getCallInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> acceptCall(String roomId) async {
+    try {
+
     final response = await acceptCallApi(api.AcceptCallReq(roomId: roomId));
     if (response.code != 0) {
       throw Exception(response.msg);
     }
+    } catch (e, st) {
+      _logger.warn({'text':'CallIncomingRepository.acceptCall 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> rejectCall(String roomId) async {
+    try {
+
     final response = await rejectCallApi(api.RejectCallReq(roomId: roomId));
     if (response.code != 0) {
       throw Exception(response.msg);
+    }
+    } catch (e, st) {
+      _logger.warn({'text':'CallIncomingRepository.rejectCall 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
     }
   }
 }

@@ -24,6 +24,9 @@ import 'package:beaver/features/moment/list/bloc/event.dart';
 import 'package:beaver/features/moment/list/bloc/state.dart';
 import 'package:beaver/types/api/moment.dart';
 import 'package:beaver/features/moment/list/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('moment-list');
 
 class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
   final MomentListRepository _momentListRepository;
@@ -45,12 +48,25 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
     if (isRefresh) {
       emit(state.copyWith(status: MomentListStatus.loading));
     }
+    _logger.info({
+      'text': '加载动态列表',
+      'data': {'refresh': isRefresh, 'page': nextPage},
+    });
 
     try {
       final newMoments = await _momentListRepository.getMomentList(nextPage, limit);
-      
+
       final updatedMoments = isRefresh ? newMoments : [...state.moments, ...newMoments];
-      
+
+      _logger.info({
+        'text': '加载动态列表成功',
+        'data': {
+          'page': nextPage,
+          'newCount': newMoments.length,
+          'total': updatedMoments.length,
+          'hasMore': newMoments.length >= limit,
+        },
+      });
       emit(state.copyWith(
         status: MomentListStatus.success,
         moments: updatedMoments,
@@ -58,6 +74,7 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
         hasMore: newMoments.length >= limit,
       ));
     } catch (e) {
+      _logger.error({'text': '加载动态列表失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: MomentListStatus.error,
         errorMessage: e.toString(),
@@ -72,6 +89,10 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
     final moment = state.moments[momentIndex];
     final hasLiked = moment.likes.any((like) => like.userId == event.currentUserId);
     final targetStatus = !hasLiked;
+    _logger.info({
+      'text': '切换动态点赞',
+      'data': {'momentId': moment.id, 'action': targetStatus ? 'like' : 'unlike'},
+    });
 
     // Optimistic update
     final updatedLikes = List<IMomentLikeModel>.from(moment.likes);
@@ -111,6 +132,7 @@ class MomentListBloc extends Bloc<MomentListEvent, MomentListState> {
     // Actually make network request
     final success = await _momentListRepository.toggleLike(moment.id, targetStatus);
     if (!success) {
+      _logger.warn({'text': '切换动态点赞失败，已回滚', 'data': {'momentId': moment.id}});
       // Revert if failed (simplified, assumes single failure handling isn't critical right now)
       emit(state.copyWith(moments: state.moments));
     }

@@ -27,6 +27,9 @@ import 'package:beaver/features/contact/detail/data/models/user_info.dart' as de
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/types/business/user.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-contact-detail');
 
 class DetailRepository {
   final FriendRepositoryInterface _friendRepository;
@@ -48,6 +51,8 @@ class DetailRepository {
         _friendBusiness = friendBusiness ?? getIt<FriendBusiness>();
 
   Future<String> _getRemarkName(String userId) async {
+    try {
+
     final myUserId = DatabaseManager.currentUserId ?? '';
     if (myUserId.isEmpty) return '';
 
@@ -57,9 +62,15 @@ class DetailRepository {
     return friend.sendUserId == myUserId
         ? (friend.sendUserNotice ?? '')
         : (friend.revUserNotice ?? '');
+    } catch (e, st) {
+      _logger.warn({'text':'DetailRepository._getRemarkName 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<detail_model.UserInfo> getUserInfo(String userId) async {
+    try {
+
     final user = await _userRepository.getUserProfile(userId);
     final conversationId = await _conversationRepository.getConversationIdByPeerId(userId);
     final remarkName = await _getRemarkName(userId);
@@ -100,14 +111,30 @@ class DetailRepository {
       conversationId: conversationId,
       source: 'search',
     );
+    } catch (e, st) {
+      _logger.warn({'text':'DetailRepository.getUserInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> updateRemarkName(String userId, String remarkName) async {
+    try {
+
     return _friendBusiness.updateRemarkName(userId, remarkName);
+    } catch (e, st) {
+      _logger.warn({'text':'DetailRepository.updateRemarkName 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> deleteFriend(String userId) async {
+    try {
+
     await _friendRepository.deleteFriend(userId);
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'DetailRepository.deleteFriend 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

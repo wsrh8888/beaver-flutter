@@ -24,6 +24,9 @@ import 'package:beaver/api/friend.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/friend.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend-verify-business');
 
 /// 好友验证业务逻辑 (对标 PC business/friend/friend-verify.ts)
 class FriendVerifyBusiness {
@@ -54,9 +57,10 @@ class FriendVerifyBusiness {
       return;
     }
 
-    print(
-      '[FriendVerifyBusiness] 正在同步好友验证增量: verifyId=$verifyId, version=$version',
-    );
+    _logger.info({
+      'text': '开始同步好友验证增量',
+      'data': {'verifyId': verifyId, 'version': version},
+    });
 
     // 2. 调用 API 拉取最新验证信息
     final response = await getFriendVerifiesListByIdsApi(
@@ -64,7 +68,10 @@ class FriendVerifyBusiness {
     );
 
     if (response.code != 0 || response.result == null) {
-      print('[FriendVerifyBusiness] 拉取验证信息失败: ${response.msg}');
+      _logger.warn({
+        'text': '拉取好友验证信息失败',
+        'data': {'verifyId': verifyId, 'code': response.code, 'msg': response.msg},
+      });
       return;
     }
 
@@ -80,6 +87,9 @@ class FriendVerifyBusiness {
     // 4. 更新版本缓存
     _lastHandledVersionByVerifyId[verifyId] = version;
     notifyVerifyUpdate(verifyId);
-    print('[FriendVerifyBusiness] 好友验证表同步完成');
+    _logger.info({
+      'text': '好友验证表同步完成',
+      'data': {'verifyId': verifyId},
+    });
   }
 }

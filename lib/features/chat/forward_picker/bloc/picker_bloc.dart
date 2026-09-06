@@ -23,8 +23,11 @@ import 'package:beaver/api/chat.dart';
 import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'picker_event.dart';
 import 'picker_state.dart';
+
+final _logger = Logger('forward-picker');
 
 class ForwardPickerBloc extends Bloc<ForwardPickerEvent, ForwardPickerState> {
   final List<String> messageIds;
@@ -45,22 +48,35 @@ class ForwardPickerBloc extends Bloc<ForwardPickerEvent, ForwardPickerState> {
 
   void _onLoadContacts(LoadContactsEvent event, Emitter<ForwardPickerState> emit) {
     emit(state.copyWith(status: ForwardPickerStatus.loading));
-    
+
     // 从全局 Store 获取联系人数据
     var contacts = contactStore.state.userMap.values.toList();
-    
+
     // 简单的关键词搜索过滤
     if (event.query != null && event.query!.isNotEmpty) {
-      contacts = contacts.where((u) => 
+      contacts = contacts.where((u) =>
         u.nickname.contains(event.query!)
       ).toList();
     }
 
     emit(state.copyWith(status: ForwardPickerStatus.success, contacts: contacts));
+    _logger.info({
+      'text': '转发选人列表加载完成',
+      'data': {'数量': contacts.length, 'query': event.query ?? ''},
+    });
   }
 
   Future<void> _onExecuteForward(ExecuteForwardEvent event, Emitter<ForwardPickerState> emit) async {
     emit(state.copyWith(status: ForwardPickerStatus.executing));
+    _logger.info({
+      'text': '执行转发消息',
+      'data': {
+        'messageCount': messageIds.length,
+        'targetId': event.targetId,
+        'forwardMode': forwardMode,
+        'forwardType': event.forwardType,
+      },
+    });
 
     final res = await forwardMessageApi(IForwardMessageReq(
       messageIds: messageIds,
@@ -71,7 +87,15 @@ class ForwardPickerBloc extends Bloc<ForwardPickerEvent, ForwardPickerState> {
 
     if (res.code == 0) {
       emit(state.copyWith(status: ForwardPickerStatus.completed));
+      _logger.info({
+        'text': '转发消息成功',
+        'data': {'targetId': event.targetId},
+      });
     } else {
+      _logger.warn({
+        'text': '转发消息失败',
+        'data': {'targetId': event.targetId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(status: ForwardPickerStatus.failure, error: res.msg));
     }
   }

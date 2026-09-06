@@ -22,6 +22,9 @@
 import './event_receiver.dart';
 import './inbox_receiver.dart';
 import './read_cursor_receiver.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('notification-message-router');
 
 /// 通知消息路由器 (对标 PC receivers/notification/index.ts)
 class NotificationMessageRouter {
@@ -39,7 +42,10 @@ class NotificationMessageRouter {
     final data = wsMessage['data'] as Map<String, dynamic>?;
 
     if (data == null) {
-      print('[NotificationMessageRouter] 收到通知消息, 但缺少 data 字段: $wsMessage');
+      _logger.warn({
+        'text': '收到通知消息但缺少data字段',
+        'data': {'wsMessage': wsMessage},
+      });
       return;
     }
 
@@ -62,7 +68,10 @@ class NotificationMessageRouter {
         break;
 
       default:
-        print('[NotificationMessageRouter] 未知的通知消息类型: $type');
+        _logger.warn({
+          'text': '未知的通知消息类型',
+          'data': {'type': type},
+        });
     }
   }
 }

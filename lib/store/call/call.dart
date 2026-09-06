@@ -22,9 +22,12 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/call/call.dart';
 import 'package:beaver/types/call.dart';
+
+final _logger = Logger('store-call');
 
 // 基础信息
 class CallBaseInfo extends Equatable {
@@ -132,7 +135,9 @@ class CallStore extends Cubit<CallStoreState> {
     : _callBusiness = callBusiness ?? getIt<CallBusiness>(),
       super(const CallStoreState());
 
-  Future<void> init() async {}
+  Future<void> init() async {
+    _logger.info({'text': '初始化通话状态', 'data': {}});
+  }
 
   // 更新或新增成员
   void upsertMember(String userId, {
@@ -145,6 +150,7 @@ class CallStore extends Cubit<CallStoreState> {
     dynamic audioTrack,
     String? sid,
   }) {
+    _logger.info({'text': '更新通话成员', 'data': {'userId': userId, 'status': status?.name}});
     final members = List<CallParticipant>.from(state.members);
     final index = members.indexWhere((m) => m.userId == userId);
     
@@ -206,6 +212,7 @@ class CallStore extends Cubit<CallStoreState> {
   }
 
   void clear() {
+    _logger.info({'text': '清空通话状态', 'data': {}});
     emit(const CallStoreState());
   }
 

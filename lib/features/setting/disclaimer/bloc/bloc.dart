@@ -20,9 +20,12 @@
  */
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/features/setting/disclaimer/bloc/event.dart';
 import 'package:beaver/features/setting/disclaimer/bloc/state.dart';
 import 'package:beaver/features/setting/disclaimer/data/repositories/repository.dart';
+
+final _logger = Logger('setting-disclaimer');
 
 class DisclaimerBloc extends Bloc<DisclaimerEvent, DisclaimerState> {
   final DisclaimerRepository _repository;
@@ -36,16 +39,19 @@ class DisclaimerBloc extends Bloc<DisclaimerEvent, DisclaimerState> {
     Emitter<DisclaimerState> emit,
   ) async {
     emit(state.copyWith(status: DisclaimerStatus.loading));
+    _logger.info({'text': '开始加载免责声明信息'});
 
     try {
       final projectLinks = await _repository.getProjectLinks();
       final authorInfo = await _repository.getAuthorInfo();
+      _logger.info({'text': '免责声明信息加载成功'});
       emit(state.copyWith(
         status: DisclaimerStatus.success,
         projectLinks: projectLinks,
         authorInfo: authorInfo,
       ));
     } catch (e) {
+      _logger.warn({'text': '免责声明信息加载失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: DisclaimerStatus.error,
         errorMessage: '加载声明信息失败: $e',

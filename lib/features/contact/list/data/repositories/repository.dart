@@ -21,6 +21,9 @@
 
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-contact-list');
 
 class ContactListRepository {
   final FriendRepositoryInterface _friendRepository;
@@ -29,7 +32,13 @@ class ContactListRepository {
     : _friendRepository = friendRepository ?? getIt<FriendRepositoryInterface>();
 
   Future<List<ContactModel>> getContactList() async {
+    try {
+
     return _friendRepository.getContactList();
+    } catch (e, st) {
+      _logger.warn({'text':'ContactListRepository.getContactList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   // 根据字母分组联系人

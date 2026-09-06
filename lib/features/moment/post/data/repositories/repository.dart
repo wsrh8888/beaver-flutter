@@ -22,21 +22,36 @@
 import 'package:beaver/api/file.dart';
 import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-moment-post');
 
 class PostMomentRepository {
   PostMomentRepository();
 
   Future<bool> createMoment(ICreateMomentReq request) async {
+    try {
+
     final response = await createMomentApi(request);
     return response.isSuccess;
+    } catch (e, st) {
+      _logger.warn({'text':'PostMomentRepository.createMoment 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<String> uploadImage(String imagePath) async {
+    try {
+
     final response = await uploadFileApi(imagePath);
     if (response.isSuccess && response.result != null) {
       return response.result!.fileUrl;
     }
     return '';
+    } catch (e, st) {
+      _logger.warn({'text':'PostMomentRepository.uploadImage 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

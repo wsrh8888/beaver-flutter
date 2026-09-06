@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/contact/search/bloc/event.dart';
 import 'package:beaver/features/contact/search/bloc/state.dart';
 import 'package:beaver/features/contact/search/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('contact-search');
 
 class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
   final SearchContactRepository _repository;
@@ -37,11 +40,20 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
     Emitter<SearchContactState> emit,
   ) async {
     emit(state.copyWith(status: SearchContactStatus.loading));
+    _logger.info({'text': '开始搜索用户', 'data': {'query': event.query}});
     try {
       final user = await _repository.searchUser(event.query);
       if (user != null) {
+        _logger.info({
+          'text': '搜索用户成功',
+          'data': {'query': event.query, 'userId': user.userId},
+        });
         emit(state.copyWith(status: SearchContactStatus.success, user: user));
       } else {
+        _logger.warn({
+          'text': '未找到相关用户',
+          'data': {'query': event.query},
+        });
         emit(
           state.copyWith(
             status: SearchContactStatus.error,
@@ -50,6 +62,10 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
         );
       }
     } catch (e) {
+      _logger.error({
+        'text': '搜索用户异常',
+        'data': {'query': event.query, 'error': e.toString()},
+      });
       emit(
         state.copyWith(
           status: SearchContactStatus.error,
@@ -63,9 +79,14 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
     AddFriendEvent event,
     Emitter<SearchContactState> emit,
   ) async {
+    _logger.info({'text': '开始发送好友请求', 'data': {'userId': event.userId}});
     try {
       final response = await _repository.addFriend(event.userId);
       if (response.code == 0) {
+        _logger.info({
+          'text': '好友请求发送成功',
+          'data': {'userId': event.userId},
+        });
         emit(
           state.copyWith(
             status: SearchContactStatus.success,
@@ -73,6 +94,10 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
           ),
         );
       } else {
+        _logger.error({
+          'text': '发送好友请求失败',
+          'data': {'userId': event.userId, 'code': response.code, 'msg': response.msg},
+        });
         emit(
           state.copyWith(
             status: SearchContactStatus.error,
@@ -81,6 +106,10 @@ class SearchContactBloc extends Bloc<SearchContactEvent, SearchContactState> {
         );
       }
     } catch (e) {
+      _logger.error({
+        'text': '发送好友请求异常',
+        'data': {'userId': event.userId, 'error': e.toString()},
+      });
       emit(
         state.copyWith(
           status: SearchContactStatus.error,

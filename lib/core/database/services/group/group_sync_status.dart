@@ -22,12 +22,17 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-group-group_sync_status');
 
 class GroupSyncStatusService extends BaseService {
   const GroupSyncStatusService();
 
   /// 批量获取指定模块的版本状态
   Future<List<Map<String, dynamic>>> getModuleVersions(String module, List<String> groupIds) async {
+    try {
+
     if (groupIds.isEmpty) {
       return [];
     }
@@ -42,6 +47,10 @@ class GroupSyncStatusService extends BaseService {
         }).toList();
 
     return versions;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupSyncStatusService.getModuleVersions 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新指定模块的同步状态
@@ -50,6 +59,8 @@ class GroupSyncStatusService extends BaseService {
     required String groupId,
     required int version,
   }) async {
+    try {
+
     await db.into(db.groupSyncStatus).insert(
           GroupSyncStatusCompanion(
             module: Value(module),
@@ -59,5 +70,9 @@ class GroupSyncStatusService extends BaseService {
           ),
           mode: InsertMode.insertOrReplace,
         );
+    } catch (e, st) {
+      _logger.warn({'text':'GroupSyncStatusService.upsertSyncStatus 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

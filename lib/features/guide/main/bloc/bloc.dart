@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/guide/main/bloc/event.dart';
 import 'package:beaver/features/guide/main/bloc/state.dart';
 import 'package:beaver/features/guide/main/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('guide-main');
 
 class GuideBloc extends Bloc<GuideEvent, GuideState> {
   final GuideRepository _repository;
@@ -38,14 +41,17 @@ class GuideBloc extends Bloc<GuideEvent, GuideState> {
     Emitter<GuideState> emit,
   ) async {
     emit(state.copyWith(status: GuideStatus.loading));
+    _logger.info({'text': '加载引导页配置'});
 
     try {
       final guideConfig = await _repository.getGuideConfig();
+      _logger.info({'text': '加载引导页配置成功'});
       emit(state.copyWith(
         status: GuideStatus.success,
         guideConfig: guideConfig,
       ));
     } catch (e) {
+      _logger.error({'text': '加载引导页配置失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: GuideStatus.error,
         errorMessage: '加载引导页配置失败 $e',

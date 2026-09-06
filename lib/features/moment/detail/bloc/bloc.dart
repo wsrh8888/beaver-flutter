@@ -24,6 +24,9 @@ import 'package:beaver/features/moment/detail/bloc/event.dart';
 import 'package:beaver/features/moment/detail/bloc/state.dart';
 import 'package:beaver/features/moment/detail/data/repositories/repository.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('moment-detail');
 
 class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   final MomentDetailRepository _repository;
@@ -52,9 +55,11 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     Emitter<MomentDetailState> emit,
   ) async {
     emit(state.copyWith(status: MomentDetailStatus.loading, commentPage: 1));
+    _logger.info({'text': '加载动态详情', 'data': {'momentId': event.momentId}});
 
     final detail = await _repository.loadDetail(event.momentId);
     if (detail == null) {
+      _logger.warn({'text': '加载动态详情失败', 'data': {'momentId': event.momentId}});
       emit(state.copyWith(
         status: MomentDetailStatus.error,
         errorMessage: '加载动态详情失败',
@@ -74,6 +79,14 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
         ? null
         : _findCommentById(moment.comments, _pendingReplyCommentId!);
 
+    _logger.info({
+      'text': '加载动态详情成功',
+      'data': {
+        'momentId': event.momentId,
+        'commentCount': comments.length,
+        'likeCount': likes.length,
+      },
+    });
     emit(state.copyWith(
       status: MomentDetailStatus.success,
       moment: moment,
@@ -91,6 +104,7 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   ) async {
     final momentId = state.moment?.id;
     if (momentId == null) return;
+    _logger.info({'text': '刷新动态详情', 'data': {'momentId': momentId}});
 
     final detail = await _repository.loadDetail(momentId);
     if (detail == null) return;
@@ -122,6 +136,10 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     }
 
     emit(state.copyWith(isLoadingComments: true));
+    _logger.info({
+      'text': '加载更多评论',
+      'data': {'momentId': moment.id, 'page': state.commentPage + 1},
+    });
 
     final nextPage = state.commentPage + 1;
     final moreComments = await _repository.loadRootComments(
@@ -131,11 +149,16 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     );
 
     if (moreComments.isEmpty) {
+      _logger.info({'text': '动态评论已全部加载', 'data': {'momentId': moment.id}});
       emit(state.copyWith(isLoadingComments: false, hasMoreComments: false));
       return;
     }
 
     final mergedComments = [...moment.comments, ...moreComments];
+    _logger.info({
+      'text': '加载更多评论成功',
+      'data': {'momentId': moment.id, 'newCount': moreComments.length, 'total': mergedComments.length},
+    });
     final updatedMoment = _copyMoment(moment, comments: mergedComments);
 
     emit(state.copyWith(
@@ -152,6 +175,10 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   ) async {
     final moment = state.moment;
     if (moment == null) return;
+    _logger.info({
+      'text': '加载子评论',
+      'data': {'momentId': moment.id, 'rootId': event.rootComment.id, 'page': (state.childPageMap[event.rootComment.id] ?? 0) + 1},
+    });
 
     final root = event.rootComment;
     final currentPage = state.childPageMap[root.id] ?? 0;
@@ -205,6 +232,14 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   ) async {
     final moment = state.moment;
     if (moment == null || event.content.trim().isEmpty) return;
+    _logger.info({
+      'text': '发表评论',
+      'data': {
+        'momentId': moment.id,
+        'contentLength': event.content.trim().length,
+        'targetComment': event.targetComment?.id,
+      },
+    });
 
     String? parentId;
     String? replyToCommentId;
@@ -224,6 +259,7 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
     );
 
     if (res == null) {
+      _logger.warn({'text': '评论发送失败', 'data': {'momentId': moment.id}});
       emit(state.copyWith(errorMessage: '评论发送失败'));
       return;
     }
@@ -294,11 +330,16 @@ class MomentDetailBloc extends Bloc<MomentDetailEvent, MomentDetailState> {
   ) async {
     final moment = state.moment;
     if (moment == null) return;
+    _logger.info({
+      'text': '切换动态点赞',
+      'data': {'momentId': moment.id, 'action': !moment.isLiked ? 'like' : 'unlike'},
+    });
 
     final nextStatus = !moment.isLiked;
     final success = await _repository.toggleLike(moment.id, nextStatus);
     if (!success) {
-      emit(state.copyWith(errorMessage: '????'));
+      _logger.warn({'text': '动态点赞切换失败', 'data': {'momentId': moment.id}});
+      emit(state.copyWith(errorMessage: '操作失败'));
       return;
     }
 

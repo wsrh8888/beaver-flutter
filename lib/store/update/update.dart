@@ -23,10 +23,13 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:beaver/api/update.dart';
-import 'package:beaver/types/api/update.dart';
 import 'package:beaver/common/config/config.dart';
+import 'package:beaver/common/logger/index.dart';
+import 'package:beaver/types/api/update.dart';
 import 'package:beaver/store/user/user.dart';
 import 'package:beaver/features/setting/update/data/platform_info.dart';
+
+final _logger = Logger('store-update');
 
 class UpdateStoreState extends Equatable {
   final String? version;
@@ -61,16 +64,21 @@ class UpdateStore extends Cubit<UpdateStoreState> {
   UpdateStore(this._userStore) : super(const UpdateStoreState());
 
   Future<void> init() async {
-    if (state.checked) return;
+    if (state.checked) {
+      _logger.info({'text': '版本检查已完成，跳过', 'data': {}});
+      return;
+    }
 
     final platform = UpdatePlatformInfo.current();
     if (platform.platformId == 0) {
+      _logger.warn({'text': '无法识别当前平台，跳过版本检查', 'data': {}});
       emit(state.copyWith(checked: true));
       return;
     }
 
     final currentVersion = AppConfig.version;
     final userId = _userStore.state.currentUserId;
+    _logger.info({'text': '开始检查版本更新', 'data': {'currentVersion': currentVersion, 'platformId': platform.platformId}});
 
     await reportVersionApi(IReportVersionReq(
       userId: userId,
@@ -96,9 +104,11 @@ class UpdateStore extends Cubit<UpdateStoreState> {
         latestVersion: response.result!.hasUpdate ? response.result : null,
         checked: true,
       ));
+      _logger.info({'text': '版本检查完成', 'data': {'hasUpdate': response.result!.hasUpdate}});
       return;
     }
 
+    _logger.warn({'text': '获取最新版本失败', 'data': {'code': response.code, 'msg': response.msg}});
     emit(state.copyWith(version: currentVersion, checked: true));
   }
 }

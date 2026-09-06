@@ -28,13 +28,20 @@ import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-chat-conversation-meta');
 
 /// 会话元数据同步器
 class ConversationMetaSync {
   /// 检查并同步会话元数据
   Future<void> checkAndSync() async {
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '会话元数据同步跳过：未登录（userId 为空）'});
+      return;
+    }
+    _logger.info({'text': '开始同步会话元数据'});
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -49,7 +56,7 @@ class ConversationMetaSync {
         IGetSyncChatConversationsReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[ConversationMetaSync] 获取会话版本失败: ${response.msg}');
+        _logger.warn({'text': '获取会话版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -61,6 +68,7 @@ class ConversationMetaSync {
             syncStatusService,
             response.result!.conversationVersions,
           );
+      _logger.info({'text': '会话元数据对比完成', 'data': {'needUpdate': needUpdateConversations.length}});
 
       // 处理变更的会话
       if (needUpdateConversations.isNotEmpty) {
@@ -73,8 +81,9 @@ class ConversationMetaSync {
         -1, // 使用时间戳而不是版本号
         serverTimestamp,
       );
+      _logger.info({'text': '会话元数据同步完成'});
     } catch (error) {
-      // print('[ConversationMetaSync] 会话元数据同步失败: $error');
+      _logger.warn({'text': '会话元数据同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -131,9 +140,11 @@ class ConversationMetaSync {
       final response = await getConversationsListByIdsApi(
         IGetConversationsListByIdsReq(conversationIds: batchIds),
       );
-      if (response.code == 0 &&
-          response.result != null &&
-          response.result!.conversations.isNotEmpty) {
+      if (response.code != 0 || response.result == null) {
+        _logger.warn({'text': '批量获取会话数据失败', 'data': {'code': response.code, 'msg': response.msg, 'batchCount': batchIds.length}});
+        continue;
+      }
+      if (response.result!.conversations.isNotEmpty) {
         // 批量更新本地会话数据
         for (final conv in response.result!.conversations) {
           await chatService.upsert(

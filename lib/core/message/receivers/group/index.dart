@@ -22,6 +22,9 @@
 import './group.dart';
 import './group_join_request_receiver.dart';
 import './group_member_receiver.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-message-router');
 
 /// Group message router.
 class GroupMessageRouter {
@@ -33,7 +36,10 @@ class GroupMessageRouter {
     final data = wsMessage['data'] as Map<String, dynamic>?;
 
     if (data == null) {
-      print('[GroupMessageRouter] 收到群组消息, 但缺少 data 字段: $wsMessage');
+      _logger.warn({
+        'text': '收到群组消息但缺少data字段',
+        'data': {'wsMessage': wsMessage},
+      });
       return;
     }
 

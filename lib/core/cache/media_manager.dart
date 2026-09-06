@@ -25,12 +25,15 @@ import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/utils/file/cache.dart';
 import 'config.dart';
 
 /// 媒体缓存管理器 - 对标 Desktop MediaManager
+final _logger = Logger('cache-media');
+
 class MediaManager {
   static final MediaManager _instance = MediaManager._internal();
   factory MediaManager() => _instance;
@@ -86,6 +89,7 @@ class MediaManager {
 
   /// [fileUrl] 完整远程 URL（与 media.url 一致）
   Future<String?> add(CacheType type, String fileUrl) async {
+    _logger.info({'text': '请求缓存媒体文件', 'data': {'fileUrl': fileUrl}});
     await _ensureInitialized();
     if (fileUrl.isEmpty) return null;
 
@@ -132,7 +136,10 @@ class MediaManager {
 
       return savedPath;
     } catch (e) {
-      print('[MediaManager] download failed: $fileUrl, error: $e');
+      _logger.error({
+        'text': '媒体文件下载失败',
+        'data': {'fileUrl': fileUrl, 'error': e.toString()},
+      });
       return null;
     }
   }
@@ -166,6 +173,7 @@ class MediaManager {
     }
 
     _cacheFile[fileUrl] = fileUrl;
+    _logger.info({'text': '本地缓存未命中，触发媒体下载', 'data': {'fileUrl': fileUrl}});
     add(type, fileUrl).catchError((_) => null);
 
     return fileUrl;

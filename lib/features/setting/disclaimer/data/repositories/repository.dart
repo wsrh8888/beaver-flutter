@@ -20,13 +20,28 @@
  */
 
 import 'package:beaver/features/setting/disclaimer/data/models/disclaimer.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-disclaimer');
 
 class DisclaimerRepository {
   Future<List<ProjectLink>> getProjectLinks() async {
+    try {
+
     return [];
+    } catch (e, st) {
+      _logger.warn({'text':'DisclaimerRepository.getProjectLinks 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<AuthorInfo?> getAuthorInfo() async {
+    try {
+
     return null;
+    } catch (e, st) {
+      _logger.warn({'text':'DisclaimerRepository.getAuthorInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

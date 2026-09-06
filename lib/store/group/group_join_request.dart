@@ -25,6 +25,9 @@ import 'package:equatable/equatable.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/group/group_join_request.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-join-request');
 
 class GroupJoinRequestStoreState extends Equatable {
   final List<GroupNotification> groupJoinRequests;
@@ -86,16 +89,26 @@ class GroupJoinRequestStore extends Cubit<GroupJoinRequestStoreState> {
         unreadCount: unreadCount,
       ));
     } catch (e) {
-      print('GroupJoinRequestStore: 初始化失败: $e');
+      _logger.error({
+        'text': '群加入申请初始化失败',
+        'data': {'page': page, 'error': e.toString()},
+      });
     }
   }
 
   Future<void> handleRequest(int requestId, int status) async {
+    _logger.info({
+      'text': '处理群加入申请',
+      'data': {'requestId': requestId, 'status': status},
+    });
     try {
       await _groupJoinRequestBusiness.updateGroupRequestStatus(requestId, status);
       await refresh();
     } catch (e) {
-      print('GroupJoinRequestStore: 处理群申请失败: $e');
+      _logger.error({
+        'text': '处理群申请失败',
+        'data': {'requestId': requestId, 'error': e.toString()},
+      });
     }
   }
 
@@ -120,7 +133,10 @@ class GroupJoinRequestStore extends Cubit<GroupJoinRequestStoreState> {
         currentPage: nextPage,
       ));
     } catch (e) {
-      print('GroupJoinRequestStore: 加载更多失败: $e');
+      _logger.error({
+        'text': '群加入申请加载更多失败',
+        'data': {'error': e.toString()},
+      });
     }
   }
 }

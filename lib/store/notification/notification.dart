@@ -22,12 +22,15 @@
 import 'dart:async';
 
 import 'package:beaver/api/notification.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/business/index.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/notification.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+final _logger = Logger('store-notification');
 
 class NotificationStoreState extends Equatable {
   final int unreadCount;
@@ -80,8 +83,12 @@ class NotificationStore extends Cubit<NotificationStoreState> {
 
   Future<void> init() async {
     final userId = DatabaseManager.currentUserId;
-    if (userId == null) return;
+    if (userId == null) {
+      _logger.warn({'text': '未获取到当前用户，跳过未读通知加载', 'data': {}});
+      return;
+    }
 
+    _logger.info({'text': '加载未读通知汇总', 'data': {'userId': userId}});
     final summary = await _inboxBusiness.getUnreadSummary(userId);
     final byCat = Map<String, int>.from(
       (summary['byCat'] as Map<String, int>?) ?? {},
@@ -93,6 +100,7 @@ class NotificationStore extends Cubit<NotificationStoreState> {
         unreadByCategory: byCat,
       ),
     );
+    _logger.info({'text': '未读通知汇总加载完成', 'data': {'total': summary['total'] ?? 0}});
   }
 
   Future<void> markCategoryAsViewed(String category) async {
@@ -101,7 +109,11 @@ class NotificationStore extends Cubit<NotificationStoreState> {
     final response = await markReadByCategoryApi(
       IMarkReadByCategoryReq(category: category),
     );
-    if (response.code != 0) return;
+    if (response.code != 0) {
+      _logger.warn({'text': '标记通知已读失败', 'data': {'category': category, 'code': response.code, 'msg': response.msg}});
+      return;
+    }
+    _logger.info({'text': '标记通知分类已读', 'data': {'category': category}});
 
     final userId = DatabaseManager.currentUserId;
     if (userId != null) {

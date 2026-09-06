@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/chat/user_conversation.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-chat-user-conversation');
 
 /// 用户会话接收器 - 处理 user_conversations 表的操作
 class UserConversationReceiver {
@@ -28,7 +31,11 @@ class UserConversationReceiver {
 
   Future<void> handleTableUpdates(Map<String, dynamic> tableUpdatesBody) async {
     final tableUpdates = (tableUpdatesBody['tableUpdates'] ?? tableUpdatesBody['tables']) as List?;
-    if (tableUpdates == null) return;
+    if (tableUpdates == null) {
+      _logger.warn({'text': '收到用户会话表更新但 tableUpdates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理用户会话表更新', 'data': {'count': tableUpdates.length}});
 
     for (final update in tableUpdates) {
       final table = update['table'] as String?;
@@ -43,11 +50,15 @@ class UserConversationReceiver {
         for (final item in data) {
           final version = item['version'] as int?;
           if (version != null) {
-            await _userConversationBusiness.handleTableUpdates(
-              userId,
-              conversationId,
-              version,
-            );
+            try {
+              await _userConversationBusiness.handleTableUpdates(
+                userId,
+                conversationId,
+                version,
+              );
+            } catch (e) {
+              _logger.warn({'text': '按版本同步用户会话失败', 'data': {'userId': userId, 'conversationId': conversationId, 'version': version, 'error': e.toString()}});
+            }
           }
         }
       }

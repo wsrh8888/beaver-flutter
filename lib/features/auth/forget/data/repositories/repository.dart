@@ -20,17 +20,32 @@
  */
 
 import 'package:beaver/features/auth/forget/data/models/reset_password.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-auth-forget');
 
 class ForgetRepository {
   Future<bool> sendVerificationCode(SendVerificationCodeRequest request) async {
+    try {
+
     // 模拟发送验证码
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'ForgetRepository.sendVerificationCode 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> resetPassword(ResetPasswordRequest request) async {
+    try {
+
     // 模拟重置密码
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'ForgetRepository.resetPassword 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

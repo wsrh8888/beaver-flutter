@@ -25,6 +25,9 @@ import 'package:equatable/equatable.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/chat/message.dart';
 import 'package:beaver/types/business/message.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('message');
 
 class MessagePagination extends Equatable {
   final bool hasMore;
@@ -94,8 +97,16 @@ class MessageStore extends Cubit<MessageStoreState> {
    * @description: 初始化会话消息（类似 PC 端 init）
    */
   Future<void> initConversation(String conversationId) async {
+    _logger.info({
+      'text': '初始化会话消息',
+      'data': {'conversationId': conversationId},
+    });
     if (state.chatHistory.containsKey(conversationId) &&
         state.chatHistory[conversationId]!.isNotEmpty) {
+      _logger.info({
+        'text': '会话消息已加载，跳过初始化',
+        'data': {'conversationId': conversationId},
+      });
       return;
     }
 
@@ -104,6 +115,10 @@ class MessageStore extends Cubit<MessageStoreState> {
 
   /// 从本地 DB 重新加载会话消息（后台同步后刷新已打开会话）
   Future<void> reloadConversation(String conversationId) async {
+    _logger.info({
+      'text': '重新加载会话消息',
+      'data': {'conversationId': conversationId, 'pageSize': PAGE_SIZE},
+    });
     final pagination = MessagePagination(
       hasMore: true,
       isLoadingMore: true,
@@ -140,11 +155,23 @@ class MessageStore extends Cubit<MessageStoreState> {
           version: state.version + 1,
         ),
       );
+      _logger.info({
+        'text': '会话消息加载完成',
+        'data': {
+          'conversationId': conversationId,
+          'count': messages.length,
+          'hasMore': messages.length >= PAGE_SIZE,
+        },
+      });
     } catch (e) {
       _updatePagination(
         conversationId,
         pagination.copyWith(isLoadingMore: false),
       );
+      _logger.error({
+        'text': '重新加载会话消息失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
       rethrow;
     }
   }
@@ -155,8 +182,26 @@ class MessageStore extends Cubit<MessageStoreState> {
   Future<void> loadMore(String conversationId) async {
     final pagination =
         state.messagePagination[conversationId] ?? const MessagePagination();
-    if (!pagination.hasMore || pagination.isLoadingMore) return;
+    if (!pagination.hasMore || pagination.isLoadingMore) {
+      _logger.info({
+        'text': '跳过加载更多',
+        'data': {
+          'conversationId': conversationId,
+          'hasMore': pagination.hasMore,
+          'isLoadingMore': pagination.isLoadingMore,
+        },
+      });
+      return;
+    }
 
+    _logger.info({
+      'text': '开始加载更多历史消息',
+      'data': {
+        'conversationId': conversationId,
+        'offset': pagination.offset,
+        'pageSize': PAGE_SIZE,
+      },
+    });
     _updatePagination(conversationId, pagination.copyWith(isLoadingMore: true));
 
     try {
@@ -172,9 +217,15 @@ class MessageStore extends Cubit<MessageStoreState> {
       // 去重：只添加 history 中不存在的消息
       final existingIds = history.map((m) => m.id).toSet();
       final newMessages = messages.where((m) => !existingIds.contains(m.id)).toList();
-      
+
       if (newMessages.isEmpty && messages.isNotEmpty) {
-        print('[MessageStore] loadMore: all ${messages.length} messages were duplicates, stopping recursion');
+        _logger.warn({
+          'text': '加载更多消息全部重复，停止递归',
+          'data': {
+            'conversationId': conversationId,
+            'count': messages.length,
+          },
+        });
       }
 
       history.addAll(newMessages);
@@ -200,11 +251,24 @@ class MessageStore extends Cubit<MessageStoreState> {
           version: state.version + 1,
         ),
       );
+      _logger.info({
+        'text': '加载更多历史消息完成',
+        'data': {
+          'conversationId': conversationId,
+          '新增': newMessages.length,
+          'hasMore': messages.length >= PAGE_SIZE,
+          'newOffset': pagination.offset + messages.length,
+        },
+      });
     } catch (e) {
       _updatePagination(
         conversationId,
         pagination.copyWith(isLoadingMore: false),
       );
+      _logger.error({
+        'text': '加载更多历史消息失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
       rethrow;
     }
   }
@@ -213,6 +277,10 @@ class MessageStore extends Cubit<MessageStoreState> {
    * @description: 实时添加消息
    */
   void addMessage(String conversationId, MessageModel message) {
+    _logger.info({
+      'text': '新增消息到会话',
+      'data': {'conversationId': conversationId, 'messageId': message.id},
+    });
     final history = List<MessageModel>.from(
       state.chatHistory[conversationId] ?? [],
     );
@@ -222,23 +290,26 @@ class MessageStore extends Cubit<MessageStoreState> {
 
     bool isNew = false;
     if (index != -1) {
-      print(
-        '[MessageStore] addMessage: updated existing message ${message.id} in $conversationId',
-      );
+      _logger.info({
+        'text': '按ID匹配更新已存在消息',
+        'data': {'conversationId': conversationId, 'messageId': message.id},
+      });
       history[index] = message;
     } else {
       final stringIndex = history.indexWhere(
         (m) => m.id.toString() == message.id.toString(),
       );
       if (stringIndex != -1) {
-        print(
-          '[MessageStore] addMessage: updated existing message ${message.id} (string match) in $conversationId',
-        );
+        _logger.info({
+          'text': '按字符串ID匹配更新已存在消息',
+          'data': {'conversationId': conversationId, 'messageId': message.id},
+        });
         history[stringIndex] = message;
       } else {
-        print(
-          '[MessageStore] addMessage: inserting NEW message ${message.id} in $conversationId',
-        );
+        _logger.info({
+          'text': '插入新消息',
+          'data': {'conversationId': conversationId, 'messageId': message.id},
+        });
         history.insert(0, message);
         isNew = true;
       }

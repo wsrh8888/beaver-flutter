@@ -24,6 +24,9 @@ import 'package:beaver/features/group/notifications/bloc/event.dart';
 import 'package:beaver/features/group/notifications/bloc/state.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:beaver/features/group/notifications/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-notifications');
 
 class GroupNotificationsBloc extends Bloc<GroupNotificationsEvent, GroupNotificationsState> {
   final GroupNotificationRepository _repository = GroupNotificationRepository();
@@ -40,13 +43,22 @@ class GroupNotificationsBloc extends Bloc<GroupNotificationsEvent, GroupNotifica
     Emitter<GroupNotificationsState> emit,
   ) async {
     emit(state.copyWith(status: GroupNotificationsStatus.loading));
+    _logger.info({'text': '加载群通知列表'});
     try {
       final notifications = await _repository.getGroupNotifications();
       emit(state.copyWith(
         status: GroupNotificationsStatus.success,
         notifications: notifications,
       ));
+      _logger.info({
+        'text': '群通知列表加载完成',
+        'data': {'count': notifications.length},
+      });
     } catch (e) {
+      _logger.error({
+        'text': '加载群通知列表失败',
+        'data': {'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupNotificationsStatus.error,
         errorMessage: '加载群通知失败: $e',
@@ -60,6 +72,7 @@ class GroupNotificationsBloc extends Bloc<GroupNotificationsEvent, GroupNotifica
 
   Future<void> _onAcceptRequest(AcceptGroupRequestEvent event, Emitter<GroupNotificationsState> emit) async {
     emit(state.copyWith(status: GroupNotificationsStatus.loading));
+    _logger.info({'text': '同意入群申请', 'data': {'id': event.id}});
     try {
       await _repository.updateRequestStatus(event.id, 1);
       final updated = state.notifications.map<GroupNotification>((n) {
@@ -80,13 +93,19 @@ class GroupNotificationsBloc extends Bloc<GroupNotificationsEvent, GroupNotifica
         return n;
       }).toList();
       emit(state.copyWith(status: GroupNotificationsStatus.success, notifications: updated));
+      _logger.info({'text': '入群申请已同意', 'data': {'id': event.id}});
     } catch (e) {
+      _logger.error({
+        'text': '同意入群申请失败',
+        'data': {'id': event.id, 'error': e.toString()},
+      });
       emit(state.copyWith(status: GroupNotificationsStatus.error, errorMessage: '处理失败: $e'));
     }
   }
 
   Future<void> _onRejectRequest(RejectGroupRequestEvent event, Emitter<GroupNotificationsState> emit) async {
     emit(state.copyWith(status: GroupNotificationsStatus.loading));
+    _logger.info({'text': '拒绝入群申请', 'data': {'id': event.id}});
     try {
       await _repository.updateRequestStatus(event.id, 2);
       final updated = state.notifications.map<GroupNotification>((n) {
@@ -107,7 +126,12 @@ class GroupNotificationsBloc extends Bloc<GroupNotificationsEvent, GroupNotifica
         return n;
       }).toList();
       emit(state.copyWith(status: GroupNotificationsStatus.success, notifications: updated));
+      _logger.info({'text': '入群申请已拒绝', 'data': {'id': event.id}});
     } catch (e) {
+      _logger.error({
+        'text': '拒绝入群申请失败',
+        'data': {'id': event.id, 'error': e.toString()},
+      });
       emit(state.copyWith(status: GroupNotificationsStatus.error, errorMessage: '处理失败: $e'));
     }
   }

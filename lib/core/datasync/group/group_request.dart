@@ -25,11 +25,15 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-group-join-request');
 
 /// 入群申请同步器
 class GroupJoinRequestSync {
   /// 检查并同步入群申请数据
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步入群申请数据'});
     try {
       final datasyncService = getIt<DatasyncService>();
       final groupJoinRequestService = getIt<GroupJoinRequestService>();
@@ -44,7 +48,7 @@ class GroupJoinRequestSync {
         IGetSyncGroupRequestsReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[GroupJoinRequestSync] 获取摘要获取失败: ${response.msg}');
+        _logger.warn({'text': '获取入群申请版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -53,6 +57,7 @@ class GroupJoinRequestSync {
         syncStatusService,
         response.result!.groupVersions,
       );
+      _logger.info({'text': '入群申请数据对比完成', 'data': {'needUpdate': needUpdateGroups.length}});
 
       if (needUpdateGroups.isNotEmpty) {
         // 同步具体数据
@@ -69,8 +74,9 @@ class GroupJoinRequestSync {
         -1,
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '入群申请数据同步完成'});
     } catch (error) {
-      // print('[GroupJoinRequestSync] 同步失败: $error');
+      _logger.warn({'text': '入群申请同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -118,9 +124,11 @@ class GroupJoinRequestSync {
     final response = await groupJoinRequestSyncApi(
       IGroupJoinRequestSyncReq(groups: groupsWithVersions),
     );
-    if (response.code == 0 &&
-        response.result != null &&
-        response.result!.groupJoinRequests.isNotEmpty) {
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '同步入群申请数据失败', 'data': {'code': response.code, 'msg': response.msg, 'groupCount': groupsWithVersions.length}});
+      return;
+    }
+    if (response.result!.groupJoinRequests.isNotEmpty) {
       await groupJoinRequestService.batchCreate(
         response.result!.groupJoinRequests,
       );

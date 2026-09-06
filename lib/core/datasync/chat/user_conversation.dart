@@ -28,13 +28,20 @@ import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-chat-user-conversation');
 
 /// 用户会话设置同步器
 class UserConversationSync {
   /// 检查并同步用户会话设置
   Future<void> checkAndSync() async {
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '用户会话设置同步跳过：未登录（userId 为空）'});
+      return;
+    }
+    _logger.info({'text': '开始同步用户会话设置'});
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -49,7 +56,7 @@ class UserConversationSync {
         IGetSyncChatUserConversationsReq(since: lastSyncTime),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[UserConversationSync] 获取会话设置版本失败: ${response.msg}');
+        _logger.warn({'text': '获取用户会话设置版本失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -59,6 +66,7 @@ class UserConversationSync {
             syncStatusService,
             response.result!.userConversationVersions,
           );
+      _logger.info({'text': '用户会话设置对比完成', 'data': {'needUpdate': needUpdateConversations.length}});
 
       if (needUpdateConversations.isNotEmpty) {
         // 有变更的用户会话设置，需要同步数据
@@ -71,8 +79,9 @@ class UserConversationSync {
         -1, // 使用时间戳而不是版本号
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '用户会话设置同步完成'});
     } catch (error) {
-      // print('[UserConversationSync] 用户会话设置同步失败: $error');
+      _logger.warn({'text': '用户会话设置同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -130,9 +139,11 @@ class UserConversationSync {
       final response = await getUserConversationSettingsListByIdsApi(
         IGetUserConversationSettingsListByIdsReq(conversationIds: batchIds),
       );
-      if (response.code == 0 &&
-          response.result != null &&
-          response.result!.userConversationSettings.isNotEmpty) {
+      if (response.code != 0 || response.result == null) {
+        _logger.warn({'text': '批量获取用户会话设置失败', 'data': {'code': response.code, 'msg': response.msg, 'batchCount': batchIds.length}});
+        continue;
+      }
+      if (response.result!.userConversationSettings.isNotEmpty) {
         final settings = response.result!.userConversationSettings
             .map(
               (uc) => ChatUserConversationsCompanion(

@@ -28,11 +28,15 @@ import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-group-member');
 
 /// 群成员同步器
 class GroupMemberSync {
   /// 检查并同步群成员
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步群成员数据'});
     try {
       final datasyncService = getIt<DatasyncService>();
       final groupMemberService = getIt<GroupMemberService>();
@@ -47,7 +51,7 @@ class GroupMemberSync {
         IGetSyncGroupMembersReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[GroupMemberSync] 获取群成员版本失败: ${response.msg}');
+        _logger.warn({'text': '获取群成员版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -56,6 +60,7 @@ class GroupMemberSync {
         syncStatusService,
         response.result!.groupVersions,
       );
+      _logger.info({'text': '群成员数据对比完成', 'data': {'needUpdate': needUpdateGroups.length}});
 
       if (needUpdateGroups.isNotEmpty) {
         // 有需要更新的群成员
@@ -72,8 +77,9 @@ class GroupMemberSync {
         -1, // 使用时间戳而不是版本号
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '群成员数据同步完成'});
     } catch (error) {
-      // print('[GroupMemberSync] 群成员同步失败: $error');
+      _logger.warn({'text': '群成员同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -126,9 +132,11 @@ class GroupMemberSync {
     final response = await groupMemberSyncApi(
       IGroupMemberSyncReq(groups: groupsWithVersions),
     );
-    if (response.code == 0 &&
-        response.result != null &&
-        response.result!.groupMembers.isNotEmpty) {
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '同步群成员数据失败', 'data': {'code': response.code, 'msg': response.msg, 'groupCount': groupsWithVersions.length}});
+      return;
+    }
+    if (response.result!.groupMembers.isNotEmpty) {
       final members = response.result!.groupMembers
           .map(
             (m) => GroupMembersCompanion(

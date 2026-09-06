@@ -26,6 +26,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/circle.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle');
 
 class CircleStoreState extends Equatable {
   final Map<String, CircleInfo> circleMap;
@@ -80,16 +83,28 @@ class CircleStore extends Cubit<CircleStoreState> {
   }
 
   Future<void> init() async {
+    _logger.info({'text': '开始加载圈子列表'});
     final list = await _circleBusiness.getCircleList();
     final nextMap = <String, CircleInfo>{};
     for (final item in list) {
       nextMap[item.conversationId] = item;
     }
     emit(state.copyWith(circleMap: nextMap, version: state.version + 1));
+    _logger.info({
+      'text': '圈子列表加载完成',
+      'data': {'count': nextMap.length},
+    });
   }
 
   Future<void> updateCirclesByIds(List<String> circleIds) async {
-    if (circleIds.isEmpty) return;
+    if (circleIds.isEmpty) {
+      _logger.info({'text': '圈子更新ID列表为空，跳过'});
+      return;
+    }
+    _logger.info({
+      'text': '按ID更新圈子资料',
+      'data': {'count': circleIds.length},
+    });
 
     final circles = await _circleBusiness.getCirclesByIds(circleIds);
     final nextMap = Map<String, CircleInfo>.from(state.circleMap);
@@ -114,6 +129,7 @@ class CircleStore extends Cubit<CircleStoreState> {
 
     if (changed) {
       emit(state.copyWith(circleMap: nextMap, version: state.version + 1));
+      _logger.info({'text': '圈子资料已更新'});
     }
   }
 
@@ -122,6 +138,10 @@ class CircleStore extends Cubit<CircleStoreState> {
         ? circleIdOrConversationId
         : 'circle_$circleIdOrConversationId';
     if (!state.circleMap.containsKey(conversationId)) return;
+    _logger.info({
+      'text': '移除圈子',
+      'data': {'conversationId': conversationId},
+    });
     final nextMap = Map<String, CircleInfo>.from(state.circleMap)
       ..remove(conversationId);
     emit(state.copyWith(circleMap: nextMap, version: state.version + 1));

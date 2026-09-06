@@ -27,6 +27,9 @@ import 'package:beaver/features/group/create/bloc/state.dart';
 import 'package:beaver/features/group/create/data/repositories/repository.dart';
 import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-create');
 
 class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
   final CreateGroupRepository _createGroupRepository;
@@ -95,6 +98,7 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
     Emitter<CreateGroupState> emit,
   ) async {
     if (state.selectedContacts.isEmpty) {
+      _logger.warn({'text': '创建群组被拦截：未选择联系人'});
       emit(
         state.copyWith(
           status: CreateGroupStatus.error,
@@ -104,13 +108,25 @@ class CreateGroupBloc extends Bloc<CreateGroupEvent, CreateGroupState> {
       return;
     }
 
+    final userIds = state.selectedContacts.map((c) => c.userId).toList();
+    _logger.info({
+      'text': '开始创建群组',
+      'data': {'memberCount': userIds.length, 'userIds': userIds},
+    });
     emit(state.copyWith(status: CreateGroupStatus.loading));
 
     try {
-      final userIds = state.selectedContacts.map((c) => c.userId).toList();
       final groupId = await _createGroupRepository.createGroup(userIds);
+      _logger.info({
+        'text': '创建群组成功',
+        'data': {'groupId': groupId, 'memberCount': userIds.length},
+      });
       emit(state.copyWith(status: CreateGroupStatus.success, groupId: groupId));
     } catch (e) {
+      _logger.error({
+        'text': '创建群组失败',
+        'data': {'userIds': userIds, 'error': e.toString()},
+      });
       emit(
         state.copyWith(
           status: CreateGroupStatus.error,

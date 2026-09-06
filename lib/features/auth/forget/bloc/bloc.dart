@@ -24,6 +24,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/auth/forget/bloc/event.dart';
 import 'package:beaver/features/auth/forget/bloc/state.dart';
 import 'package:beaver/features/auth/forget/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('forget');
 
 class ForgetBloc extends Bloc<ForgetEvent, ForgetState> {
   final ForgetRepository _repository;
@@ -46,6 +49,10 @@ class ForgetBloc extends Bloc<ForgetEvent, ForgetState> {
     SendVerificationCodeEvent event,
     Emitter<ForgetState> emit,
   ) async {
+    _logger.info({
+      'text': '发送找回密码验证码',
+      'data': {'email': event.request.email},
+    });
     emit(state.copyWith(
       status: ForgetStatus.sendingCode,
       isCodeButtonDisabled: true,
@@ -54,12 +61,20 @@ class ForgetBloc extends Bloc<ForgetEvent, ForgetState> {
     try {
       final success = await _repository.sendVerificationCode(event.request);
       if (success) {
+        _logger.info({
+          'text': '验证码发送成功',
+          'data': {'email': event.request.email},
+        });
         emit(state.copyWith(
           status: ForgetStatus.success,
           errorMessage: '验证码已发送',
         ));
         _startCountdown();
       } else {
+        _logger.warn({
+          'text': '验证码发送失败（接口返回失败）',
+          'data': {'email': event.request.email},
+        });
         emit(state.copyWith(
           status: ForgetStatus.error,
           errorMessage: '发送失败',
@@ -67,6 +82,10 @@ class ForgetBloc extends Bloc<ForgetEvent, ForgetState> {
         ));
       }
     } catch (e) {
+      _logger.error({
+        'text': '验证码发送异常',
+        'data': {'email': event.request.email, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ForgetStatus.error,
         errorMessage: '发送失败: $e',
@@ -79,22 +98,38 @@ class ForgetBloc extends Bloc<ForgetEvent, ForgetState> {
     ResetPasswordEvent event,
     Emitter<ForgetState> emit,
   ) async {
+    _logger.info({
+      'text': '提交重置密码',
+      'data': {'email': event.request.email},
+    });
     emit(state.copyWith(status: ForgetStatus.resettingPassword));
 
     try {
       final success = await _repository.resetPassword(event.request);
       if (success) {
+        _logger.info({
+          'text': '密码重置成功',
+          'data': {'email': event.request.email},
+        });
         emit(state.copyWith(
           status: ForgetStatus.success,
           errorMessage: '密码重置成功',
         ));
       } else {
+        _logger.warn({
+          'text': '密码重置失败（接口返回失败）',
+          'data': {'email': event.request.email},
+        });
         emit(state.copyWith(
           status: ForgetStatus.error,
           errorMessage: '重置失败',
         ));
       }
     } catch (e) {
+      _logger.error({
+        'text': '密码重置异常',
+        'data': {'email': event.request.email, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ForgetStatus.error,
         errorMessage: '重置失败: $e',

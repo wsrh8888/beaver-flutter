@@ -24,6 +24,9 @@ import 'package:beaver/features/moment/post/bloc/event.dart';
 import 'package:beaver/features/moment/post/bloc/state.dart';
 import 'package:beaver/features/moment/post/data/repositories/repository.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('moment-post');
 
 class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
   final PostMomentRepository _postMomentRepository;
@@ -57,6 +60,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     final localPath = event.imagePath;
     final withLocal = List<String>.from(state.mediaList)..add(localPath);
     emit(state.copyWith(mediaList: withLocal));
+    _logger.info({'text': '发布动态上传图片', 'data': {'localPath': localPath}});
 
     final uploadedUrl = await _postMomentRepository.uploadImage(localPath);
     final finalList = List<String>.from(withLocal);
@@ -64,6 +68,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
 
     if (uploadedUrl.isEmpty || index == -1) {
       finalList.remove(localPath);
+      _logger.warn({'text': '发布动态图片上传失败', 'data': {'localPath': localPath}});
       emit(state.copyWith(
         mediaList: finalList,
         errorMessage: '上传图片失败',
@@ -72,6 +77,7 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     }
 
     finalList[index] = uploadedUrl;
+    _logger.info({'text': '发布动态图片上传成功', 'data': {'uploadedUrl': uploadedUrl}});
     emit(state.copyWith(mediaList: finalList));
   }
 
@@ -96,12 +102,17 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
     Emitter<PostMomentState> emit,
   ) async {
     if (!state.canPost) {
+      _logger.warn({'text': '发布动态参数不合法'});
       emit(state.copyWith(
         errorMessage: '请输入内容或添加图片',
       ));
       return;
     }
 
+    _logger.info({
+      'text': '发布动态',
+      'data': {'contentLength': state.content.length, 'imageCount': state.mediaList.length},
+    });
     emit(state.copyWith(status: PostMomentStatus.loading));
 
     try {
@@ -110,11 +121,13 @@ class PostMomentBloc extends Bloc<PostMomentEvent, PostMomentState> {
         files: state.mediaList.map((url) => IMomentFileModel(fileKey: url, type: 2)).toList(), // 2=IMAGE
       );
       await _postMomentRepository.createMoment(request);
+      _logger.info({'text': '发布动态成功'});
       emit(state.copyWith(
         status: PostMomentStatus.success,
         errorMessage: '发布成功',
       ));
     } catch (e) {
+      _logger.error({'text': '发布动态失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: PostMomentStatus.error,
         errorMessage: '发布失败: $e',

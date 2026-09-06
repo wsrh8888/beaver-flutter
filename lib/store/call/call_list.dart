@@ -21,6 +21,9 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('store-call-list');
 
 enum CallListItemStatus { incoming, calling, active }
 
@@ -118,7 +121,11 @@ class CallListStore extends Cubit<CallListStoreState> {
     String? callerName,
     String? callerAvatar,
   }) {
-    if (state.hasCall(roomId)) return;
+    if (state.hasCall(roomId)) {
+      _logger.info({'text': '来电已存在，忽略重复', 'data': {'roomId': roomId}});
+      return;
+    }
+    _logger.info({'text': '收到来电', 'data': {'roomId': roomId, 'callType': callType, 'callerId': callerId}});
 
     final calls = List<CallListItem>.from(state.calls)
       ..add(
@@ -152,6 +159,7 @@ class CallListStore extends Cubit<CallListStoreState> {
   }
 
   void updateCallStatus(String roomId, CallListItemStatus status) {
+    _logger.info({'text': '更新通话状态', 'data': {'roomId': roomId, 'status': status.name}});
     final calls = state.calls.map((call) {
       if (call.roomId != roomId) return call;
       return call.copyWith(status: status);
@@ -160,11 +168,13 @@ class CallListStore extends Cubit<CallListStoreState> {
   }
 
   void removeCall(String roomId) {
+    _logger.info({'text': '移除通话记录', 'data': {'roomId': roomId}});
     final calls = state.calls.where((c) => c.roomId != roomId).toList();
     emit(state.copyWith(calls: calls));
   }
 
   void clearAll() {
+    _logger.info({'text': '清空通话列表', 'data': {}});
     emit(const CallListStoreState());
   }
 }

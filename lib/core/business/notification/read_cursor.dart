@@ -20,12 +20,15 @@
  */
 
 import 'package:beaver/api/notification.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/business/notification/inbox.dart';
 import 'package:beaver/core/database/services/notification/read_cursor.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/notification.dart';
 
 /// 通知已读游标业务逻辑 (对标 PC business/notification/read-cursor.ts)
+final _logger = Logger('business-notification-read-cursor');
+
 class NotificationReadCursorBusiness {
   final _readCursorService = getIt<NotificationReadCursorService>();
 
@@ -34,32 +37,43 @@ class NotificationReadCursorBusiness {
     String userId,
     String category,
   ) async {
+    _logger.info({'text': '收到通知已读游标表更新', 'data': {'userId': userId, 'category': category}});
     await syncReadCursors(userId, [category]);
   }
 
   Future<void> syncReadCursors(String userId, List<String> categories) async {
+    _logger.info({'text': '开始同步通知已读游标', 'data': {'userId': userId, 'categories': categories}});
     if (userId.isEmpty) return;
 
-    final res = await getNotificationReadCursorsApi(
-      IGetNotificationReadCursorsReq(
-        categories: categories.isEmpty ? null : categories,
-      ),
-    );
+    try {
+      final res = await getNotificationReadCursorsApi(
+        IGetNotificationReadCursorsReq(
+          categories: categories.isEmpty ? null : categories,
+        ),
+      );
 
-    if (res.code != 0 || res.result == null || res.result!.cursors.isEmpty) {
-      return;
+      if (res.code != 0 || res.result == null || res.result!.cursors.isEmpty) {
+        _logger.warn({
+          'text': '获取通知已读游标失败',
+          'data': {'code': res.code, 'msg': res.msg},
+        });
+        return;
+      }
+
+      for (final cursor in res.result!.cursors) {
+        await _readCursorService.upsert({
+          'userId': userId,
+          'category': cursor.category,
+          'version': cursor.version,
+          'lastReadAt': cursor.lastReadAt,
+          'updatedAt': cursor.lastReadAt,
+        });
+      }
+
+      getIt<NotificationInboxBusiness>().notifyInboxUpdate();
+    } catch (e) {
+      _logger.warn({'text': '同步通知已读游标异常', 'data': {'userId': userId, 'error': e.toString()}});
+      rethrow;
     }
-
-    for (final cursor in res.result!.cursors) {
-      await _readCursorService.upsert({
-        'userId': userId,
-        'category': cursor.category,
-        'version': cursor.version,
-        'lastReadAt': cursor.lastReadAt,
-        'updatedAt': cursor.lastReadAt,
-      });
-    }
-
-    getIt<NotificationInboxBusiness>().notifyInboxUpdate();
   }
 }

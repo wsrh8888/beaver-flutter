@@ -20,9 +20,12 @@
  */
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/features/setting/about/bloc/event.dart';
 import 'package:beaver/features/setting/about/bloc/state.dart';
 import 'package:beaver/features/setting/about/data/repositories/repository.dart';
+
+final _logger = Logger('setting-about');
 
 class AboutBloc extends Bloc<AboutEvent, AboutState> {
   final AboutRepository _repository;
@@ -36,14 +39,17 @@ class AboutBloc extends Bloc<AboutEvent, AboutState> {
     Emitter<AboutState> emit,
   ) async {
     emit(state.copyWith(status: AboutStatus.loading));
+    _logger.info({'text': '开始加载关于页应用信息'});
 
     try {
       final appInfo = await _repository.getAppInfo();
+      _logger.info({'text': '关于页应用信息加载成功'});
       emit(state.copyWith(
         status: AboutStatus.success,
         appInfo: appInfo,
       ));
     } catch (e) {
+      _logger.warn({'text': '关于页应用信息加载失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: AboutStatus.error,
         errorMessage: '加载应用信息失败: $e',

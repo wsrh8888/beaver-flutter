@@ -21,6 +21,9 @@
 
 import './friend_verify_receiver.dart';
 import './receiver.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend-message-router');
 
 /**
  * 好友消息路由器
@@ -38,7 +41,10 @@ class FriendMessageRouter {
     final data = wsMessage['data'] as Map<String, dynamic>?;
 
     if (data == null) {
-      print('[FriendMessageRouter] 收到好友消息, 但缺少 data 字段: $wsMessage');
+      _logger.warn({
+        'text': '收到好友消息但缺少data字段',
+        'data': {'wsMessage': wsMessage},
+      });
       return;
     }
 
@@ -59,7 +65,10 @@ class FriendMessageRouter {
         break;
 
       default:
-        print('[FriendMessageRouter] 未处理的好友消息类型: $type');
+        _logger.warn({
+          'text': '未处理的好友消息类型',
+          'data': {'type': type},
+        });
     }
   }
 }

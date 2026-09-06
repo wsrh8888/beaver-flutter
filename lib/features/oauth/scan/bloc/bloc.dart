@@ -24,6 +24,9 @@ import 'package:beaver/api/oauth.dart';
 import 'package:beaver/features/oauth/scan/bloc/event.dart';
 import 'package:beaver/features/oauth/scan/bloc/state.dart';
 import 'package:beaver/types/api/oauth.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('oauth-scan');
 
 class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmState> {
   OAuthScanConfirmBloc() : super(const OAuthScanConfirmState()) {
@@ -37,9 +40,14 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
     Emitter<OAuthScanConfirmState> emit,
   ) async {
     emit(state.copyWith(status: OAuthScanConfirmStatus.loading, sceneId: event.sceneId));
+    _logger.info({'text': '初始化扫码确认', 'data': {'sceneId': event.sceneId}});
 
     final sceneRes = await getQrCodeSceneApi(event.sceneId);
     if (sceneRes.code != 0 || sceneRes.result == null) {
+      _logger.warn({
+        'text': '获取扫码会话失败',
+        'data': {'sceneId': event.sceneId, 'code': sceneRes.code, 'msg': sceneRes.msg},
+      });
       emit(state.copyWith(
         status: OAuthScanConfirmStatus.error,
         errorMessage: sceneRes.msg.isNotEmpty ? sceneRes.msg : '扫码会话无效',
@@ -49,6 +57,10 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
 
     final scene = sceneRes.result!;
     if (scene.status == 'expired' || scene.status == 'cancelled' || scene.status == 'confirmed') {
+      _logger.warn({
+        'text': '扫码会话已失效',
+        'data': {'sceneId': event.sceneId, 'status': scene.status},
+      });
       emit(state.copyWith(
         status: OAuthScanConfirmStatus.error,
         errorMessage: '二维码已失效，请重新扫码',
@@ -58,6 +70,10 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
 
     final scanRes = await scanQrCodeApi(IScanQrCodeReq(sceneId: event.sceneId));
     if (scanRes.code != 0) {
+      _logger.warn({
+        'text': '标记扫码失败',
+        'data': {'sceneId': event.sceneId, 'code': scanRes.code, 'msg': scanRes.msg},
+      });
       emit(state.copyWith(
         status: OAuthScanConfirmStatus.error,
         errorMessage: scanRes.msg.isNotEmpty ? scanRes.msg : '标记扫码失败',
@@ -65,6 +81,10 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
       return;
     }
 
+    _logger.info({
+      'text': '扫码确认就绪',
+      'data': {'sceneId': event.sceneId, 'appName': scene.appName},
+    });
     emit(state.copyWith(
       status: OAuthScanConfirmStatus.ready,
       appName: scene.appName,
@@ -79,13 +99,19 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
   ) async {
     if (state.sceneId.isEmpty) return;
     emit(state.copyWith(status: OAuthScanConfirmStatus.submitting));
+    _logger.info({'text': '确认授权扫码登录', 'data': {'sceneId': state.sceneId}});
 
     final res = await confirmQrCodeApi(IConfirmQrCodeReq(sceneId: state.sceneId));
     if (res.code == 0) {
+      _logger.info({'text': '扫码授权成功', 'data': {'sceneId': state.sceneId}});
       emit(state.copyWith(status: OAuthScanConfirmStatus.success));
       return;
     }
 
+    _logger.warn({
+      'text': '扫码授权失败',
+      'data': {'sceneId': state.sceneId, 'code': res.code, 'msg': res.msg},
+    });
     emit(state.copyWith(
       status: OAuthScanConfirmStatus.ready,
       errorMessage: res.msg.isNotEmpty ? res.msg : '授权失败',
@@ -97,6 +123,7 @@ class OAuthScanConfirmBloc extends Bloc<OAuthScanConfirmEvent, OAuthScanConfirmS
     Emitter<OAuthScanConfirmState> emit,
   ) async {
     if (state.sceneId.isNotEmpty) {
+      _logger.info({'text': '取消扫码授权', 'data': {'sceneId': state.sceneId}});
       await cancelQrCodeApi(ICancelQrCodeReq(sceneId: state.sceneId));
     }
   }

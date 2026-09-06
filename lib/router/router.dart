@@ -39,13 +39,60 @@ import 'package:beaver/router/modules/common.dart';
 import 'package:beaver/router/modules/circle.dart';
 import 'package:beaver/router/modules/workbench.dart';
 import 'package:beaver/router/modules/oauth.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('router');
+
+/// 路由导航追踪：记录每一次页面跳转，便于排查"卡在哪个页面/跳转异常"
+class RouteLogger extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _logger.info({
+      'text': '页面入栈',
+      'data': {
+        'route': route.settings.name ?? route.settings.arguments?.toString(),
+        'path': route.settings.name,
+        'from': previousRoute?.settings.name,
+      },
+    });
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _logger.info({
+      'text': '页面出栈',
+      'data': {
+        'route': route.settings.name,
+        'to': previousRoute?.settings.name,
+      },
+    });
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _logger.info({
+      'text': '页面替换',
+      'data': {
+        'newRoute': newRoute?.settings.name,
+        'oldRoute': oldRoute?.settings.name,
+      },
+    });
+  }
+}
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+final RouteLogger routeLogger = RouteLogger();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: rootNavigatorKey,
   initialLocation: AppRoutes.login,
+  observers: [routeLogger],
   redirect: (context, state) {
+    _logger.info({
+      'text': '路由守卫拦截',
+      'data': {'location': state.uri.toString()},
+    });
     return AuthGuard.redirect(context, state);
   },
   routes: [

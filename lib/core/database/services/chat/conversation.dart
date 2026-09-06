@@ -22,17 +22,28 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-chat-conversation');
 
 class ChatConversationService extends BaseService {
   const ChatConversationService();
 
   /// 创建单个会话
   Future<void> create(ChatConversationsCompanion conversation) async {
+    try {
+
     await db.into(db.chatConversations).insert(conversation);
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.create 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// upsert单个会话（插入或更新）
   Future<void> upsert(ChatConversationsCompanion conversation) async {
+    try {
+
     final conversationId = conversation.conversationId.value;
     final existing = await (db.select(db.chatConversations)
           ..where((t) => t.conversationId.equals(conversationId))
@@ -46,18 +57,32 @@ class ChatConversationService extends BaseService {
     } else {
       await db.into(db.chatConversations).insert(conversation);
     }
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建会话（支持插入或更新）
   Future<void> batchCreate(List<ChatConversationsCompanion> conversations) async {
+    try {
+    _logger.info({'text':'ChatConversationService.batchCreate 开始执行','data':{}});
+
     if (conversations.isEmpty) return;
     for (final conversation in conversations) {
       await upsert(conversation);
+    }
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
     }
   }
 
   /// 获取所有会话（本地数据库场景，支持分页）
   Future<List<ChatConversation>> getAllConversations({int? page, int? limit}) async {
+    try {
+    _logger.info({'text':'ChatConversationService.getAllConversations 开始执行','data':{}});
+
     var query = db.select(db.chatConversations);
 
     if (limit != null && page != null) {
@@ -66,28 +91,52 @@ class ChatConversationService extends BaseService {
     }
 
     return query.get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.getAllConversations 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据会话ID列表批量获取会话元数据（包含最后消息）
   Future<List<ChatConversation>> getConversationsByIds(List<String> conversationIds) async {
+    try {
+
     if (conversationIds.isEmpty) {
       return [];
     }
     return (db.select(db.chatConversations)..where((t) => t.conversationId.isIn(conversationIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.getConversationsByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据会话ID获取单个会话元数据
   Future<ChatConversation?> getConversationById(String conversationId) async {
+    try {
+
     return (db.select(db.chatConversations)..where((t) => t.conversationId.equals(conversationId))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.getConversationById 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据类型获取会话（纯数据库查询）
   Future<List<ChatConversation>> getConversationsByType(int type) async {
+    try {
+
     return (db.select(db.chatConversations)..where((t) => t.type.equals(type))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.getConversationsByType 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新会话的最后消息
   Future<void> updateLastMessage(String conversationId, String lastMessage, {int? maxSeq}) async {
+    try {
+
     await (db.update(db.chatConversations)..where((t) => t.conversationId.equals(conversationId))).write(
       ChatConversationsCompanion(
         lastMessage: Value(lastMessage),
@@ -95,15 +144,31 @@ class ChatConversationService extends BaseService {
         maxSeq: maxSeq != null ? Value(maxSeq) : const Value.absent(),
       ),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.updateLastMessage 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取会话列表（按更新时间降序）
   Future<List<ChatConversation>> getConversations() async {
+    try {
+
     return (db.select(db.chatConversations)..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)])).get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.getConversations 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 删除会话
   Future<void> deleteConversation(String conversationId) async {
+    try {
+
     await (db.delete(db.chatConversations)..where((t) => t.conversationId.equals(conversationId))).go();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatConversationService.deleteConversation 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

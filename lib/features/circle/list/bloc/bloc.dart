@@ -28,7 +28,10 @@ import 'package:beaver/features/circle/list/bloc/state.dart';
 import 'package:beaver/features/circle/list/data/repositories/repository.dart';
 import 'package:beaver/store/circle/circle.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+final _logger = Logger('circle-list');
 
 class CircleListBloc extends Bloc<CircleListEvent, CircleListState> {
   final CircleListRepository _repository;
@@ -73,12 +76,28 @@ class CircleListBloc extends Bloc<CircleListEvent, CircleListState> {
       circles: local,
     ));
 
-    await circleSync.checkAndSync();
-    await _circleStore.init();
+    _logger.info({'text': '加载圈子列表', 'data': {'localCount': local.length}});
 
+    try {
+      await circleSync.checkAndSync();
+      await _circleStore.init();
+    } catch (e) {
+      _logger.warn({
+        'text': '圈子列表同步失败，回退本地数据',
+        'data': {'error': e.toString()},
+      });
+      emit(state.copyWith(
+        status: CircleListStatus.success,
+        circles: _mapLocal(),
+      ));
+      return;
+    }
+
+    final synced = _mapLocal();
+    _logger.info({'text': '圈子列表加载成功', 'data': {'count': synced.length}});
     emit(state.copyWith(
       status: CircleListStatus.success,
-      circles: _mapLocal(),
+      circles: synced,
     ));
   }
 
@@ -91,10 +110,22 @@ class CircleListBloc extends Bloc<CircleListEvent, CircleListState> {
       errorMessage: null,
     ));
 
+    _logger.info({
+      'text': '创建圈子',
+      'data': {
+        'name': event.name,
+        'hasAvatar': event.avatarPath != null && event.avatarPath!.isNotEmpty,
+      },
+    });
+
     String? avatarUrl;
     if (event.avatarPath != null && event.avatarPath!.isNotEmpty) {
       final uploadRes = await uploadFileApi(event.avatarPath!);
       if (uploadRes.code != 0 || uploadRes.result == null) {
+        _logger.warn({
+          'text': '圈子头像上传失败',
+          'data': {'code': uploadRes.code, 'msg': uploadRes.msg},
+        });
         emit(state.copyWith(
           status: CircleListStatus.error,
           errorMessage: uploadRes.msg.isNotEmpty ? uploadRes.msg : '头像上传失败',
@@ -109,12 +140,21 @@ class CircleListBloc extends Bloc<CircleListEvent, CircleListState> {
       avatar: avatarUrl,
     );
     if (res.code != 0 || res.result == null) {
+      _logger.warn({
+        'text': '创建圈子失败',
+        'data': {'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         status: CircleListStatus.error,
         errorMessage: res.msg.isNotEmpty ? res.msg : '创建圈子失败',
       ));
       return;
     }
+
+    _logger.info({
+      'text': '创建圈子成功',
+      'data': {'circleId': res.result!.circleId, 'name': res.result!.name},
+    });
 
     await _circleBusiness.upsertAfterCreate(
       circleId: res.result!.circleId,

@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-chat-conversation');
 
 /// 会话接收器 - 处理 conversations 表的操作
 class ConversationReceiver {
@@ -28,7 +31,11 @@ class ConversationReceiver {
 
   Future<void> handleTableUpdates(Map<String, dynamic> tableUpdatesBody) async {
     final tableUpdates = tableUpdatesBody['tableUpdates'] as List?;
-    if (tableUpdates == null) return;
+    if (tableUpdates == null) {
+      _logger.warn({'text': '收到会话表更新但 tableUpdates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理会话表更新', 'data': {'count': tableUpdates.length}});
 
     for (final update in tableUpdates) {
       final table = update['table'] as String?;
@@ -39,10 +46,14 @@ class ConversationReceiver {
         for (final item in data) {
           final version = item['version'] as int?;
           if (version != null) {
-            await _conversationBusiness.syncConversationByVersion(
-              conversationId,
-              version,
-            );
+            try {
+              await _conversationBusiness.syncConversationByVersion(
+                conversationId,
+                version,
+              );
+            } catch (e) {
+              _logger.warn({'text': '按版本同步会话失败', 'data': {'conversationId': conversationId, 'version': version, 'error': e.toString()}});
+            }
           }
         }
       }

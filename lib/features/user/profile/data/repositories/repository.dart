@@ -22,6 +22,9 @@
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/features/user/profile/data/models/profile.dart' as profile_model;
 import 'package:beaver/types/business/user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-user-profile');
 
 class ProfileRepository {
   final UserRepositoryInterface _userRepository;
@@ -30,6 +33,8 @@ class ProfileRepository {
     : _userRepository = userRepository ?? getIt<UserRepositoryInterface>();
 
   Future<profile_model.UserInfo> getUserInfo() async {
+    try {
+
     final user = await _userRepository.getMyUserInfo();
     return profile_model.UserInfo(
       userId: user.userId,
@@ -39,23 +44,45 @@ class ProfileRepository {
       gender: user.gender,
       abstract: user.abstract,
     );
+    } catch (e, st) {
+      _logger.warn({'text':'ProfileRepository.getUserInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> updateUserInfo(Map<String, dynamic> updates) async {
+    try {
+
     return _userRepository.updateProfile(
       nickname: updates['nickName'],
       avatar: updates['fileName'],
       abstract: updates['abstract'],
       gender: updates['gender'],
     );
+    } catch (e, st) {
+      _logger.warn({'text':'ProfileRepository.updateUserInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> sendEmailCode(String email) async {
+    try {
+
     return _userRepository.getEmailCode(email, 'update_email');
+    } catch (e, st) {
+      _logger.warn({'text':'ProfileRepository.sendEmailCode 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> updateEmail(String email, String code) async {
+    try {
+
     return _userRepository.updateEmail(email, code);
+    } catch (e, st) {
+      _logger.warn({'text':'ProfileRepository.updateEmail 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

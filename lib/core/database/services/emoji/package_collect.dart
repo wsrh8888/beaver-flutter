@@ -22,6 +22,9 @@
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-emoji-package_collect');
 
 class EmojiPackageCollectService extends BaseService {
   const EmojiPackageCollectService();
@@ -29,6 +32,9 @@ class EmojiPackageCollectService extends BaseService {
   Future<void> batchCreate(
     List<EmojiPackageCollectTableCompanion> entries,
   ) async {
+    try {
+    _logger.info({'text':'EmojiPackageCollectService.batchCreate 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final entry in entries) {
         batch.insert(
@@ -41,14 +47,24 @@ class EmojiPackageCollectService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiPackageCollectService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<Map<String, EmojiPackageCollectTableData>> getCollectsByIds(
     List<String> ids,
   ) async {
+    try {
+
     final query = db.select(db.emojiPackageCollectTable)
       ..where((t) => t.packageCollectId.isIn(ids));
     final result = await query.get();
     return {for (var item in result) item.packageCollectId: item};
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiPackageCollectService.getCollectsByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

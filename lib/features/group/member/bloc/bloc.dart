@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/member/bloc/event.dart';
 import 'package:beaver/features/group/member/bloc/state.dart';
 import 'package:beaver/features/group/member/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-member');
 
 class GroupMemberBloc extends Bloc<GroupMemberEvent, GroupMemberState> {
   final GroupMemberRepository _repository;
@@ -44,19 +47,35 @@ class GroupMemberBloc extends Bloc<GroupMemberEvent, GroupMemberState> {
       groupId: event.groupId,
       mode: event.mode,
     ));
+    _logger.info({
+      'text': '加载群成员',
+      'data': {'groupId': event.groupId, 'mode': event.mode},
+    });
 
     try {
       final groupMembers = await _repository.getGroupMembers(event.groupId);
       final contacts = await _repository.getContacts();
+      _logger.info({
+        'text': '加载群成员成功',
+        'data': {
+          'groupId': event.groupId,
+          'memberCount': groupMembers.length,
+          'contactCount': contacts.length,
+        },
+      });
       emit(state.copyWith(
         status: GroupMemberStatus.success,
         groupMembers: groupMembers,
         contacts: contacts,
       ));
     } catch (e) {
+      _logger.error({
+        'text': '加载群成员失败',
+        'data': {'groupId': event.groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupMemberStatus.error,
-        errorMessage: '加载群成员失�? $e',
+        errorMessage: '加载群成员失败: $e',
       ));
     }
   }
@@ -79,22 +98,32 @@ class GroupMemberBloc extends Bloc<GroupMemberEvent, GroupMemberState> {
     Emitter<GroupMemberState> emit,
   ) async {
     if (state.selectedIds.isEmpty) {
+      _logger.warn({'text': '添加群成员参数为空'});
       emit(state.copyWith(
         errorMessage: '请选择要添加的成员',
       ));
       return;
     }
 
+    _logger.info({
+      'text': '添加群成员',
+      'data': {'groupId': state.groupId, 'count': state.selectedIds.length},
+    });
     emit(state.copyWith(status: GroupMemberStatus.loading));
 
     try {
       await _repository.addGroupMembers(state.groupId, state.selectedIds);
+      _logger.info({'text': '添加群成员成功', 'data': {'groupId': state.groupId}});
       emit(state.copyWith(
         status: GroupMemberStatus.success,
         selectedIds: [],
         errorMessage: '添加成员成功',
       ));
     } catch (e) {
+      _logger.error({
+        'text': '添加群成员失败',
+        'data': {'groupId': state.groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupMemberStatus.error,
         errorMessage: '添加成员失败: $e',
@@ -107,22 +136,32 @@ class GroupMemberBloc extends Bloc<GroupMemberEvent, GroupMemberState> {
     Emitter<GroupMemberState> emit,
   ) async {
     if (state.selectedIds.isEmpty) {
+      _logger.warn({'text': '移除群成员参数为空'});
       emit(state.copyWith(
         errorMessage: '请选择要移除的成员',
       ));
       return;
     }
 
+    _logger.info({
+      'text': '移除群成员',
+      'data': {'groupId': state.groupId, 'count': state.selectedIds.length},
+    });
     emit(state.copyWith(status: GroupMemberStatus.loading));
 
     try {
       await _repository.removeGroupMembers(state.groupId, state.selectedIds);
+      _logger.info({'text': '移除群成员成功', 'data': {'groupId': state.groupId}});
       emit(state.copyWith(
         status: GroupMemberStatus.success,
         selectedIds: [],
         errorMessage: '移除成员成功',
       ));
     } catch (e) {
+      _logger.error({
+        'text': '移除群成员失败',
+        'data': {'groupId': state.groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupMemberStatus.error,
         errorMessage: '移除成员失败: $e',

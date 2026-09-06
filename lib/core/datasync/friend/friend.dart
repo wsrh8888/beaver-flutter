@@ -21,15 +21,23 @@
 
 import 'package:beaver/core/datasync/friend/friend_sync.dart';
 import 'package:beaver/core/datasync/friend/friend_verify_sync.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-friend-entry');
 
 /// 好友数据同步统一入口
 class FriendDatasync {
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步好友数据（好友+验证）'});
     // 并行同步好友数据和好友验证数据
     await Future.wait([
       friendSyncModule.checkAndSync(),
       friendVerifySyncModule.checkAndSync(),
-    ]);
+    ]).then((_) {
+      _logger.info({'text': '好友数据同步完成'});
+    }).catchError((e) {
+      _logger.warn({'text': '好友数据同步部分失败', 'data': {'error': e.toString()}});
+    });
   }
 }
 

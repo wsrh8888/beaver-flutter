@@ -19,12 +19,16 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/datasync/circle/circle_sync.dart';
 
 class CircleDatasync {
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步圈子数据', 'data': {}});
     await circleSync.checkAndSync();
+    _logger.info({'text': '圈子数据同步完成', 'data': {}});
   }
 }
 
 final circleDatasync = CircleDatasync();
+final _logger = Logger('datasync-circle-entry');

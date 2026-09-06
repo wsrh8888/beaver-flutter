@@ -24,6 +24,9 @@ import 'package:beaver/features/circle/detail/bloc/event.dart';
 import 'package:beaver/features/circle/detail/bloc/state.dart';
 import 'package:beaver/features/circle/detail/data/repositories/repository.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-detail');
 
 class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
   final CircleDetailRepository _repository;
@@ -47,15 +50,24 @@ class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
     Emitter<CircleDetailState> emit,
   ) async {
     emit(state.copyWith(status: CircleDetailStatus.loading, commentPage: 1));
+    _logger.info({'text': '加载圈子动态详情', 'data': {'postId': event.postId}});
 
     final detailRes = await _repository.loadDetail(event.postId);
     if (detailRes.code != 0 || detailRes.result == null) {
+      _logger.warn({
+        'text': '圈子动态详情加载失败',
+        'data': {'postId': event.postId, 'code': detailRes.code, 'msg': detailRes.msg},
+      });
       emit(state.copyWith(
         status: CircleDetailStatus.error,
         errorMessage: detailRes.msg.isNotEmpty ? detailRes.msg : '加载失败',
       ));
       return;
     }
+    _logger.info({
+      'text': '圈子动态详情加载完成',
+      'data': {'postId': event.postId, 'commentCount': detailRes.result!.commentCount},
+    });
 
     final commentRes = await _repository.loadRootComments(
       postId: event.postId,
@@ -179,6 +191,15 @@ class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
       parentId =
           target.parentId.isNotEmpty ? target.parentId : target.commentId;
     }
+    _logger.info({
+      'text': '发表评论',
+      'data': {
+        'postId': post.postId,
+        'parentId': parentId,
+        'replyToCommentId': replyToCommentId,
+        'contentLength': event.content.trim().length,
+      },
+    });
 
     final res = await _repository.addComment(
       postId: post.postId,
@@ -188,11 +209,19 @@ class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
     );
 
     if (res.code != 0 || res.result == null) {
+      _logger.warn({
+        'text': '评论发表失败',
+        'data': {'postId': post.postId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         errorMessage: res.msg.isNotEmpty ? res.msg : '评论发送失败',
       ));
       return;
     }
+    _logger.info({
+      'text': '评论发表成功',
+      'data': {'postId': post.postId, 'commentId': res.result!.commentId},
+    });
 
     final created = res.result!;
     final newComment = ICircleCommentItem(
@@ -248,16 +277,28 @@ class CircleDetailBloc extends Bloc<CircleDetailEvent, CircleDetailState> {
     if (post == null) return;
 
     final nextStatus = !post.isLiked;
+    _logger.info({
+      'text': '切换圈子动态点赞',
+      'data': {'postId': post.postId, 'nextStatus': nextStatus},
+    });
     final res = await _repository.toggleLike(
       postId: post.postId,
       status: nextStatus,
     );
     if (res.code != 0) {
+      _logger.warn({
+        'text': '点赞操作失败',
+        'data': {'postId': post.postId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         errorMessage: res.msg.isNotEmpty ? res.msg : '操作失败',
       ));
       return;
     }
+    _logger.info({
+      'text': '点赞状态已更新',
+      'data': {'postId': post.postId, 'isLiked': nextStatus},
+    });
 
     emit(state.copyWith(
       post: post.copyWith(

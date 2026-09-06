@@ -27,6 +27,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-friend');
 
 /// 好友数据同步模块
 class FriendSyncModule {
@@ -35,7 +38,11 @@ class FriendSyncModule {
   /// 检查并同步
   Future<void> checkAndSync() async {
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '好友数据同步跳过：未登录（userId 为空）'});
+      return;
+    }
+    _logger.info({'text': '开始同步好友数据'});
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -50,7 +57,7 @@ class FriendSyncModule {
         IGetSyncFriendsReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[FriendSyncModule] 获取好友版本失败: ${response.msg}');
+        _logger.warn({'text': '获取好友版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
         return;
       }
 
@@ -62,6 +69,7 @@ class FriendSyncModule {
         friendService,
         friendVersions,
       );
+      _logger.info({'text': '好友数据对比完成', 'data': {'needUpdate': needUpdateFriendshipIds.length}});
 
       if (needUpdateFriendshipIds.isNotEmpty) {
         // 有需要更新的好友数据
@@ -85,9 +93,10 @@ class FriendSyncModule {
       }
 
       _syncStatus = 'COMPLETED';
+      _logger.info({'text': '好友数据同步完成'});
     } catch (error) {
       _syncStatus = 'FAILED';
-      // print('[FriendSyncModule] 好友数据同步失败: $error');
+      _logger.warn({'text': '好友数据同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -147,9 +156,11 @@ class FriendSyncModule {
       final response = await getFriendsListByIdsApi(
         IGetFriendsListByIdsReq(friendIds: batchIds),
       );
-      if (response.code == 0 &&
-          response.result != null &&
-          response.result!.friends.isNotEmpty) {
+      if (response.code != 0 || response.result == null) {
+        _logger.warn({'text': '批量获取好友数据失败', 'data': {'code': response.code, 'msg': response.msg, 'batchCount': batchIds.length}});
+        continue;
+      }
+      if (response.result!.friends.isNotEmpty) {
         final companions = response.result!.friends
             .map((f) => f.toCompanion())
             .toList();

@@ -20,9 +20,14 @@
  */
 
 import 'package:beaver/features/group/member/data/models/member.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-group-member');
 
 class GroupMemberRepository {
   Future<List<GroupMember>> getGroupMembers(String groupId) async {
+    try {
+
     // 模拟获取群成�?
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -45,9 +50,15 @@ class GroupMemberRepository {
         role: 1,
       ),
     ];
+    } catch (e, st) {
+      _logger.warn({'text':'GroupMemberRepository.getGroupMembers 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<Contact>> getContacts() async {
+    try {
+
     // 模拟获取联系人列�?
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -62,18 +73,34 @@ class GroupMemberRepository {
         fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%205&size=512x512',
       ),
     ];
+    } catch (e, st) {
+      _logger.warn({'text':'GroupMemberRepository.getContacts 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> addGroupMembers(String groupId, List<String> userIds) async {
+    try {
+
     // 模拟添加群成�?
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupMemberRepository.addGroupMembers 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> removeGroupMembers(String groupId, List<String> userIds) async {
+    try {
+
     // 模拟移除群成�?
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupMemberRepository.removeGroupMembers 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

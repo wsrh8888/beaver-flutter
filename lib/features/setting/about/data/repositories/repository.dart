@@ -20,14 +20,23 @@
  */
 
 import 'package:beaver/features/setting/about/data/models/app_info.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-about');
 
 class AboutRepository {
   Future<AppInfo> getAppInfo() async {
+    try {
+
     return const AppInfo(
       name: 'Beaver',
       version: '1.0.0',
       developer: 'Beaver Team',
       description: '专业、安全、高效的即时通讯软件',
     );
+    } catch (e, st) {
+      _logger.warn({'text':'AboutRepository.getAppInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

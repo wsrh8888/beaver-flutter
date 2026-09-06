@@ -22,15 +22,25 @@
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:beaver/store/message_media/message_media.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-chat-message-media');
 
 /// 消息媒体状态同步器（语音已听等）
 class MessageMediaSync {
   Future<void> checkAndSync() async {
     final userId = StorageUtil.getString('userId');
     if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '消息媒体状态同步跳过：未登录（userId 为空）'});
       return;
     }
-    await getIt<MessageMediaStore>().sync();
+    _logger.info({'text': '开始同步消息媒体状态'});
+    try {
+      await getIt<MessageMediaStore>().sync();
+      _logger.info({'text': '消息媒体状态同步完成'});
+    } catch (e) {
+      _logger.warn({'text': '消息媒体状态同步异常', 'data': {'error': e.toString()}});
+    }
   }
 }
 

@@ -20,14 +20,22 @@
  */
 
 import 'package:beaver/core/datasync/index.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-group-entry');
 
 /// 群组数据同步统一入口
 class GroupDatasync {
   Future<void> checkAndSync() async {
-    // 按顺序执行群组相关数据同步
-    await groupSync.checkAndSync(); // 1. 同步群资料
-    await groupMemberSync.checkAndSync(); // 2. 同步群成员
-    await groupJoinRequestSync.checkAndSync(); // 3. 同步入群申请
+    _logger.info({'text': '开始同步群组数据（资料+成员+申请）'});
+    try {
+      await groupSync.checkAndSync(); // 1. 同步群资料
+      await groupMemberSync.checkAndSync(); // 2. 同步群成员
+      await groupJoinRequestSync.checkAndSync(); // 3. 同步入群申请
+      _logger.info({'text': '群组数据同步完成'});
+    } catch (e) {
+      _logger.warn({'text': '群组数据同步异常', 'data': {'error': e.toString()}});
+    }
   }
 }
 

@@ -26,6 +26,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend');
 
 // 好友列表存储状态
 class FriendStoreState extends Equatable {
@@ -91,8 +94,13 @@ class FriendStore extends Cubit<FriendStoreState> {
    * @description: 初始化，从业务层拉取原始好友列表并重组
    */
   Future<void> init() async {
+    _logger.info({'text': '开始加载好友列表'});
     // 1. 获取包含备注（notice）的原始好友数据
     _rawFriends = await _friendBusiness.getContactList();
+    _logger.info({
+      'text': '原始好友数据拉取完成',
+      'data': {'count': _rawFriends.length},
+    });
 
     // 2. 结合 ContactStore 元数据进行组装
     _isInitialized = true;
@@ -122,12 +130,20 @@ class FriendStore extends Cubit<FriendStoreState> {
 
       return finalModel;
     }).toList();
+    _logger.info({
+      'text': '好友列表重组完成',
+      'data': {'count': assembled.length},
+    });
 
     emit(state.copyWith(friends: assembled));
   }
 
   /// 更新逻辑
   void updateFriends(List<ContactModel> newFriends) {
+    _logger.info({
+      'text': '更新好友列表',
+      'data': {'count': newFriends.length},
+    });
     _rawFriends = newFriends;
     _reassemble();
   }

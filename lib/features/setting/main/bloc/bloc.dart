@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/setting/main/bloc/event.dart';
 import 'package:beaver/features/setting/main/bloc/state.dart';
 import 'package:beaver/features/setting/main/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('setting-main');
 
 class SettingMainBloc extends Bloc<SettingMainEvent, SettingMainState> {
   final SettingMainRepository _repository;
@@ -41,11 +44,13 @@ class SettingMainBloc extends Bloc<SettingMainEvent, SettingMainState> {
     emit(state.copyWith(status: SettingMainStatus.loading));
     try {
       final items = _repository.getSettingItems();
+      _logger.info({'text': '加载设置项成功', 'data': {'count': items.length}});
       emit(state.copyWith(
         status: SettingMainStatus.success,
         settingItems: items,
       ));
     } catch (e) {
+      _logger.error({'text': '加载设置项失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: SettingMainStatus.error,
         errorMessage: e.toString(),
@@ -73,11 +78,14 @@ class SettingMainBloc extends Bloc<SettingMainEvent, SettingMainState> {
   ) async {
     // 这里执行退出登录逻辑
     emit(state.copyWith(status: SettingMainStatus.loading));
+    _logger.info({'text': '执行退出登录'});
     try {
       // 模拟退出登录
       await Future.delayed(const Duration(seconds: 1));
+      _logger.info({'text': '退出登录成功'});
       emit(state.copyWith(status: SettingMainStatus.success));
     } catch (e) {
+      _logger.error({'text': '退出登录失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: SettingMainStatus.error,
         errorMessage: e.toString(),

@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/setting/theme/bloc/event.dart';
 import 'package:beaver/features/setting/theme/bloc/state.dart';
 import 'package:beaver/features/setting/theme/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('setting-theme');
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   final ThemeRepository _repository;
@@ -37,6 +40,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     Emitter<ThemeState> emit,
   ) async {
     emit(state.copyWith(status: ThemeStatus.loading));
+    _logger.info({'text': '加载主题列表'});
 
     try {
       final availableThemes = await _repository.getAvailableThemes();
@@ -46,6 +50,10 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         orElse: () => availableThemes.first,
       );
 
+      _logger.info({
+        'text': '加载主题列表成功',
+        'data': {'count': availableThemes.length, 'currentTheme': currentTheme},
+      });
       emit(state.copyWith(
         status: ThemeStatus.success,
         availableThemes: availableThemes,
@@ -53,6 +61,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         currentThemeConfig: currentThemeConfig,
       ));
     } catch (e) {
+      _logger.error({'text': '加载主题列表失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ThemeStatus.error,
         errorMessage: '加载主题失败: $e',
@@ -65,6 +74,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     Emitter<ThemeState> emit,
   ) async {
     emit(state.copyWith(status: ThemeStatus.loading));
+    _logger.info({'text': '切换主题', 'data': {'themeName': event.themeName}});
 
     try {
       await _repository.setTheme(event.themeName);
@@ -73,12 +83,17 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
         orElse: () => state.availableThemes.first,
       );
 
+      _logger.info({'text': '切换主题成功', 'data': {'themeName': event.themeName}});
       emit(state.copyWith(
         status: ThemeStatus.success,
         currentTheme: event.themeName,
         currentThemeConfig: currentThemeConfig,
       ));
     } catch (e) {
+      _logger.error({
+        'text': '切换主题失败',
+        'data': {'themeName': event.themeName, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ThemeStatus.error,
         errorMessage: '设置主题失败: $e',

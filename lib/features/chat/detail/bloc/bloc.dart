@@ -30,7 +30,10 @@ import 'package:beaver/store/message/message.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/store/user/user.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:uuid/uuid.dart';
+
+final _logger = Logger('chat-detail');
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final MessageBusiness _messageBusiness;
@@ -106,9 +109,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onLoadMessages(LoadMessagesEvent event, Emitter<ChatState> emit) async {
     final conversationId = _normalizeConversationId(event.conversationId);
     if (conversationId == null) {
-      print('[ChatBloc] 加载失败: conversationId 为空');
+      _logger.error({'text': '加载会话消息失败: conversationId 为空'});
       return;
     }
+    _logger.info({
+      'text': '开始加载会话消息',
+      'data': {'conversationId': conversationId},
+    });
     final cachedMessages = _messageStore.state.chatHistory[conversationId];
     final hasCache = cachedMessages != null && cachedMessages.isNotEmpty;
 
@@ -123,6 +130,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     await _messageStore.initConversation(conversationId);
     final conversation = await _messageBusiness.getConversation(conversationId);
+    _logger.info({
+      'text': '会话消息加载完成',
+      'data': {'conversationId': conversationId},
+    });
 
     getIt<ConversationBusiness>().markAsRead(conversationId);
 
@@ -172,9 +183,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   Future<void> _onSendMessage(SendMessageEvent event, Emitter<ChatState> emit) async {
     final conversationId = _resolveConversationId(event.conversationId);
     if (conversationId == null) {
-      print('[ChatBloc] 发送失败: conversationId 为空');
+      _logger.error({'text': '发送消息失败: conversationId 为空'});
       return;
     }
+    _logger.info({
+      'text': '开始发送消息',
+      'data': {'conversationId': conversationId, 'type': event.msg.type.name},
+    });
 
     final currentUserId = getIt<UserStore>().state.currentUserId;
     var outbound = event.msg;
@@ -224,10 +239,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     try {
       final realMsg = await _messageBusiness.sendMessage(body);
+      _logger.info({
+        'text': '消息发送成功',
+        'data': {'conversationId': conversationId, 'messageId': realMsg.id},
+      });
       _messageStore.addMessage(conversationId, realMsg);
       _syncStoreToState(emit, conversationId);
       emit(state.copyWith(isSending: false));
     } catch (e) {
+      _logger.error({
+        'text': '消息发送失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
       final failedMsg = tempMsg.copyWith(status: MessageStatus.failed);
       _messageStore.addMessage(conversationId, failedMsg);
       emit(state.copyWith(
@@ -343,6 +366,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         .firstOrNull;
     if (message == null || message.status != MessageStatus.failed) return;
 
+    _logger.info({
+      'text': '开始重发消息',
+      'data': {'conversationId': conversationId, 'messageId': event.messageId},
+    });
+
     final chatType = conversationId.startsWith('group_') ? 'group' : 'private';
     final body = ChatMessageSendBody(
       conversationId: conversationId,
@@ -366,6 +394,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       _syncStoreToState(emit, conversationId);
       emit(state.copyWith(isSending: false));
     } catch (e) {
+      _logger.error({
+        'text': '重发消息失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
       final failedMsg = message.copyWith(status: MessageStatus.failed);
       _messageStore.addMessage(conversationId, failedMsg);
       _syncStoreToState(emit, conversationId);

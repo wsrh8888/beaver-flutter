@@ -25,13 +25,16 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('emoji-package-sync');
 
 class EmojiPackageSync {
   Future<void> sync(List<IEmojiPackageVersionItem> versions) async {
     final emojiPackageService = getIt<EmojiPackageService>();
     final ids = versions.map((v) => v.packageId).toList();
 
-    print("开始同步表情包：${ids.length}");
+    _logger.info({'text': '开始同步表情包', 'data': {'count': ids.length}});
 
     const batchSize = 50;
     for (var i = 0; i < ids.length; i += batchSize) {

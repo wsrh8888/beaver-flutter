@@ -25,6 +25,9 @@ import 'package:beaver/shared/ui/cache/image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('emoji-shop');
 
 class EmojiShopScreen extends StatefulWidget {
   const EmojiShopScreen({super.key});
@@ -44,27 +47,50 @@ class _EmojiShopScreenState extends State<EmojiShopScreen> {
   }
 
   Future<void> _loadPackages() async {
+    _logger.info({'text': '加载表情商店列表'});
     final res = await getEmojiPackagesApi({'page': 1, 'size': 50});
     if (res.code == 0 && res.result != null) {
       setState(() {
         _packages = res.result!.list;
         _isLoading = false;
       });
+      _logger.info({
+        'text': '表情商店列表加载完成',
+        'data': {'count': res.result!.list.length},
+      });
     } else {
       setState(() => _isLoading = false);
+      _logger.warn({
+        'text': '表情商店列表加载失败',
+        'data': {'code': res.code, 'msg': res.msg},
+      });
     }
   }
 
   Future<void> _handleSubscribe(EmojiShopPackageItem item) async {
+    final action = item.isCollected ? 'unfavorite' : 'favorite';
+    _logger.info({
+      'text': '订阅/取消表情包',
+      'data': {'packageId': item.packageId, 'type': action},
+    });
     final res = await updateFavoriteEmojiPackageApi({
       'packageId': item.packageId,
-      'type': item.isCollected ? 'unfavorite' : 'favorite',
+      'type': action,
     });
     if (res.code == 0) {
+      _logger.info({
+        'text': '表情包订阅状态已更新',
+        'data': {'packageId': item.packageId, 'type': action},
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(item.isCollected ? '已取消订阅' : '订阅成功')),
       );
       _loadPackages(); // 刷新状态
+    } else {
+      _logger.warn({
+        'text': '表情包订阅操作失败',
+        'data': {'packageId': item.packageId, 'type': action, 'code': res.code, 'msg': res.msg},
+      });
     }
   }
 

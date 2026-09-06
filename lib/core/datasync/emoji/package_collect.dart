@@ -25,9 +25,13 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-emoji-package-collect');
 
 class EmojiPackageCollectSync {
   Future<void> sync(List<IEmojiPackageCollectVersionItem> versions) async {
+    _logger.info({'text': '开始同步表情包收藏数据', 'data': {'count': versions.length}});
     final service = getIt<EmojiPackageCollectService>();
     final ids = versions.map((v) => v.packageCollectId).toList();
 
@@ -53,7 +57,10 @@ class EmojiPackageCollectSync {
           );
         }).toList();
         await service.batchCreate(companions);
+      } else {
+        _logger.warn({'text': '批量获取表情包收藏失败', 'data': {'code': detailRes.code, 'msg': detailRes.msg, 'batchCount': batchIds.length}});
       }
     }
+    _logger.info({'text': '表情包收藏数据同步完成'});
   }
 }

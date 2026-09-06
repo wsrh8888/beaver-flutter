@@ -29,13 +29,20 @@ import 'package:beaver/store/message/message.dart';
 import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('message-sync');
 
 /// 消息同步器 - 负责同步聊天消息数据
 class MessageSync {
   /// 检查并同步消息数据
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始检查消息同步'});
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '用户ID为空，跳过消息同步'});
+      return;
+    }
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -44,21 +51,38 @@ class MessageSync {
       // 获取本地同步游标（version=-1 表示发现全部变更，对齐 PC）
       final localCursor = await datasyncService.get('chat_messages');
       final lastSyncVersion = localCursor?.version ?? 0;
+      _logger.info({
+        'text': '获取本地消息同步游标',
+        'data': {'lastSyncVersion': lastSyncVersion},
+      });
 
       // 获取服务器上变更的消息版本信息
       final response = await datasyncGetSyncChatMessagesApi(
         IGetSyncChatMessagesReq(since: lastSyncVersion),
       );
       if (response.code != 0 || response.result == null) {
-        // print('[MessageSync] 获取消息摘要失败: ${response.msg}');
+        _logger.warn({
+          'text': '获取消息摘要失败',
+          'data': {'code': response.code, 'msg': response.msg},
+        });
         return;
       }
+      _logger.info({
+        'text': '服务端返回消息版本变更',
+        'data': {
+          'versionCount': response.result!.messageVersions.length,
+        },
+      });
 
       // 对比本地数据，过滤出需要同步消息的会话
       final needSyncConversations = await _compareAndFilterMessageVersions(
         syncStatusService,
         response.result!.messageVersions,
       );
+      _logger.info({
+        'text': '需要同步消息的会话',
+        'data': {'count': needSyncConversations.length},
+      });
 
       if (needSyncConversations.isNotEmpty) {
         // 有需要同步消息的会话
@@ -71,8 +95,12 @@ class MessageSync {
         -1, // 使用时间戳而不是版本号
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '消息同步检查完成，游标已更新'});
     } catch (error) {
-      print('[MessageSync] 消息同步失败: $error');
+      _logger.error({
+        'text': '消息同步失败',
+        'data': {'error': error.toString()},
+      });
     }
   }
 
@@ -162,7 +190,15 @@ class MessageSync {
     try {
       await _doSyncConversationMessages(conversationId, fromSeq, toSeq);
     } catch (error) {
-      print('[MessageSync] 消息同步失败: $error');
+      _logger.error({
+        'text': '单会话消息同步失败',
+        'data': {
+          'conversationId': conversationId,
+          'fromSeq': fromSeq,
+          'toSeq': toSeq,
+          'error': error.toString(),
+        },
+      });
     }
   }
 

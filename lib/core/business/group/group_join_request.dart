@@ -28,6 +28,9 @@ import 'package:beaver/api/group.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:intl/intl.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-join-request-business');
 
 /// 群加入请求业务逻辑 (对标 PC business/group/group-join-request.ts)
 class GroupJoinRequestBusiness {
@@ -49,10 +52,18 @@ class GroupJoinRequestBusiness {
 
       if (response.code == 0 && response.result != null && response.result!.groupJoinRequests.isNotEmpty) {
         await _joinRequestService.batchCreate(response.result!.groupJoinRequests);
-        print('[GroupJoinRequestBusiness] 入群申请同步成功: count=${response.result!.groupJoinRequests.length}');
+        _logger.info({
+          'text': '入群申请同步成功',
+          'data': {
+            'count': response.result!.groupJoinRequests.length,
+          },
+        });
       }
     } catch (e) {
-      print('[GroupJoinRequestBusiness] syncGroupJoinRequestsByVersion failed: $e');
+      _logger.error({
+        'text': '同步入群申请失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
     }
   }
 

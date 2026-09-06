@@ -27,6 +27,9 @@ import 'package:beaver/features/setting/update/data/repositories/repository.dart
 import 'package:beaver/common/config/config.dart';
 import 'package:ota_update/ota_update.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('setting-update');
 
 class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
   final UpdateRepository _repository;
@@ -59,6 +62,10 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
 
     final result = await _repository.checkUpdate();
     if (!result.isSuccess) {
+      _logger.warn({
+        'text': '检查更新失败',
+        'data': {'errorMessage': result.errorMessage},
+      });
       emit(state.copyWith(
         status: UpdateStatus.error,
         errorMessage: result.errorMessage,
@@ -67,6 +74,10 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
       return;
     }
 
+    _logger.info({
+      'text': '检查更新成功',
+      'data': {'hasUpdate': result.updateInfo != null},
+    });
     emit(state.copyWith(
       status: UpdateStatus.success,
       updateInfo: result.updateInfo,
@@ -88,6 +99,10 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
     final updateInfo = state.updateInfo;
     if (updateInfo == null || updateInfo.latestVersion == null) return;
     final downloadUrl = updateInfo.latestVersion!.downloadUrl;
+    _logger.info({
+      'text': '开始下载更新',
+      'data': {'platform': Platform.operatingSystem, 'downloadUrl': downloadUrl},
+    });
 
     if (Platform.isAndroid) {
       emit(state.copyWith(
@@ -122,6 +137,7 @@ class UpdateBloc extends Bloc<UpdateEvent, UpdateState> {
     Emitter<UpdateState> emit,
   ) {
     if (event.progress < 0) {
+      _logger.warn({'text': '更新下载失败'});
       emit(state.copyWith(
         status: UpdateStatus.error,
         errorMessage: '下载失败，请稍后重试',

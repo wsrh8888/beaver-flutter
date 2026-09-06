@@ -22,6 +22,9 @@
 import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/core/business/group/group_member.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-group');
 
 /// 群组接收器 - 处理 groups 表的操作 (对标 PC receivers/group/group.ts)
 class GroupReceiver {
@@ -29,7 +32,11 @@ class GroupReceiver {
 
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tables'] ?? body['tableUpdates']) as List?;
-    if (updates == null) return;
+    if (updates == null) {
+      _logger.warn({'text': '收到群组表更新但 updates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理群组表更新', 'data': {'count': updates.length}});
 
     for (final update in updates) {
       final table = update['table'] as String?;
@@ -49,7 +56,11 @@ class GroupReceiver {
           final version = item['version'] as int?;
 
           if (itemGroupId != null && version != null) {
-            await _groupBusiness.syncGroupByVersion(itemGroupId, version);
+            try {
+              await _groupBusiness.syncGroupByVersion(itemGroupId, version);
+            } catch (e) {
+              _logger.warn({'text': '按版本同步群组失败', 'data': {'groupId': itemGroupId, 'version': version, 'error': e.toString()}});
+            }
           }
         }
       } else if (table == 'group_members') {
@@ -62,11 +73,15 @@ class GroupReceiver {
           final version = item['version'] as int?;
 
           if (itemGroupId != null && itemUserId != null && version != null) {
-            await getIt<GroupMemberBusiness>().handleTableUpdates(
-              itemUserId,
-              itemGroupId,
-              version,
-            );
+            try {
+              await getIt<GroupMemberBusiness>().handleTableUpdates(
+                itemUserId,
+                itemGroupId,
+                version,
+              );
+            } catch (e) {
+              _logger.warn({'text': '按版本同步群成员失败', 'data': {'groupId': itemGroupId, 'userId': itemUserId, 'version': version, 'error': e.toString()}});
+            }
           }
         }
       }

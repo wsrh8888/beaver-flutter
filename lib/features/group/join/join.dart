@@ -33,6 +33,9 @@ import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/group/group.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-join');
 
 class GroupJoinPage extends StatefulWidget {
   final String groupId;
@@ -74,6 +77,10 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
   }
 
   Future<void> _bootstrap() async {
+    _logger.info({
+      'text': '进入加入群聊页',
+      'data': {'groupId': _groupId, 'inviteCode': _inviteCode},
+    });
     setState(() {
       _loading = true;
       _error = null;
@@ -87,6 +94,10 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
       if (res.code != 0 ||
           res.result == null ||
           (!res.result!.valid && !res.result!.alreadyJoined)) {
+        _logger.error({
+          'text': '解析群邀请失败',
+          'data': {'inviteCode': _inviteCode, 'code': res.code, 'msg': res.msg},
+        });
         setState(() {
           _loading = false;
           _error = res.msg.isNotEmpty ? res.msg : '邀请无效或已失效';
@@ -97,6 +108,10 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
       _groupId = _normalizeGroupId(data.groupId);
       if (data.alreadyJoined ||
           getIt<GroupStore>().getGroup(_conversationId) != null) {
+        _logger.info({
+          'text': '已是群成员，直接跳转群聊',
+          'data': {'groupId': _groupId},
+        });
         _goChat();
         return;
       }
@@ -124,14 +139,23 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
 
   Future<void> _loadDetail() async {
     if (getIt<GroupStore>().getGroup(_conversationId) != null) {
+      _logger.info({
+        'text': '已是群成员（本地命中），直接跳转群聊',
+        'data': {'groupId': _groupId},
+      });
       _goChat();
       return;
     }
 
+    _logger.info({'text': '开始加载群信息', 'data': {'groupId': _groupId}});
     final res = await getGroupInfoApi(IGroupInfoReq(groupId: _groupId));
     if (!mounted) return;
 
     if (res.code != 0 || res.result == null) {
+      _logger.error({
+        'text': '获取群信息失败',
+        'data': {'groupId': _groupId, 'code': res.code, 'msg': res.msg},
+      });
       if (_inviteCode.isNotEmpty) {
         final resolve = await resolveGroupInviteApi(
           IResolveGroupInviteReq(code: _inviteCode),
@@ -167,6 +191,10 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
 
     final info = res.result!;
     if (getIt<GroupStore>().getGroup(_conversationId) != null) {
+      _logger.info({
+        'text': '获取群信息后确认已是成员，直接跳转群聊',
+        'data': {'groupId': _groupId},
+      });
       _goChat();
       return;
     }
@@ -204,6 +232,10 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
   Future<void> _join() async {
     if (_joining || _groupId.isEmpty) return;
 
+    _logger.info({
+      'text': '开始加入群聊',
+      'data': {'groupId': _groupId, 'inviteCode': _inviteCode},
+    });
     setState(() => _joining = true);
     final res = await joinGroupApi(
       IGroupJoinReq(
@@ -215,16 +247,25 @@ class _GroupJoinPageState extends State<GroupJoinPage> {
     setState(() => _joining = false);
 
     if (res.code != 0) {
+      _logger.error({
+        'text': '加入群聊接口失败',
+        'data': {'groupId': _groupId, 'code': res.code, 'msg': res.msg},
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '加入失败');
       return;
     }
 
     final status = res.result?.status ?? 1;
     if (status == 0) {
+      _logger.info({
+        'text': '加群申请已提交，等待管理员审批',
+        'data': {'groupId': _groupId},
+      });
       BeaverToast.show(context, '申请已提交，等待管理员审批');
       return;
     }
 
+    _logger.info({'text': '加入群聊成功，开始刷新本地数据', 'data': {'groupId': _groupId}});
     BeaverToast.show(context, '已加入群聊');
     await groupDatasync.checkAndSync();
     await getIt<GroupStore>().init();

@@ -31,6 +31,9 @@ import 'package:beaver/types/api/group.dart';
 import 'package:beaver/api/group.dart';
 import 'package:beaver/core/business/group/group_join_request.dart';
 import 'package:beaver/core/business/group/group_member.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-business');
 
 const int groupStatusActive = 1;
 
@@ -45,7 +48,10 @@ class GroupBusiness implements GroupRepositoryInterface {
   Stream<List<String>> get groupUpdateStream => _groupUpdateController.stream;
 
   void notifyGroupUpdate(List<String> groupIds) {
-    print('[GroupBusiness] 发送群组更新通知: $groupIds');
+    _logger.info({
+      'text': '发送群组更新通知',
+      'data': {'groupIds': groupIds},
+    });
     _groupUpdateController.add(groupIds);
   }
 
@@ -178,7 +184,10 @@ class GroupBusiness implements GroupRepositoryInterface {
       }
       return result;
     } catch (e) {
-      print('GroupBusiness: getGroupsByIds 失败: $e');
+      _logger.error({
+        'text': '批量查询群组失败',
+        'data': {'error': e.toString()},
+      });
       rethrow;
     }
   }
@@ -240,7 +249,10 @@ class GroupBusiness implements GroupRepositoryInterface {
         getIt<ConversationBusiness>().notifyConversationUpdate();
       }
     } catch (e) {
-      print('[GroupBusiness] syncGroupByVersion failed: $e');
+      _logger.error({
+        'text': '按版本同步群组失败',
+        'data': {'error': e.toString()},
+      });
     }
   }
 }

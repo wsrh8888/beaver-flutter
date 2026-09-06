@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/notification/inbox.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-notification-inbox');
 
 /// 通知收件箱接收器 - 处理 notification_inbox 表的操作 (对标 PC receivers/notification/inbox-receiver.ts)
 class InboxReceiver {
@@ -31,7 +34,11 @@ class InboxReceiver {
    */
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tableUpdates'] ?? body['tables']) as List?;
-    if (updates == null) return;
+    if (updates == null) {
+      _logger.warn({'text': '收到通知收件箱表更新但 updates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理通知收件箱表更新', 'data': {'count': updates.length}});
 
     for (final update in updates) {
       final table = update['table'] as String?;
@@ -46,7 +53,11 @@ class InboxReceiver {
         final version = item['version'] as int?;
         final eventId = item['eventId'] as String?;
         if (version != null && eventId != null) {
-          await _inboxBusiness.handleTableUpdates(version, eventId, userId);
+          try {
+            await _inboxBusiness.handleTableUpdates(version, eventId, userId);
+          } catch (e) {
+            _logger.warn({'text': '处理通知收件箱更新失败', 'data': {'eventId': eventId, 'userId': userId, 'version': version, 'error': e.toString()}});
+          }
         }
       }
     }

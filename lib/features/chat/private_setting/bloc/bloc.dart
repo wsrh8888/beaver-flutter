@@ -26,6 +26,9 @@ import 'package:beaver/features/chat/private_setting/bloc/event.dart';
 import 'package:beaver/features/chat/private_setting/bloc/state.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('private-setting');
 
 class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> {
   final _conversationBusiness = getIt<ConversationBusiness>();
@@ -44,6 +47,10 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
     InitPrivateSettingEvent event,
     Emitter<PrivateSettingState> emit,
   ) async {
+    _logger.info({
+      'text': '初始化私聊设置',
+      'data': {'conversationId': event.conversationId},
+    });
     emit(state.copyWith(status: PrivateSettingStatus.loading, conversationId: event.conversationId));
 
     try {
@@ -51,12 +58,27 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
       final conversation = chatList.where((c) => c.conversationId == event.conversationId).firstOrNull;
 
       if (conversation == null) {
+        _logger.warn({
+          'text': '私聊设置初始化失败：会话不存在',
+          'data': {'conversationId': event.conversationId},
+        });
         emit(state.copyWith(status: PrivateSettingStatus.error, errorMessage: '会话不存在'));
         return;
       }
 
+      _logger.info({
+        'text': '私聊设置初始化完成',
+        'data': {'conversationId': event.conversationId},
+      });
       emit(state.copyWith(status: PrivateSettingStatus.success, conversation: conversation));
     } catch (e) {
+      _logger.error({
+        'text': '私聊设置初始化异常',
+        'data': {
+          'conversationId': event.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(state.copyWith(status: PrivateSettingStatus.error, errorMessage: e.toString()));
     }
   }
@@ -70,6 +92,10 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
     final previousIsTop = state.conversation!.isTop;
     final newIsPinned = !previousIsTop;
 
+    _logger.info({
+      'text': '切换私聊置顶',
+      'data': {'conversationId': state.conversationId, 'isPinned': newIsPinned},
+    });
     emit(
       state.copyWith(
         conversation: state.conversation!.copyWith(isTop: newIsPinned),
@@ -82,6 +108,13 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
         newIsPinned,
       );
     } catch (e) {
+      _logger.error({
+        'text': '切换私聊置顶失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(
         state.copyWith(
           conversation: state.conversation!.copyWith(isTop: previousIsTop),
@@ -100,6 +133,10 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
     final previousIsMuted = state.conversation!.isMuted;
     final newIsMuted = !previousIsMuted;
 
+    _logger.info({
+      'text': '切换私聊免打扰',
+      'data': {'conversationId': state.conversationId, 'isMuted': newIsMuted},
+    });
     emit(
       state.copyWith(
         conversation: state.conversation!.copyWith(isMuted: newIsMuted),
@@ -112,6 +149,13 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
         newIsMuted,
       );
     } catch (e) {
+      _logger.error({
+        'text': '切换私聊免打扰失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(
         state.copyWith(
           conversation: state.conversation!.copyWith(isMuted: previousIsMuted),
@@ -127,11 +171,26 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
   ) async {
     if (state.isSaving) return;
 
+    _logger.info({
+      'text': '删除私聊会话',
+      'data': {'conversationId': state.conversationId},
+    });
     emit(state.copyWith(isSaving: true, showDeleteDialog: false));
     try {
       await _conversationBusiness.deleteChat(state.conversationId);
+      _logger.info({
+        'text': '删除私聊会话成功',
+        'data': {'conversationId': state.conversationId},
+      });
       emit(state.copyWith(isSaving: false, status: PrivateSettingStatus.deleted));
     } catch (e) {
+      _logger.error({
+        'text': '删除私聊会话失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
@@ -149,6 +208,10 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
   ) async {
     if (state.isSaving) return;
 
+    _logger.info({
+      'text': '清空私聊记录',
+      'data': {'conversationId': state.conversationId},
+    });
     emit(state.copyWith(isSaving: true, showClearDialog: false));
     try {
       final conversationId = state.conversationId;
@@ -159,12 +222,23 @@ class PrivateSettingBloc extends Bloc<PrivateSettingEvent, PrivateSettingState> 
       // 2. 清除 Store 中的内存缓存
       getIt<MessageStore>().clearConversationMessages(conversationId);
 
+      _logger.info({
+        'text': '清空私聊记录成功',
+        'data': {'conversationId': conversationId},
+      });
       emit(state.copyWith(
         isSaving: false,
         status: PrivateSettingStatus.historyCleared,
         conversation: state.conversation?.copyWith(msgPreview: ''),
       ));
     } catch (e) {
+      _logger.error({
+        'text': '清空私聊记录失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }

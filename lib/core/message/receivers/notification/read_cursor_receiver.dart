@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/notification/read_cursor.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-notification-read-cursor');
 
 /// 通知已读游标接收器 - 处理 notification_read_cursor 表的操作 (对标 PC receivers/notification/read-cursor-receiver.ts)
 class ReadCursorReceiver {
@@ -31,7 +34,11 @@ class ReadCursorReceiver {
    */
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tableUpdates'] ?? body['tables']) as List?;
-    if (updates == null) return;
+    if (updates == null) {
+      _logger.warn({'text': '收到通知已读游标表更新但 updates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理通知已读游标表更新', 'data': {'count': updates.length}});
 
     for (final update in updates) {
       final table = update['table'] as String?;
@@ -46,7 +53,11 @@ class ReadCursorReceiver {
         final version = item['version'] as int?;
         final category = item['category'] as String?;
         if (version != null && category != null) {
-          await _readCursorBusiness.handleTableUpdates(version, userId, category);
+          try {
+            await _readCursorBusiness.handleTableUpdates(version, userId, category);
+          } catch (e) {
+            _logger.warn({'text': '处理通知已读游标更新失败', 'data': {'userId': userId, 'category': category, 'version': version, 'error': e.toString()}});
+          }
         }
       }
     }

@@ -24,6 +24,9 @@ import 'package:beaver/features/contact/new_friends/bloc/event.dart';
 import 'package:beaver/features/contact/new_friends/bloc/state.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'package:beaver/features/contact/new_friends/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('new-friends');
 
 class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
   final NewFriendsRepository _repository = NewFriendsRepository();
@@ -40,8 +43,13 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
     Emitter<NewFriendsState> emit,
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
+    _logger.info({'text': '开始加载好友请求列表'});
 
     final friendRequests = await _repository.getFriendRequests();
+    _logger.info({
+      'text': '好友请求列表加载完成',
+      'data': {'count': friendRequests.length},
+    });
     emit(
       state.copyWith(
         status: NewFriendsStatus.success,
@@ -62,10 +70,12 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
     Emitter<NewFriendsState> emit,
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
+    _logger.info({'text': '开始接受好友请求', 'data': {'id': event.id}});
 
     final response = await _repository.updateRequestStatus(event.id, 1);
 
     if (response.code == 0) {
+      _logger.info({'text': '接受好友请求成功', 'data': {'id': event.id}});
       final updatedRequests = state.friendRequests.map((request) {
         if (request.id == event.id) {
           return FriendRequest(
@@ -88,6 +98,10 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
         ),
       );
     } else {
+      _logger.error({
+        'text': '接受好友请求失败',
+        'data': {'id': event.id, 'code': response.code, 'msg': response.msg},
+      });
       emit(
         state.copyWith(
           status: NewFriendsStatus.error,
@@ -102,10 +116,12 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
     Emitter<NewFriendsState> emit,
   ) async {
     emit(state.copyWith(status: NewFriendsStatus.loading));
+    _logger.info({'text': '开始拒绝好友请求', 'data': {'id': event.id}});
 
     final response = await _repository.updateRequestStatus(event.id, 2);
 
     if (response.code == 0) {
+      _logger.info({'text': '拒绝好友请求成功', 'data': {'id': event.id}});
       final updatedRequests = state.friendRequests.map((request) {
         if (request.id == event.id) {
           return FriendRequest(
@@ -128,6 +144,10 @@ class NewFriendsBloc extends Bloc<NewFriendsEvent, NewFriendsState> {
         ),
       );
     } else {
+      _logger.error({
+        'text': '拒绝好友请求失败',
+        'data': {'id': event.id, 'code': response.code, 'msg': response.msg},
+      });
       emit(
         state.copyWith(
           status: NewFriendsStatus.error,

@@ -19,14 +19,18 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/datasync/index.dart';
 
 /// 用户数据同步统一入口
 class UserDatasync {
   Future<void> checkAndSync() async {
+    _logger.info({'text': '开始同步用户数据', 'data': {}});
     // 同步用户资料
     await userSyncModule.checkAndSync();
+    _logger.info({'text': '用户数据同步完成', 'data': {}});
   }
 }
 
 final userDatasync = UserDatasync();
+final _logger = Logger('datasync-user-entry');

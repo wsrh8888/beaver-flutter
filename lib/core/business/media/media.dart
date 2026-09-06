@@ -23,6 +23,9 @@ import 'package:beaver/api/file.dart';
 import 'package:beaver/core/cache/media_manager.dart';
 import 'package:beaver/types/cache.dart';
 import 'package:beaver/types/api/file.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('media-business');
 
 /// 媒体业务逻辑
 /// 职责：为 UI 提供集中的媒体资源访问接口
@@ -39,10 +42,27 @@ class MediaBusiness {
 
   /// 上传文件并返回上传结果 (对标 PC uploadFileApi)
   Future<IFileUploadResult?> uploadFile(String filePath) async {
-    final response = await uploadFileApi(filePath);
-    if (response.isSuccess && response.result != null) {
-      return response.result;
+    _logger.info({'text': '开始上传文件', 'data': {'filePath': filePath}});
+    try {
+      final response = await uploadFileApi(filePath);
+      if (response.isSuccess && response.result != null) {
+        _logger.info({
+          'text': '上传文件成功',
+          'data': {'filePath': filePath, 'url': response.result?.url},
+        });
+        return response.result;
+      }
+      _logger.error({
+        'text': '上传文件接口失败',
+        'data': {'filePath': filePath, 'code': response.code, 'msg': response.msg},
+      });
+      return null;
+    } catch (e) {
+      _logger.error({
+        'text': '上传文件异常',
+        'data': {'filePath': filePath, 'error': e.toString()},
+      });
+      rethrow;
     }
-    return null;
   }
 }

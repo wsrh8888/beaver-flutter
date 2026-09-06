@@ -26,9 +26,13 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-emoji-detail');
 
 class EmojiDetailSync {
   Future<void> sync() async {
+    _logger.info({'text': '开始同步表情详情数据'});
     final datasyncService = getIt<DatasyncService>();
     final emojiService = getIt<EmojiService>();
 
@@ -38,7 +42,10 @@ class EmojiDetailSync {
     final response = await datasyncGetSyncEmojisApi(
       IGetSyncEmojisReq(since: lastSyncTime),
     );
-    if (response.code != 0 || response.result == null) return;
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '获取表情版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
+      return;
+    }
 
     final emojiVersions = response.result!.emojiVersions;
     if (emojiVersions.isEmpty) {
@@ -47,6 +54,7 @@ class EmojiDetailSync {
         lastSyncTime,
         response.result!.serverTimestamp,
       );
+      _logger.info({'text': '表情数据无变更，仅更新游标'});
       return;
     }
 
@@ -60,6 +68,7 @@ class EmojiDetailSync {
           .version;
       return local == null || local.version < serverVersion;
     }).toList();
+    _logger.info({'text': '表情详情对比完成', 'data': {'needUpdate': needUpdateIds.length}});
 
     if (needUpdateIds.isNotEmpty) {
       const batchSize = 50;
@@ -86,6 +95,8 @@ class EmojiDetailSync {
             );
           }).toList();
           await emojiService.batchCreate(emojis);
+        } else {
+          _logger.warn({'text': '批量获取表情详情失败', 'data': {'code': detailRes.code, 'msg': detailRes.msg, 'batchCount': batchIds.length}});
         }
       }
     }
@@ -98,5 +109,6 @@ class EmojiDetailSync {
       maxVersion,
       response.result!.serverTimestamp,
     );
+    _logger.info({'text': '表情详情数据同步完成'});
   }
 }

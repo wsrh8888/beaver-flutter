@@ -21,9 +21,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:beaver/features/setting/theme/data/models/theme.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-theme');
 
 class ThemeRepository {
   Future<List<ThemeConfig>> getAvailableThemes() async {
+    try {
+
     // 模拟获取可用主题
     await Future.delayed(const Duration(seconds: 1));
     return [
@@ -68,17 +73,33 @@ class ThemeRepository {
         ),
       ),
     ];
+    } catch (e, st) {
+      _logger.warn({'text':'ThemeRepository.getAvailableThemes 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<String> getCurrentTheme() async {
+    try {
+
     // 模拟获取当前主题
     await Future.delayed(const Duration(milliseconds: 500));
     return 'default';
+    } catch (e, st) {
+      _logger.warn({'text':'ThemeRepository.getCurrentTheme 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> setTheme(String themeName) async {
+    try {
+
     // 模拟设置主题
     await Future.delayed(const Duration(seconds: 1));
+    } catch (e, st) {
+      _logger.warn({'text':'ThemeRepository.setTheme 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/list/bloc/event.dart';
 import 'package:beaver/features/group/list/bloc/state.dart';
 import 'package:beaver/features/group/list/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-list');
 
 class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
   final GroupListRepository _groupListRepository;
@@ -40,14 +43,23 @@ class GroupListBloc extends Bloc<GroupListEvent, GroupListState> {
     Emitter<GroupListState> emit,
   ) async {
     emit(state.copyWith(status: GroupListStatus.loading));
+    _logger.info({'text': '加载群聊列表'});
 
     try {
       final groupList = await _groupListRepository.getGroupList();
+      _logger.info({
+        'text': '加载群聊列表成功',
+        'data': {'count': groupList?.length ?? 0},
+      });
       emit(state.copyWith(
         status: GroupListStatus.success,
         groupList: groupList ?? [],
       ));
     } catch (e) {
+      _logger.error({
+        'text': '加载群聊列表失败',
+        'data': {'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupListStatus.error,
         errorMessage: '加载群聊列表失败: $e',

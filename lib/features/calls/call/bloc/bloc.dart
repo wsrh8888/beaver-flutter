@@ -29,6 +29,9 @@ import 'event.dart';
 import 'state.dart';
 
 import 'package:beaver/store/user/user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('call-page');
 
 class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   final CallStore _callStore;
@@ -69,40 +72,68 @@ class CallPageBloc extends Bloc<CallPageEvent, CallPageState> {
   }
 
   Future<void> _onInitialize(InitializeCallEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({
+      'text': '初始化通话页面',
+      'data': {
+        'conversationId': event.conversationId,
+        'callType': event.callType,
+        'isGroup': event.isGroup,
+      },
+    });
     emit(state.copyWith(status: CallStatus.loading, callType: event.callType, isGroup: event.isGroup));
     try {
       await _callBusiness.initialize(event.conversationId, event.roomToken, event.liveKitUrl);
+      _logger.info({
+        'text': '通话初始化成功，已连接',
+        'data': {'conversationId': event.conversationId},
+      });
       emit(state.copyWith(status: CallStatus.connected));
     } catch (e) {
+      _logger.error({
+        'text': '通话初始化失败',
+        'data': {
+          'conversationId': event.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(state.copyWith(status: CallStatus.error));
     }
   }
 
   Future<void> _onStartCall(StartCallEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({'text': '发起通话', 'data': {}});
     await _callBusiness.startCall();
   }
 
   Future<void> _onToggleMute(ToggleMuteEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({'text': '切换静音状态', 'data': {'isMuted': !state.isMuted}});
     await _callBusiness.toggleMute();
     emit(state.copyWith(isMuted: !state.isMuted));
   }
 
   Future<void> _onToggleCamera(ToggleCameraEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({'text': '切换摄像头状态', 'data': {'isCameraOff': !state.isCameraOff}});
     await _callBusiness.toggleCamera();
     emit(state.copyWith(isCameraOff: !state.isCameraOff));
   }
 
   Future<void> _onToggleSpeaker(ToggleSpeakerEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({'text': '切换扬声器状态', 'data': {'isSpeakerOn': !state.isSpeakerOn}});
     await _callBusiness.toggleSpeaker();
     emit(state.copyWith(isSpeakerOn: !state.isSpeakerOn));
   }
 
   Future<void> _onEndCall(EndCallEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({'text': '结束通话', 'data': {}});
     await _callBusiness.endCall();
     emit(state.copyWith(status: CallStatus.ended));
   }
-  
+
   Future<void> _onInviteParticipants(InviteParticipantsEvent event, Emitter<CallPageState> emit) async {
+    _logger.info({
+      'text': '邀请成员加入通话',
+      'data': {'userIds': event.userIds, 'count': event.userIds.length},
+    });
     await _callBusiness.inviteParticipants(event.userIds);
   }
   

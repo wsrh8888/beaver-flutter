@@ -22,12 +22,17 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-chat-message');
 
 class ChatMessageService extends BaseService {
   const ChatMessageService();
 
   /// upsert单条消息
   Future<void> upsert(ChatsCompanion message) async {
+    try {
+
     final messageId = message.messageId.value;
     final existing = await (db.select(db.chats)
           ..where((t) => t.messageId.equals(messageId))
@@ -39,15 +44,28 @@ class ChatMessageService extends BaseService {
     } else {
       await db.into(db.chats).insert(message);
     }
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 创建单条消息
   Future<void> create(ChatsCompanion message) async {
+    try {
+
     await upsert(message);
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.create 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建消息（一次性插入所有消息，如果重复则更新关键字段）
   Future<void> batchCreate(List<ChatsCompanion> messages) async {
+    try {
+    _logger.info({'text':'ChatMessageService.batchCreate 开始执行','data':{}});
+
     if (messages.isEmpty) {
       return;
     }
@@ -61,10 +79,17 @@ class ChatMessageService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量更新消息的发送状态（用于收到服务器消息后，更新本地已发送消息的状态）
   Future<void> batchUpdateSendStatus(List<String> messageIds, int sendStatus, {Map<String, int>? seqMap}) async {
+    try {
+    _logger.info({'text':'ChatMessageService.batchUpdateSendStatus 开始执行','data':{}});
+
     if (messageIds.isEmpty) {
       return;
     }
@@ -88,6 +113,10 @@ class ChatMessageService extends BaseService {
         ),
       );
     }
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.batchUpdateSendStatus 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取会话的历史消息（纯数据库查询，不含业务逻辑）
@@ -97,6 +126,8 @@ class ChatMessageService extends BaseService {
     int limit = 20,
     int offset = 0,
   }) async {
+    try {
+
     var query = db.select(db.chats)
       ..where((t) => t.conversationId.equals(conversationId));
 
@@ -110,10 +141,16 @@ class ChatMessageService extends BaseService {
           ])
           ..limit(limit + 1, offset: offset))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.getChatHistory 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 按序列号范围获取消息（纯数据库查询，不含业务逻辑）
   Future<List<Chat>> getChatMessagesBySeqRange(String conversationId, int startSeq, int endSeq) async {
+    try {
+
     return (db.select(db.chats)
           ..where((t) =>
               t.conversationId.equals(conversationId) &
@@ -121,30 +158,60 @@ class ChatMessageService extends BaseService {
               t.seq.isSmallerOrEqualValue(endSeq))
           ..orderBy([(t) => OrderingTerm(expression: t.seq)]))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.getChatMessagesBySeqRange 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量删除消息（物理删除）
   Future<void> batchDelete(List<String> messageIds) async {
+    try {
+    _logger.info({'text':'ChatMessageService.batchDelete 开始执行','data':{}});
+
     if (messageIds.isEmpty) {
       return;
     }
     await (db.delete(db.chats)..where((t) => t.messageId.isIn(messageIds))).go();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.batchDelete 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取单条消息
   Future<Chat?> getById(String messageId) async {
+    try {
+
     return (db.select(db.chats)..where((t) => t.messageId.equals(messageId))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.getById 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取某个会话中所有"发送中"的消息（用于 ACK 确认）
   Future<List<Chat>> getSendingMessages(String conversationId) async {
+    try {
+
     return (db.select(db.chats)
           ..where((t) => t.conversationId.equals(conversationId) & t.sendStatus.equals(0)))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.getSendingMessages 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 清空会话的所有消息
   Future<void> clearHistory(String conversationId) async {
+    try {
+    _logger.info({'text':'ChatMessageService.clearHistory 开始执行','data':{}});
+
     await (db.delete(db.chats)..where((t) => t.conversationId.equals(conversationId))).go();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageService.clearHistory 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

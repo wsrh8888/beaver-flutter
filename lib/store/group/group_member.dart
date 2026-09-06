@@ -26,6 +26,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/group/group_member.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:beaver/store/contact/contact.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-member');
 
 class GroupMemberStoreState extends Equatable {
   final Map<String, List<GroupMember>> memberMap;
@@ -111,7 +114,10 @@ class GroupMemberStore extends Cubit<GroupMemberStoreState> {
       _rawMemberMap[groupId] = members;
       _reassemble();
     } catch (e) {
-      print('GroupMemberStore: 初始化失败: $e');
+      _logger.error({
+        'text': '群成员初始化失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
     }
   }
 
@@ -152,7 +158,10 @@ class GroupMemberStore extends Cubit<GroupMemberStoreState> {
       }
       _reassemble();
     } catch (e) {
-      print('GroupMemberStore: 批量更新失败: $e');
+      _logger.error({
+        'text': '群成员批量更新失败',
+        'data': {'error': e.toString()},
+      });
     }
   }
 

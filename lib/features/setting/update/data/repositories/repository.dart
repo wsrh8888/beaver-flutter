@@ -24,9 +24,14 @@ import 'package:beaver/types/api/update.dart';
 import 'package:beaver/common/config/config.dart';
 import 'package:beaver/features/setting/update/data/models/update.dart';
 import 'package:beaver/features/setting/update/data/platform_info.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-update');
 
 class UpdateRepository {
   Future<UpdateCheckResult> checkUpdate() async {
+    try {
+
     final platform = UpdatePlatformInfo.current();
     if (platform.platformId == 0) {
       return const UpdateCheckResult.failure('当前平台不支持检查更新');
@@ -81,5 +86,9 @@ class UpdateRepository {
         lastCheckTime: DateTime.now(),
       ),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'UpdateRepository.checkUpdate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

@@ -20,6 +20,9 @@
  */
 
 import './user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('user-message-router');
 
 /// User message router.
 class UserMessageRouter {
@@ -33,7 +36,10 @@ class UserMessageRouter {
     final data = wsMessage['data'] as Map<String, dynamic>?;
 
     if (data == null) {
-      print('[UserMessageRouter] 收到用户消息, 但缺少 data 字段: $wsMessage');
+      _logger.warn({
+        'text': '收到用户消息但缺少data字段',
+        'data': {'wsMessage': wsMessage},
+      });
       return;
     }
 

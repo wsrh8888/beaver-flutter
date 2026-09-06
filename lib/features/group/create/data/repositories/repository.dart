@@ -21,6 +21,9 @@
 
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-group-create');
 
 class CreateGroupRepository {
   final GroupRepositoryInterface _groupRepository;
@@ -29,11 +32,23 @@ class CreateGroupRepository {
     : _groupRepository = groupRepository ?? getIt<GroupRepositoryInterface>();
 
   Future<List<Contact>?> getContacts() async {
+    try {
+
     return _groupRepository.getContacts();
+    } catch (e, st) {
+      _logger.warn({'text':'CreateGroupRepository.getContacts 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<String> createGroup(List<String> userIds) async {
+    try {
+
     return _groupRepository.createGroup(userIds);
+    } catch (e, st) {
+      _logger.warn({'text':'CreateGroupRepository.createGroup 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

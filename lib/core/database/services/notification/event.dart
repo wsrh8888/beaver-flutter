@@ -22,12 +22,18 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-notification-event');
 
 class NotificationEventService extends BaseService {
   const NotificationEventService();
 
   /// 批量创建通知事件
   Future<void> batchCreate(List<NotificationEventsCompanion> events) async {
+    try {
+    _logger.info({'text':'NotificationEventService.batchCreate 开始执行','data':{}});
+
     if (events.isEmpty) {
       return;
     }
@@ -41,19 +47,31 @@ class NotificationEventService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'NotificationEventService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 按版本增量拉取事件
   Future<List<NotificationEvent>> getEventsAfterVersion(int version, {int limit = 100}) async {
+    try {
+
     return (db.select(db.notificationEvents)
           ..where((t) => t.version.isBiggerThanValue(version))
           ..orderBy([(t) => OrderingTerm(expression: t.version)])
           ..limit(limit))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'NotificationEventService.getEventsAfterVersion 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取指定事件ID的本地版本映射
   Future<Map<String, int>> getVersionMapByIds(List<String> eventIds) async {
+    try {
+
     if (eventIds.isEmpty) {
       return {};
     }
@@ -66,14 +84,24 @@ class NotificationEventService extends BaseService {
     }
 
     return versionMap;
+    } catch (e, st) {
+      _logger.warn({'text':'NotificationEventService.getVersionMapByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据事件ID列表获取事件明细
   Future<List<NotificationEvent>> getByIds(List<String> eventIds) async {
+    try {
+
     if (eventIds.isEmpty) {
       return [];
     }
 
     return (db.select(db.notificationEvents)..where((t) => t.eventId.isIn(eventIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'NotificationEventService.getByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

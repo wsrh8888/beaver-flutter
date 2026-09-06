@@ -30,6 +30,9 @@ import 'package:beaver/shared/ui/avatar/index.dart';
 import 'package:beaver/shared/ui/layout/layout.dart';
 import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-join');
 
 class CircleJoinPage extends StatefulWidget {
   final String circleId;
@@ -62,6 +65,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
   }
 
   Future<void> _bootstrap() async {
+    _logger.info({
+      'text': '进入加入圈子页',
+      'data': {'circleId': _circleId, 'inviteCode': _inviteCode},
+    });
     setState(() {
       _loading = true;
       _error = null;
@@ -76,6 +83,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
       if (res.code != 0 ||
           res.result == null ||
           (!res.result!.valid && !res.result!.alreadyJoined)) {
+        _logger.error({
+          'text': '解析圈子邀请失败',
+          'data': {'inviteCode': _inviteCode, 'code': res.code, 'msg': res.msg},
+        });
         setState(() {
           _loading = false;
           _error = res.msg.isNotEmpty ? res.msg : '邀请无效或已失效';
@@ -85,6 +96,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
       final data = res.result!;
       _circleId = data.circleId;
       if (data.alreadyJoined) {
+        _logger.info({
+          'text': '已加入圈子，直接跳转动态',
+          'data': {'circleId': data.circleId},
+        });
         _goFeedFromResolve(data);
         return;
       }
@@ -118,6 +133,7 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
   }
 
   Future<void> _loadDetail() async {
+    _logger.info({'text': '开始加载圈子详情', 'data': {'circleId': _circleId}});
     final res = await getCircleDetailApi(
       IGetCircleDetailReq(circleId: _circleId),
     );
@@ -125,6 +141,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
     if (!mounted) return;
 
     if (res.code != 0 || res.result == null) {
+      _logger.error({
+        'text': '获取圈子详情失败',
+        'data': {'circleId': _circleId, 'code': res.code, 'msg': res.msg},
+      });
       // 详情失败但有邀请码：回落 resolve
       if (_inviteCode.isNotEmpty) {
         final resolve = await resolveCircleInviteApi(
@@ -167,6 +187,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
 
     final detail = res.result!;
     if (detail.role > 0) {
+      _logger.info({
+        'text': '已是圈子成员，直接跳转动态',
+        'data': {'circleId': detail.circleId, 'role': detail.role},
+      });
       await getIt<CircleBusiness>().upsertFromDetail(detail);
       if (!mounted) return;
       _goFeed(detail);
@@ -214,6 +238,10 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
   Future<void> _join() async {
     if (_joining || _detail == null) return;
 
+    _logger.info({
+      'text': '开始加入圈子',
+      'data': {'circleId': _circleId, 'inviteCode': _inviteCode},
+    });
     setState(() => _joining = true);
     final res = await joinCircleApi(
       IJoinCircleReq(
@@ -225,16 +253,25 @@ class _CircleJoinPageState extends State<CircleJoinPage> {
     setState(() => _joining = false);
 
     if (res.code != 0) {
+      _logger.error({
+        'text': '加入圈子接口失败',
+        'data': {'circleId': _circleId, 'code': res.code, 'msg': res.msg},
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '加入失败');
       return;
     }
 
     final status = res.result?.status ?? 0;
     if (status == 0) {
+      _logger.info({
+        'text': '加入圈子申请已提交，等待审批',
+        'data': {'circleId': _circleId},
+      });
       BeaverToast.show(context, '申请已提交，等待圈主审批');
       return;
     }
 
+    _logger.info({'text': '加入圈子成功', 'data': {'circleId': _circleId}});
     BeaverToast.show(context, '已加入圈子');
     final circleId = res.result?.circleId?.isNotEmpty == true
         ? res.result!.circleId!

@@ -23,20 +23,32 @@ import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-circle-circle');
 
 class CircleService extends BaseService {
   const CircleService();
 
   /// 创建或更新圈子
   Future<void> upsert(CirclesCompanion circle) async {
+    try {
+
     await db.into(db.circles).insert(
           circle,
           mode: InsertMode.insertOrReplace,
         );
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量插入或更新（基于版本号判断是否需要更新）
   Future<void> batchUpsert(List<ICircleSyncItem> items) async {
+    try {
+    _logger.info({'text':'CircleService.batchUpsert 开始执行','data':{}});
+
     if (items.isEmpty) {
       return;
     }
@@ -64,25 +76,43 @@ class CircleService extends BaseService {
         );
       }
     }
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.batchUpsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据圈子 ID 获取
   Future<Circle?> getCircleById(String circleId) async {
+    try {
+
     return (db.select(db.circles)..where((t) => t.circleId.equals(circleId)))
         .getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.getCircleById 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据 ID 列表批量获取
   Future<List<Circle>> getCirclesByIds(List<String> circleIds) async {
+    try {
+
     if (circleIds.isEmpty) {
       return [];
     }
     return (db.select(db.circles)..where((t) => t.circleId.isIn(circleIds)))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.getCirclesByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 当前用户仍在圈内的列表（role > 0）
   Future<List<Circle>> getActiveCircles() async {
+    try {
+
     return (db.select(db.circles)
           ..where((t) => t.role.isBiggerThanValue(0))
           ..orderBy([
@@ -90,21 +120,37 @@ class CircleService extends BaseService {
             (t) => OrderingTerm.desc(t.createdAt),
           ]))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.getActiveCircles 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取全部圈子
   Future<List<Circle>> getCircleList() async {
+    try {
+
     return (db.select(db.circles)
           ..orderBy([
             (t) => OrderingTerm.desc(t.updatedAt),
             (t) => OrderingTerm.desc(t.createdAt),
           ]))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.getCircleList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 删除圈子
   Future<void> deleteCircle(String circleId) async {
+    try {
+
     await (db.delete(db.circles)..where((t) => t.circleId.equals(circleId)))
         .go();
+    } catch (e, st) {
+      _logger.warn({'text':'CircleService.deleteCircle 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

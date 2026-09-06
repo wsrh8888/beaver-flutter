@@ -22,6 +22,9 @@
 import 'package:beaver/core/business/chat/message.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-chat-message');
 
 /// 消息接收器 - 处理多表聚合更新 (对标 PC receivers/chat/message-receiver.ts)
 class MessageReceiver {
@@ -30,7 +33,11 @@ class MessageReceiver {
 
   Future<void> handleTableUpdates(Map<String, dynamic> tableUpdatesBody) async {
     final tableUpdates = (tableUpdatesBody['tableUpdates'] ?? tableUpdatesBody['tables']) as List?;
-    if (tableUpdates == null) return;
+    if (tableUpdates == null) {
+      _logger.warn({'text': '收到消息表更新但 tableUpdates 为空', 'data': {'bodyKeys': tableUpdatesBody.keys.toList()}});
+      return;
+    }
+    _logger.info({'text': '开始处理消息表更新', 'data': {'count': tableUpdates.length}});
 
     for (final update in tableUpdates) {
       final table = update['table'] as String?;
@@ -46,7 +53,11 @@ class MessageReceiver {
             for (final item in data) {
               final seq = item['seq'] as int?;
               if (seq != null) {
-                await _messageBusiness.syncMessagesByVersion(conversationId, seq);
+                try {
+                  await _messageBusiness.syncMessagesByVersion(conversationId, seq);
+                } catch (e) {
+                  _logger.warn({'text': '按版本同步消息失败', 'data': {'conversationId': conversationId, 'seq': seq, 'error': e.toString()}});
+                }
               }
             }
           }
@@ -57,7 +68,11 @@ class MessageReceiver {
             for (final item in data) {
               final version = item['version'] as int?;
               if (version != null) {
-                await _conversationBusiness.syncConversationByVersion(conversationId, version);
+                try {
+                  await _conversationBusiness.syncConversationByVersion(conversationId, version);
+                } catch (e) {
+                  _logger.warn({'text': '按版本同步会话失败', 'data': {'conversationId': conversationId, 'version': version, 'error': e.toString()}});
+                }
               }
             }
           }
@@ -68,7 +83,11 @@ class MessageReceiver {
             for (final item in data) {
               final version = item['version'] as int?;
               if (version != null) {
-                await _conversationBusiness.syncUserConversationByVersion(userId, conversationId, version);
+                try {
+                  await _conversationBusiness.syncUserConversationByVersion(userId, conversationId, version);
+                } catch (e) {
+                  _logger.warn({'text': '按版本同步用户会话失败', 'data': {'userId': userId, 'conversationId': conversationId, 'version': version, 'error': e.toString()}});
+                }
               }
             }
           }

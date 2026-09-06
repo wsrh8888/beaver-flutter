@@ -18,30 +18,63 @@
  *
  * beaver-flutter-header-v1
  */
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-calls-call');
 
 class CallPageRepository {
   Future<void> startCall(String conversationId) async {
+    try {
+
     // 模拟开始通话
     await Future.delayed(const Duration(seconds: 1));
+    } catch (e, st) {
+      _logger.warn({'text':'CallPageRepository.startCall 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> endCall(String conversationId) async {
+    try {
+
     // 模拟结束通话
     await Future.delayed(const Duration(seconds: 1));
+    } catch (e, st) {
+      _logger.warn({'text':'CallPageRepository.endCall 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> toggleMute(bool isMuted) async {
+    try {
+
     // 模拟切换静音
     await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e, st) {
+      _logger.warn({'text':'CallPageRepository.toggleMute 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> toggleCamera(bool isCameraOn) async {
+    try {
+
     // 模拟切换摄像头
     await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e, st) {
+      _logger.warn({'text':'CallPageRepository.toggleCamera 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<void> toggleSpeaker(bool isSpeakerOn) async {
+    try {
+
     // 模拟切换扬声器
     await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e, st) {
+      _logger.warn({'text':'CallPageRepository.toggleSpeaker 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

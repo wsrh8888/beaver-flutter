@@ -27,6 +27,9 @@ import 'package:beaver/api/group.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/types/api/group.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-member-business');
 
 const int _userTypeNormal = 1;
 
@@ -71,13 +74,17 @@ class GroupMemberBusiness {
         await getIt<GroupMemberStore>().updateMembersByGroupIds(
           maxVersionByGroup.keys.toList(),
         );
-        print(
-          '[GroupMemberBusiness] 群成员同步成功: count=${members.length}',
-        );
+        _logger.info({
+          'text': '群成员同步成功',
+          'data': {'groupId': groupId, 'count': members.length},
+        });
         getIt<GroupBusiness>().notifyGroupUpdate([groupId]);
       }
     } catch (e) {
-      print('[GroupMemberBusiness] syncGroupMembersByVersion failed: $e');
+      _logger.error({
+        'text': '同步群成员失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
     }
   }
 

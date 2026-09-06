@@ -26,6 +26,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group');
 
 class GroupStoreState extends Equatable {
   final Map<String, GroupInfo> groupMap;
@@ -80,6 +83,7 @@ class GroupStore extends Cubit<GroupStoreState> {
   }
 
   Future<void> init() async {
+    _logger.info({'text': '开始加载群组列表'});
     final groups = await _groupBusiness.getGroupList();
     final nextMap = <String, GroupInfo>{};
     if (groups != null) {
@@ -88,10 +92,21 @@ class GroupStore extends Cubit<GroupStoreState> {
       }
     }
     emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
+    _logger.info({
+      'text': '群组列表加载完成',
+      'data': {'count': nextMap.length},
+    });
   }
 
   Future<void> updateGroupsByIds(List<String> groupIds) async {
-    if (groupIds.isEmpty) return;
+    if (groupIds.isEmpty) {
+      _logger.info({'text': '群组更新ID列表为空，跳过'});
+      return;
+    }
+    _logger.info({
+      'text': '按ID更新群组资料',
+      'data': {'count': groupIds.length},
+    });
 
     final groups = await _groupBusiness.getGroupsByIds(groupIds);
     final nextMap = Map<String, GroupInfo>.from(state.groupMap);
@@ -116,6 +131,7 @@ class GroupStore extends Cubit<GroupStoreState> {
 
     if (changed) {
       emit(state.copyWith(groupMap: nextMap, version: state.version + 1));
+      _logger.info({'text': '群组资料已更新'});
     }
   }
 
@@ -126,6 +142,10 @@ class GroupStore extends Cubit<GroupStoreState> {
     if (!state.groupMap.containsKey(conversationId)) {
       return;
     }
+    _logger.info({
+      'text': '移除群组',
+      'data': {'conversationId': conversationId},
+    });
     final nextMap = Map<String, GroupInfo>.from(state.groupMap)
       ..remove(conversationId);
     emit(state.copyWith(groupMap: nextMap, version: state.version + 1));

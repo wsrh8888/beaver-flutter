@@ -22,10 +22,19 @@
 import 'package:beaver/api/auth.dart';
 import 'package:beaver/types/api/auth.dart';
 import 'package:beaver/common/request/request.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-auth-register');
 
 class RegisterRepository {
   Future<BaseResponse<EmailRegisterRes>> register(String email, String password, String code) async {
+    try {
+
     final req = EmailRegisterReq(email: email, password: password, code: code);
     return await emailRegisterApi(req);
+    } catch (e, st) {
+      _logger.warn({'text':'RegisterRepository.register 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

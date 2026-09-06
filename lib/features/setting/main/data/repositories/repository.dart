@@ -20,6 +20,9 @@
  */
 
 import 'package:beaver/features/setting/main/data/models/setting_item.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-main');
 
 class SettingMainRepository {
   List<SettingItem> getSettingItems() {

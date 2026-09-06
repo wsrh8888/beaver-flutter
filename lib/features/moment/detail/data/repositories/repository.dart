@@ -21,11 +21,16 @@
 
 import 'package:beaver/api/moment.dart';
 import 'package:beaver/types/api/moment.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-moment-detail');
 
 class MomentDetailRepository {
   MomentDetailRepository();
 
   Future<IMomentListItem?> loadDetail(String momentId) async {
+    try {
+
     final response = await getMomentDetailApi(
       IGetMomentDetailReq(momentId: momentId),
     );
@@ -33,6 +38,10 @@ class MomentDetailRepository {
       return response.result;
     }
     return null;
+    } catch (e, st) {
+      _logger.warn({'text':'MomentDetailRepository.loadDetail 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<IMomentCommentModel>> loadRootComments(
@@ -40,6 +49,8 @@ class MomentDetailRepository {
     int page,
     int limit,
   ) async {
+    try {
+
     final response = await getMomentCommentsApi(
       IGetMomentCommentsReq(momentId: momentId, page: page, limit: limit),
     );
@@ -47,6 +58,10 @@ class MomentDetailRepository {
       return response.result!.list;
     }
     return [];
+    } catch (e, st) {
+      _logger.warn({'text':'MomentDetailRepository.loadRootComments 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<({List<IMomentCommentModel> list, int count})> loadChildComments(
@@ -75,6 +90,8 @@ class MomentDetailRepository {
     String? parentId,
     String? replyToCommentId,
   }) async {
+    try {
+
     final response = await createMomentCommentApi(
       ICreateMomentCommentReq(
         momentId: momentId,
@@ -87,13 +104,23 @@ class MomentDetailRepository {
       return response.result;
     }
     return null;
+    } catch (e, st) {
+      _logger.warn({'text':'MomentDetailRepository.addComment 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> toggleLike(String momentId, bool status) async {
+    try {
+
     final response = await likeMomentApi(
       ILikeMomentReq(momentId: momentId, status: status),
     );
     return response.isSuccess;
+    } catch (e, st) {
+      _logger.warn({'text':'MomentDetailRepository.toggleLike 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<IMomentLikeModel>> loadLikes(
@@ -101,6 +128,8 @@ class MomentDetailRepository {
     int page,
     int limit,
   ) async {
+    try {
+
     final response = await getMomentLikesApi(
       IGetMomentLikesReq(momentId: momentId, page: page, limit: limit),
     );
@@ -108,5 +137,9 @@ class MomentDetailRepository {
       return response.result!.list;
     }
     return [];
+    } catch (e, st) {
+      _logger.warn({'text':'MomentDetailRepository.loadLikes 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

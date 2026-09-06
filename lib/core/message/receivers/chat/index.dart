@@ -124,7 +124,12 @@ class ChatMessageRouter {
         if (decoded is Map) {
           return Map<String, dynamic>.from(decoded);
         }
-      } catch (_) {}
+      } catch (e) {
+        _logger.warn({
+          'text': '消息媒体更新负载 JSON 解析失败',
+          'data': {'raw': raw, 'error': e.toString()},
+        });
+      }
     }
     return null;
   }

@@ -25,6 +25,9 @@ import 'package:beaver/features/user/qrcode/bloc/state.dart';
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/features/user/qrcode/data/models/qrcode.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('user-qrcode');
 
 class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
   final UserBusiness _userBusiness = getIt<UserBusiness>();
@@ -39,9 +42,11 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     Emitter<QrcodeState> emit,
   ) async {
     emit(state.copyWith(status: QrcodeStatus.loading));
+    _logger.info({'text': '加载我的二维码'});
 
     try {
       final userInfo = await _userBusiness.getMyUserInfo();
+      _logger.info({'text': '加载我的二维码成功', 'data': {'userId': userInfo.userId}});
       emit(
         state.copyWith(
           status: QrcodeStatus.success,
@@ -53,6 +58,7 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
         ),
       );
     } catch (e) {
+      _logger.error({'text': '加载我的二维码失败', 'data': {'error': e.toString()}});
       emit(
         state.copyWith(status: QrcodeStatus.error, errorMessage: '加载二维码失败 $e'),
       );
@@ -63,6 +69,7 @@ class QrcodeBloc extends Bloc<QrcodeEvent, QrcodeState> {
     SaveQrCodeEvent event,
     Emitter<QrcodeState> emit,
   ) async {
+    _logger.info({'text': '保存我的二维码到相册'});
     // 保存逻辑在页面处理，Bloc 仅用于状态
     emit(state.copyWith(errorMessage: '正在保存到相册...'));
   }

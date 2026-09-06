@@ -28,6 +28,9 @@ import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-friend-verify');
 
 /// 好友验证数据同步模块
 class FriendVerifySyncModule {
@@ -36,7 +39,11 @@ class FriendVerifySyncModule {
   /// 检查并同步
   Future<void> checkAndSync() async {
     final userId = StorageUtil.getString('userId');
-    if (userId == null || userId.isEmpty) return;
+    if (userId == null || userId.isEmpty) {
+      _logger.warn({'text': '好友验证数据同步跳过：未登录（userId 为空）'});
+      return;
+    }
+    _logger.info({'text': '开始同步好友验证数据'});
 
     try {
       final datasyncService = getIt<DatasyncService>();
@@ -51,7 +58,7 @@ class FriendVerifySyncModule {
         IGetSyncFriendVerifiesReq(since: lastSyncVersion),
       );
       if (serverResponse.code != 0 || serverResponse.result == null) {
-        // print('[FriendVerifySyncModule] 获取好友验证版本失败: ${serverResponse.msg}');
+        _logger.warn({'text': '获取好友验证版本变更失败', 'data': {'code': serverResponse.code, 'msg': serverResponse.msg}});
         return;
       }
 
@@ -63,6 +70,7 @@ class FriendVerifySyncModule {
         friendVerifyService,
         friendVerifyVersions,
       );
+      _logger.info({'text': '好友验证数据对比完成', 'data': {'needUpdate': needUpdateUuids.length}});
 
       if (needUpdateUuids.isNotEmpty) {
         // 有需要更新的好友验证数据
@@ -89,9 +97,10 @@ class FriendVerifySyncModule {
       }
 
       _syncStatus = 'COMPLETED';
+      _logger.info({'text': '好友验证数据同步完成'});
     } catch (error) {
       _syncStatus = 'FAILED';
-      // print('[FriendVerifySyncModule] 好友验证数据同步失败: $error');
+      _logger.warn({'text': '好友验证数据同步异常', 'data': {'error': error.toString()}});
     }
   }
 
@@ -147,9 +156,11 @@ class FriendVerifySyncModule {
       final response = await getFriendVerifiesListByIdsApi(
         IGetFriendVerifiesListByIdsReq(verifyIds: batchVerifyIds),
       );
-      if (response.code == 0 &&
-          response.result != null &&
-          response.result!.friendVerifies.isNotEmpty) {
+      if (response.code != 0 || response.result == null) {
+        _logger.warn({'text': '批量获取好友验证数据失败', 'data': {'code': response.code, 'msg': response.msg, 'batchCount': batchVerifyIds.length}});
+        continue;
+      }
+      if (response.result!.friendVerifies.isNotEmpty) {
         final friendVerifies = response.result!.friendVerifies
             .map(
               (verify) => FriendVerifiesCompanion(

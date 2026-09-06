@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('user-receiver');
 
 /// 用户资料接收器 - 处理 users 表的操作 (对标 PC receivers/user/user.ts)
 class UserReceiver {
@@ -35,7 +38,10 @@ class UserReceiver {
     final targetId = body['targetId'] as String?;
 
     if (table != 'users') {
-      print('[UserReceiver] 收到非 users 表的更新: $table');
+      _logger.warn({
+        'text': '收到非users表的更新',
+        'data': {'table': table},
+      });
       return;
     }
 

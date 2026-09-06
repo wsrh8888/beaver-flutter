@@ -21,6 +21,9 @@
 
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-group-list');
 
 class GroupListRepository {
   final GroupRepositoryInterface _groupRepository;
@@ -29,6 +32,12 @@ class GroupListRepository {
     : _groupRepository = groupRepository ?? getIt<GroupRepositoryInterface>();
 
   Future<List<GroupInfo>?> getGroupList() async {
+    try {
+
     return _groupRepository.getGroupList();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupListRepository.getGroupList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

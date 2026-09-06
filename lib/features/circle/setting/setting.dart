@@ -38,6 +38,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-setting');
 
 class CircleSettingPage extends StatefulWidget {
   final String circleId;
@@ -64,6 +67,10 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
   }
 
   Future<void> _load() async {
+    _logger.info({
+      'text': '加载圈子设置',
+      'data': {'circleId': widget.circleId},
+    });
     setState(() {
       _error = null;
     });
@@ -78,6 +85,14 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
     if (!mounted) return;
 
     if (detailRes.code != 0 || detailRes.result == null) {
+      _logger.warn({
+        'text': '加载圈子设置失败',
+        'data': {
+          'circleId': widget.circleId,
+          'code': detailRes.code,
+          'msg': detailRes.msg,
+        },
+      });
       setState(() {
         _error = detailRes.msg.isNotEmpty ? detailRes.msg : '获取圈子信息失败';
       });
@@ -89,6 +104,16 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
       await getIt<CircleBusiness>().upsertFromDetail(detail);
     }
 
+    _logger.info({
+      'text': '加载圈子设置成功',
+      'data': {
+        'circleId': widget.circleId,
+        'role': detail.role,
+        'memberCount': membersRes.code == 0 && membersRes.result != null
+            ? membersRes.result!.list.length
+            : 0,
+      },
+    });
     setState(() {
       _detail = detail;
       _members = membersRes.code == 0 && membersRes.result != null
@@ -134,24 +159,49 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
     if (selected == null || selected.isEmpty || !mounted) return;
 
     setState(() => _busy = true);
+    final userIds = selected.map((e) => e.userId).toList();
+    _logger.info({
+      'text': '邀请圈成员',
+      'data': {
+        'circleId': widget.circleId,
+        'userIds': userIds,
+        'count': userIds.length,
+      },
+    });
     final res = await inviteCircleMembersApi(
       IInviteCircleMembersReq(
         circleId: widget.circleId,
-        userIds: selected.map((e) => e.userId).toList(),
+        userIds: userIds,
       ),
     );
     if (!mounted) return;
     setState(() => _busy = false);
 
     if (res.code != 0) {
+      _logger.warn({
+        'text': '邀请圈成员失败',
+        'data': {
+          'circleId': widget.circleId,
+          'code': res.code,
+          'msg': res.msg,
+        },
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '邀请失败');
       return;
     }
+    _logger.info({
+      'text': '邀请圈成员成功',
+      'data': {'circleId': widget.circleId, 'count': userIds.length},
+    });
     BeaverToast.show(context, '已邀请');
     await _load();
   }
 
   Future<void> _removeMember(String userId) async {
+    _logger.info({
+      'text': '移除圈成员',
+      'data': {'circleId': widget.circleId, 'userId': userId},
+    });
     setState(() => _busy = true);
     final res = await removeCircleMembersApi(
       IRemoveCircleMembersReq(circleId: widget.circleId, userIds: [userId]),
@@ -159,9 +209,22 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
     if (!mounted) return;
     setState(() => _busy = false);
     if (res.code != 0) {
+      _logger.warn({
+        'text': '移除圈成员失败',
+        'data': {
+          'circleId': widget.circleId,
+          'userId': userId,
+          'code': res.code,
+          'msg': res.msg,
+        },
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '移除失败');
       return;
     }
+    _logger.info({
+      'text': '移除圈成员成功',
+      'data': {'circleId': widget.circleId, 'userId': userId},
+    });
     BeaverToast.show(context, '已移除');
     await _load();
   }
@@ -191,6 +254,10 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
 
   Future<void> _quitOrDelete() async {
     final isOwner = (_detail?.role ?? 0) == 1;
+    _logger.info({
+      'text': isOwner ? '解散圈子' : '退出圈子',
+      'data': {'circleId': widget.circleId, 'isOwner': isOwner},
+    });
     setState(() => _busy = true);
 
     final res = isOwner
@@ -204,12 +271,24 @@ class _CircleSettingPageState extends State<CircleSettingPage> {
     });
 
     if (res.code != 0) {
+      _logger.warn({
+        'text': isOwner ? '解散圈子失败' : '退出圈子失败',
+        'data': {
+          'circleId': widget.circleId,
+          'code': res.code,
+          'msg': res.msg,
+        },
+      });
       BeaverToast.show(
         context,
         res.msg.isNotEmpty ? res.msg : (isOwner ? '解散失败' : '退出失败'),
       );
       return;
     }
+    _logger.info({
+      'text': isOwner ? '解散圈子成功' : '退出圈子成功',
+      'data': {'circleId': widget.circleId},
+    });
 
     await getIt<CircleBusiness>().removeCircle(widget.circleId);
     getIt<CircleStore>().removeCircle(widget.circleId);

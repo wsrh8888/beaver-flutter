@@ -25,11 +25,14 @@ import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/api/friend.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend-verify-sync');
 
 /// 好友验证同步
 class FriendVerifySync {
   Future<void> checkAndSync() async {
-    print('[FriendVerifySync] 开始同步好友验证数据');
+    _logger.info({'text': '开始同步好友验证数据'});
 
     final datasyncService = getIt<DatasyncService>();
     final friendService = getIt<FriendService>();
@@ -44,7 +47,10 @@ class FriendVerifySync {
     );
 
     if (response.code != 0 || response.result == null) {
-      print('[FriendVerifySync] 获取好友验证版本失败: ${response.msg}');
+      _logger.warn({
+        'text': '获取好友验证版本失败',
+        'data': {'code': response.code, 'msg': response.msg},
+      });
       return;
     }
 
@@ -74,7 +80,7 @@ class FriendVerifySync {
       await datasyncService.upsert('friend_verifies', null, serverTimestamp);
     }
 
-    print('[FriendVerifySync] 好友验证数据同步完成');
+    _logger.info({'text': '好友验证数据同步完成'});
   }
 
   Future<List<String>> _compareAndFilterVersions(

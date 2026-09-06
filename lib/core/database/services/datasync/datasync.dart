@@ -22,15 +22,26 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-datasync-datasync');
 
 class DatasyncService extends BaseService {
   const DatasyncService();
 
   Future<DatasyncData?> get(String module) async {
+    try {
+
     return (db.select(db.datasync)..where((t) => t.module.equals(module))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'DatasyncService.get 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> upsert(String module, int? version, int updatedAt) async {
+    try {
+
     final existing = await get(module);
     if (existing != null) {
       await (db.update(db.datasync)..where((t) => t.module.equals(module))).write(
@@ -47,6 +58,10 @@ class DatasyncService extends BaseService {
           updatedAt: Value(updatedAt),
         ),
       );
+    }
+    } catch (e, st) {
+      _logger.warn({'text':'DatasyncService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
     }
   }
 }

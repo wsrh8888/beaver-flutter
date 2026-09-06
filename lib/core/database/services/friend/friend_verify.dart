@@ -22,6 +22,9 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-friend-friend_verify');
 
 class FriendVerifyService extends BaseService {
   const FriendVerifyService();
@@ -30,6 +33,8 @@ class FriendVerifyService extends BaseService {
   Future<Map<String, FriendVerify>> getFriendVerifiesByIds(
     List<String> verifyIds,
   ) async {
+    try {
+
     if (verifyIds.isEmpty) {
       return {};
     }
@@ -44,10 +49,17 @@ class FriendVerifyService extends BaseService {
     }
 
     return verifyMap;
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.getFriendVerifiesByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建好友验证记录（支持插入或更新）
   Future<void> batchCreate(List<FriendVerifiesCompanion> verifies) async {
+    try {
+    _logger.info({'text':'FriendVerifyService.batchCreate 开始执行','data':{}});
+
     if (verifies.isEmpty) {
       return;
     }
@@ -61,6 +73,10 @@ class FriendVerifyService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取好友验证列表
@@ -69,6 +85,8 @@ class FriendVerifyService extends BaseService {
     int page = 1,
     int limit = 20,
   }) async {
+    try {
+
     final offset = (page - 1) * limit;
 
     // 查询发送给当前用户的验证记录或当前用户发送的验证记录
@@ -77,6 +95,10 @@ class FriendVerifyService extends BaseService {
       ..limit(limit, offset: offset);
 
     return query.get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.getValidList 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据版本范围获取验证列表
@@ -85,6 +107,8 @@ class FriendVerifyService extends BaseService {
     int startVersion = 0,
     int endVersion = 9223372036854775807,
   }) async {
+    try {
+
     // 查询指定版本范围内的验证记录
     return (db.select(db.friendVerifies)..where(
           (t) =>
@@ -93,10 +117,16 @@ class FriendVerifyService extends BaseService {
               t.version.isSmallerOrEqualValue(endVersion),
         ))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.getValidByVerRange 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据验证记录ID列表批量查询验证记录
   Future<List<FriendVerify>> getValidByIds(List<String> verifyIds) async {
+    try {
+
     if (verifyIds.isEmpty) {
       return [];
     }
@@ -104,10 +134,16 @@ class FriendVerifyService extends BaseService {
     return (db.select(
       db.friendVerifies,
     )..where((t) => t.verifyId.isIn(verifyIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.getValidByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取未读（待处理）申请数
   Future<int> getUnreadCount(String userId) async {
+    try {
+
     final query = db.selectOnly(db.friendVerifies)
       ..addColumns([db.friendVerifies.id.count()])
       ..where(
@@ -118,5 +154,9 @@ class FriendVerifyService extends BaseService {
         .map((row) => row.read<int>(db.friendVerifies.id.count()))
         .getSingle();
     return result ?? 0;
+    } catch (e, st) {
+      _logger.warn({'text':'FriendVerifyService.getUnreadCount 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

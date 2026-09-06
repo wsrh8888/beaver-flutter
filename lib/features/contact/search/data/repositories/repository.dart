@@ -23,9 +23,14 @@ import 'package:beaver/api/friend.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/types/business/user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-contact-search');
 
 class SearchContactRepository {
   Future<UserInfo?> searchUser(String keyword) async {
+    try {
+
     final response = await getSearchFriendApi(
       ISearchUserReq(
         keyword: keyword,
@@ -45,11 +50,21 @@ class SearchContactRepository {
       abstract: res.abstract,
       email: res.email,
     );
+    } catch (e, st) {
+      _logger.warn({'text':'SearchContactRepository.searchUser 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<BaseResponse<void>> addFriend(String userId) async {
+    try {
+
     return applyAddFriendApi(
       IAddFriendReq(friendId: userId, source: 'userId', verify: 'verify'),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'SearchContactRepository.addFriend 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

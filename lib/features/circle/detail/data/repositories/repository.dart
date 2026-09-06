@@ -22,6 +22,9 @@
 import 'package:beaver/api/circle.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-circle-detail');
 
 class CircleDetailRepository {
   Future<BaseResponse<IGetPostDetailRes>> loadDetail(String postId) {

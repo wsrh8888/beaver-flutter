@@ -31,6 +31,9 @@ import 'package:beaver/store/group/group.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-setting');
 
 class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   final _conversationBusiness = getIt<ConversationBusiness>();
@@ -55,6 +58,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     Emitter<GroupSettingState> emit,
   ) async {
     final currentUserId = DatabaseManager.currentUserId ?? '';
+    _logger.info({
+      'text': '初始化群设置',
+      'data': {
+        'conversationId': event.conversationId,
+        'currentUserId': currentUserId,
+      },
+    });
     emit(
       state.copyWith(
         status: GroupSettingStatus.loading,
@@ -70,6 +80,10 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
           .firstOrNull;
 
       if (conversation == null) {
+        _logger.warn({
+          'text': '群设置初始化失败：会话不存在',
+          'data': {'conversationId': event.conversationId},
+        });
         emit(
           state.copyWith(
             status: GroupSettingStatus.error,
@@ -87,6 +101,14 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
       // 2. 从 Store 获取重组后的成员列表进行一次初始同步 (给 Bloc 内部逻辑用，如 isAdmin 判断)
       final members = _groupMemberStore.getMembersByGroupId(groupId);
 
+      _logger.info({
+        'text': '群设置初始化完成',
+        'data': {
+          'conversationId': event.conversationId,
+          'groupId': groupId,
+          'memberCount': members.length,
+        },
+      });
       emit(
         state.copyWith(
           status: GroupSettingStatus.success,
@@ -95,6 +117,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
         ),
       );
     } catch (e) {
+      _logger.error({
+        'text': '群设置初始化异常',
+        'data': {
+          'conversationId': event.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(
         state.copyWith(
           status: GroupSettingStatus.error,
@@ -113,6 +142,10 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     final previousIsTop = state.conversation!.isTop;
     final newIsPinned = !previousIsTop;
 
+    _logger.info({
+      'text': '切换群置顶',
+      'data': {'conversationId': state.conversationId, 'isPinned': newIsPinned},
+    });
     emit(
       state.copyWith(
         conversation: state.conversation!.copyWith(isTop: newIsPinned),
@@ -125,6 +158,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
         newIsPinned,
       );
     } catch (e) {
+      _logger.error({
+        'text': '切换群置顶失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(
         state.copyWith(
           conversation: state.conversation!.copyWith(isTop: previousIsTop),
@@ -143,6 +183,10 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     final previousIsMuted = state.conversation!.isMuted;
     final newIsMuted = !previousIsMuted;
 
+    _logger.info({
+      'text': '切换群免打扰',
+      'data': {'conversationId': state.conversationId, 'isMuted': newIsMuted},
+    });
     emit(
       state.copyWith(
         conversation: state.conversation!.copyWith(isMuted: newIsMuted),
@@ -155,6 +199,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
         newIsMuted,
       );
     } catch (e) {
+      _logger.error({
+        'text': '切换群免打扰失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(
         state.copyWith(
           conversation: state.conversation!.copyWith(isMuted: previousIsMuted),
@@ -170,9 +221,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   ) async {
     if (state.isSaving || state.isGroupOwner) return;
 
+    final groupId = state.conversationId.replaceFirst('group_', '');
+    _logger.info({
+      'text': '退出群聊',
+      'data': {'conversationId': state.conversationId, 'groupId': groupId},
+    });
     emit(state.copyWith(isSaving: true, showDeleteDialog: false));
     try {
-      final groupId = state.conversationId.replaceFirst('group_', '');
       final response = await quitGroupApi(IGroupQuitReq(groupId: groupId));
       if (response.code != 0) {
         throw Exception(response.msg);
@@ -180,7 +235,15 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
 
       _groupStore.removeGroup(groupId);
       await _removeLocalConversation(emit);
+      _logger.info({
+        'text': '退出群聊成功',
+        'data': {'groupId': groupId},
+      });
     } catch (e) {
+      _logger.error({
+        'text': '退出群聊失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
@@ -198,9 +261,17 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   ) async {
     if (state.isSaving || !state.isAdmin) return;
 
+    final groupId = state.conversationId.replaceFirst('group_', '');
+    _logger.info({
+      'text': '添加群成员',
+      'data': {
+        'groupId': groupId,
+        'userIds': event.userIds,
+        'count': event.userIds.length,
+      },
+    });
     emit(state.copyWith(isSaving: true));
     try {
-      final groupId = state.conversationId.replaceFirst('group_', '');
       final response = await addGroupMemberApi(
         IGroupAddMembersReq(groupId: groupId, userIds: event.userIds),
       );
@@ -213,8 +284,16 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
       await _groupMemberStore.updateMembersByGroupIds([groupId]);
       final members = _groupMemberStore.getMembersByGroupId(groupId);
 
+      _logger.info({
+        'text': '添加群成员成功',
+        'data': {'groupId': groupId, 'memberCount': members.length},
+      });
       emit(state.copyWith(isSaving: false, groupMembers: members));
     } catch (e) {
+      _logger.error({
+        'text': '添加群成员失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
@@ -226,9 +305,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
     if (state.isSaving || !state.isAdmin) return;
     if (event.userId == state.currentUserId) return;
 
+    final groupId = state.conversationId.replaceFirst('group_', '');
+    _logger.info({
+      'text': '移除群成员',
+      'data': {'groupId': groupId, 'userId': event.userId},
+    });
     emit(state.copyWith(isSaving: true));
     try {
-      final groupId = state.conversationId.replaceFirst('group_', '');
       final response = await removeGroupMemberApi(
         IGroupRemoveMembersReq(groupId: groupId, userIds: [event.userId]),
       );
@@ -241,8 +324,16 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
       await _groupMemberStore.updateMembersByGroupIds([groupId]);
       final members = _groupMemberStore.getMembersByGroupId(groupId);
 
+      _logger.info({
+        'text': '移除群成员成功',
+        'data': {'groupId': groupId, 'memberCount': members.length},
+      });
       emit(state.copyWith(isSaving: false, groupMembers: members));
     } catch (e) {
+      _logger.error({
+        'text': '移除群成员失败',
+        'data': {'groupId': groupId, 'userId': event.userId, 'error': e.toString()},
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
@@ -253,9 +344,13 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   ) async {
     if (state.isSaving || !state.isGroupOwner) return;
 
+    final groupId = state.conversationId.replaceFirst('group_', '');
+    _logger.info({
+      'text': '解散群聊',
+      'data': {'conversationId': state.conversationId, 'groupId': groupId},
+    });
     emit(state.copyWith(isSaving: true, showDeleteDialog: false));
     try {
-      final groupId = state.conversationId.replaceFirst('group_', '');
       final response = await deleteGroupApi(IGroupDeleteReq(groupId: groupId));
       if (response.code != 0) {
         throw Exception(response.msg);
@@ -263,7 +358,15 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
 
       _groupStore.removeGroup(groupId);
       await _removeLocalConversation(emit);
+      _logger.info({
+        'text': '解散群聊成功',
+        'data': {'groupId': groupId},
+      });
     } catch (e) {
+      _logger.error({
+        'text': '解散群聊失败',
+        'data': {'groupId': groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }
@@ -280,6 +383,10 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
   ) async {
     if (state.isSaving) return;
 
+    _logger.info({
+      'text': '清空群聊记录',
+      'data': {'conversationId': state.conversationId},
+    });
     emit(state.copyWith(isSaving: true, showClearDialog: false));
     try {
       final conversationId = state.conversationId;
@@ -290,12 +397,23 @@ class GroupSettingBloc extends Bloc<GroupSettingEvent, GroupSettingState> {
       // 2. 清除 Store 中的内存缓存
       getIt<MessageStore>().clearConversationMessages(conversationId);
 
+      _logger.info({
+        'text': '清空群聊记录成功',
+        'data': {'conversationId': conversationId},
+      });
       emit(state.copyWith(
         isSaving: false,
         status: GroupSettingStatus.historyCleared,
         conversation: state.conversation?.copyWith(msgPreview: ''),
       ));
     } catch (e) {
+      _logger.error({
+        'text': '清空群聊记录失败',
+        'data': {
+          'conversationId': state.conversationId,
+          'error': e.toString(),
+        },
+      });
       emit(state.copyWith(isSaving: false, errorMessage: e.toString()));
     }
   }

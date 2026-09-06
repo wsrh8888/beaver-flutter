@@ -19,6 +19,7 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/business/emoji/favorite_emoji.dart';
 import 'package:beaver/core/business/emoji/package.dart';
 import 'package:beaver/core/business/emoji/package_emoji.dart';
@@ -26,6 +27,8 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/emoji.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+
+final _logger = Logger('store-emoji');
 
 class EmojiStoreState extends Equatable {
   final List<EmojiPackageModel> packageList;
@@ -66,6 +69,7 @@ class EmojiStore extends Cubit<EmojiStoreState> {
   EmojiStore() : super(const EmojiStoreState());
 
   Future<void> init() async {
+    _logger.info({'text': '初始化表情商店', 'data': {}});
     emit(state.copyWith(isLoading: true));
     try {
       final packages = await _packageBusiness.getEmojiPackages();
@@ -75,7 +79,9 @@ class EmojiStore extends Cubit<EmojiStoreState> {
         favoriteEmojis: favorites,
         isLoading: false,
       ));
+      _logger.info({'text': '表情商店初始化完成', 'data': {'packageCount': packages.length, 'favoriteCount': favorites.length}});
     } catch (e) {
+      _logger.warn({'text': '表情商店初始化失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(isLoading: false));
     }
   }
@@ -84,12 +90,13 @@ class EmojiStore extends Cubit<EmojiStoreState> {
     if (state.packageEmojisMap.containsKey(packageId)) return;
 
     try {
+      _logger.info({'text': '加载表情包内表情', 'data': {'packageId': packageId}});
       final emojis = await _packageEmojiBusiness.getPackageEmojis(packageId);
       final newMap = Map<String, List<EmojiModel>>.from(state.packageEmojisMap);
       newMap[packageId] = emojis;
       emit(state.copyWith(packageEmojisMap: newMap));
     } catch (e) {
-      // 错误处理
+      _logger.warn({'text': '加载表情包内表情失败', 'data': {'packageId': packageId, 'error': e.toString()}});
     }
   }
 }

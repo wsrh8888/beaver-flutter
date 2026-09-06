@@ -26,6 +26,9 @@ import 'package:beaver/shared/ui/toast/index.dart';
 import 'package:beaver/types/api/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('login-devices');
 
 class LoginDevicesPage extends StatefulWidget {
   const LoginDevicesPage({super.key});
@@ -46,6 +49,7 @@ class _LoginDevicesPageState extends State<LoginDevicesPage> {
   }
 
   Future<void> _loadDevices() async {
+    _logger.info({'text': '加载登录设备列表', 'data': {}});
     setState(() => _isLoading = true);
     try {
       final res = await getDevicesApi();
@@ -53,15 +57,24 @@ class _LoginDevicesPageState extends State<LoginDevicesPage> {
         return;
       }
       if (res.isSuccess && res.result != null) {
+        _logger.info({
+          'text': '加载登录设备列表成功',
+          'data': {'count': res.result!.devices.length},
+        });
         setState(() {
           _devices = res.result!.devices;
           _isLoading = false;
         });
         return;
       }
+      _logger.warn({
+        'text': '加载登录设备列表失败（接口返回失败）',
+        'data': {'msg': res.msg},
+      });
       setState(() => _isLoading = false);
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '获取设备列表失败');
     } catch (_) {
+      _logger.error({'text': '加载登录设备列表异常', 'data': {}});
       if (mounted) {
         setState(() => _isLoading = false);
         BeaverToast.show(context, '获取设备列表失败');
@@ -107,18 +120,34 @@ class _LoginDevicesPageState extends State<LoginDevicesPage> {
     }
 
     setState(() => _kickingDeviceId = device.deviceId);
+    _logger.info({
+      'text': '踢出登录设备',
+      'data': {'deviceId': device.deviceId, 'deviceName': device.deviceName},
+    });
     try {
       final res = await kickDeviceApi(KickDeviceReq(deviceId: device.deviceId));
       if (!mounted) {
         return;
       }
       if (res.isSuccess) {
+        _logger.info({
+          'text': '踢出登录设备成功',
+          'data': {'deviceId': device.deviceId},
+        });
         BeaverToast.show(context, '已踢下线');
         await _loadDevices();
         return;
       }
+      _logger.warn({
+        'text': '踢出登录设备失败（接口返回失败）',
+        'data': {'deviceId': device.deviceId, 'msg': res.msg},
+      });
       BeaverToast.show(context, res.msg.isNotEmpty ? res.msg : '操作失败');
     } catch (_) {
+      _logger.error({
+        'text': '踢出登录设备异常',
+        'data': {'deviceId': device.deviceId},
+      });
       if (mounted) {
         BeaverToast.show(context, '操作失败');
       }

@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/auth/register/bloc/event.dart';
 import 'package:beaver/features/auth/register/bloc/state.dart';
 import 'package:beaver/features/auth/register/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('register');
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   final RegisterRepository authRepository;
@@ -32,6 +35,10 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   }
   
   Future<void> _onRegisterSubmit(RegisterSubmitEvent event, Emitter<RegisterState> emit) async {
+    _logger.info({
+      'text': '提交注册',
+      'data': {'email': event.email},
+    });
     emit(state.copyWith(status: RegisterStatus.loading));
     
     try {
@@ -40,8 +47,16 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         event.password,
         event.confirmPassword,
       );
+      _logger.info({
+        'text': '注册成功',
+        'data': {'email': event.email},
+      });
       emit(state.copyWith(status: RegisterStatus.success));
     } catch (e) {
+      _logger.error({
+        'text': '注册失败',
+        'data': {'email': event.email, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: RegisterStatus.error,
         errorMessage: e.toString(),

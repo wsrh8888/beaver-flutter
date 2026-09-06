@@ -24,6 +24,9 @@ import 'package:beaver/features/calls/incoming/bloc/event.dart';
 import 'package:beaver/features/calls/incoming/bloc/state.dart';
 import 'package:beaver/features/calls/incoming/data/repositories/repository.dart';
 import 'package:beaver/types/call.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('call-incoming');
 
 class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
   final CallIncomingRepository _repository;
@@ -39,48 +42,77 @@ class CallIncomingBloc extends Bloc<CallIncomingEvent, CallIncomingState> {
     Emitter<CallIncomingState> emit,
   ) async {
     emit(state.copyWith(status: CallStatus.loading));
-    
+    _logger.info({
+      'text': '开始加载来电信息',
+      'data': {
+        'conversationId': event.conversationId,
+        'roomId': event.roomId,
+      },
+    });
+
     try {
       final callInfo = await _repository.getCallInfo(event.conversationId, event.roomId);
+      _logger.info({
+        'text': '来电信息加载完成，开始响铃',
+        'data': {'roomId': callInfo?.roomId},
+      });
       emit(state.copyWith(
         status: CallStatus.ringing,
         callInfo: callInfo,
       ));
     } catch (e) {
+      _logger.error({
+        'text': '加载通话信息失败',
+        'data': {'roomId': event.roomId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: CallStatus.error,
         errorMessage: '加载通话信息失败: $e',
       ));
     }
   }
-  
+
   Future<void> _onAcceptCall(
     AcceptCallEvent event,
     Emitter<CallIncomingState> emit,
   ) async {
     emit(state.copyWith(status: CallStatus.loading));
-    
+    final roomId = state.callInfo?.roomId;
+    _logger.info({'text': '接听通话', 'data': {'roomId': roomId}});
+
     try {
       await _repository.acceptCall(state.callInfo!.roomId);
+      _logger.info({'text': '接听成功，通话已连接', 'data': {'roomId': roomId}});
       emit(state.copyWith(status: CallStatus.connected));
     } catch (e) {
+      _logger.error({
+        'text': '接受通话失败',
+        'data': {'roomId': roomId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: CallStatus.error,
         errorMessage: '接受通话失败: $e',
       ));
     }
   }
-  
+
   Future<void> _onRejectCall(
     RejectCallEvent event,
     Emitter<CallIncomingState> emit,
   ) async {
     emit(state.copyWith(status: CallStatus.loading));
-    
+    final roomId = state.callInfo?.roomId;
+    _logger.info({'text': '拒接通话', 'data': {'roomId': roomId}});
+
     try {
       await _repository.rejectCall(state.callInfo!.roomId);
+      _logger.info({'text': '拒接成功，通话已结束', 'data': {'roomId': roomId}});
       emit(state.copyWith(status: CallStatus.ended));
     } catch (e) {
+      _logger.error({
+        'text': '拒绝通话失败',
+        'data': {'roomId': roomId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: CallStatus.error,
         errorMessage: '拒绝通话失败: $e',

@@ -23,6 +23,9 @@ import 'package:beaver/api/circle.dart';
 import 'package:beaver/api/file.dart';
 import 'package:beaver/common/request/request.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-circle-post');
 
 class CirclePostRepository {
   Future<BaseResponse<ICreatePostRes>> createPost({
@@ -42,10 +45,16 @@ class CirclePostRepository {
   }
 
   Future<String> uploadImage(String imagePath) async {
+    try {
+
     final response = await uploadFileApi(imagePath);
     if (response.isSuccess && response.result != null) {
       return response.result!.fileUrl;
     }
     return '';
+    } catch (e, st) {
+      _logger.warn({'text':'CirclePostRepository.uploadImage 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

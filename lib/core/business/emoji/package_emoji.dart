@@ -19,9 +19,12 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/database/services/emoji/package_emoji.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/emoji.dart';
+
+final _logger = Logger('business-package-emoji');
 
 abstract class PackageEmojiBusinessInterface {
   Future<List<EmojiModel>> getPackageEmojis(String packageId);
@@ -32,13 +35,19 @@ class PackageEmojiBusiness implements PackageEmojiBusinessInterface {
 
   @override
   Future<List<EmojiModel>> getPackageEmojis(String packageId) async {
-    final emojis = await _emojiPackageEmojiService.getEmojisByPackageId(packageId);
-    return emojis.map((emoji) => EmojiModel(
-      emojiId: emoji.emojiId,
-      name: emoji.title,
-      fileKey: emoji.fileKey,
-      version: emoji.version,
-      packageId: packageId,
-    )).toList();
+    _logger.info({'text': '获取表情包内表情', 'data': {'packageId': packageId}});
+    try {
+      final emojis = await _emojiPackageEmojiService.getEmojisByPackageId(packageId);
+      return emojis.map((emoji) => EmojiModel(
+        emojiId: emoji.emojiId,
+        name: emoji.title,
+        fileKey: emoji.fileKey,
+        version: emoji.version,
+        packageId: packageId,
+      )).toList();
+    } catch (e) {
+      _logger.warn({'text': '获取表情包内表情失败', 'data': {'packageId': packageId, 'error': e.toString()}});
+      rethrow;
+    }
   }
 }

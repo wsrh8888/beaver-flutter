@@ -19,9 +19,12 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/emoji.dart';
+
+final _logger = Logger('business-emoji');
 
 abstract class EmojiBusinessInterface {
   Future<EmojiModel?> getEmojiById(String emojiId);
@@ -32,13 +35,19 @@ class EmojiBusiness implements EmojiBusinessInterface {
 
   @override
   Future<EmojiModel?> getEmojiById(String emojiId) async {
-    final emoji = await _emojiService.getEmojiById(emojiId);
-    if (emoji == null) return null;
-    return EmojiModel(
-      emojiId: emoji.emojiId,
-      name: emoji.title,
-      fileKey: emoji.fileKey,
-      version: emoji.version,
-    );
+    _logger.info({'text': '查询表情详情', 'data': {'emojiId': emojiId}});
+    try {
+      final emoji = await _emojiService.getEmojiById(emojiId);
+      if (emoji == null) return null;
+      return EmojiModel(
+        emojiId: emoji.emojiId,
+        name: emoji.title,
+        fileKey: emoji.fileKey,
+        version: emoji.version,
+      );
+    } catch (e) {
+      _logger.warn({'text': '查询表情详情失败', 'data': {'emojiId': emojiId, 'error': e.toString()}});
+      rethrow;
+    }
   }
 }

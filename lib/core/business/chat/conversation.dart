@@ -27,7 +27,10 @@ import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/chat.dart';
 import 'package:beaver/core/business/chat/user_conversation.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:drift/drift.dart';
+
+final _logger = Logger('conversation');
 
 class ConversationBusiness implements ConversationRepositoryInterface {
   final _conversationService = getIt<ChatConversationService>();
@@ -49,12 +52,15 @@ class ConversationBusiness implements ConversationRepositoryInterface {
 
   @override
   Future<List<ChatModel>> getChatList() async {
+    _logger.info({'text': '开始构建会话列表'});
     final currentUserId = DatabaseManager.currentUserId ?? '';
     if (currentUserId.isEmpty) {
+      _logger.warn({'text': '当前用户ID为空，跳过会话列表构建'});
       return [];
     }
 
     // 1) user_conversation: filter hidden
+    _logger.info({'text': '查询用户会话关系(user_conversation)'});
     final userConversations = await _userConversationService.getByUserId(
       currentUserId,
     );
@@ -63,13 +69,19 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         .toList();
 
     if (visibleUserConversations.isEmpty) {
+      _logger.info({'text': '无可见会话，返回空列表'});
       return [];
     }
+    _logger.info({
+      'text': '可见会话数量',
+      'data': {'count': visibleUserConversations.length},
+    });
 
     // 2) conversation metas
     final conversationIds = visibleUserConversations
         .map((uc) => uc.conversationId)
         .toList();
+    _logger.info({'text': '批量查询会话元数据'});
     final conversationMetas = await _conversationService.getConversationsByIds(
       conversationIds,
     );
@@ -92,6 +104,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         return b.setting.isPinned.compareTo(a.setting.isPinned);
       }
       return (b.meta.updatedAt ?? 0).compareTo(a.meta.updatedAt ?? 0);
+    });
+    _logger.info({
+      'text': '会话排序完成',
+      'data': {'mergedCount': merged.length},
     });
 
     // 4) collect private peer ids + group ids + circle ids by conversationId
@@ -123,6 +139,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     // private: friend relation + user basic info
     final friendDetailsMap = <String, _FriendDetail>{};
     if (privatePeerIds.isNotEmpty) {
+      _logger.info({
+        'text': '查询私聊好友关系与用户资料',
+        'data': {'peerCount': privatePeerIds.length},
+      });
       final allFriends = await _friendService.getFriends();
       final relatedFriends = allFriends.where((f) {
         final isMine =
@@ -161,6 +181,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     // group details
     final groupMap = <String, Group>{};
     if (groupIds.isNotEmpty) {
+      _logger.info({
+        'text': '批量查询群资料',
+        'data': {'groupCount': groupIds.length},
+      });
       final groups = await _groupService.getGroupsByIds(groupIds.toList());
       for (final group in groups) {
         groupMap[group.groupId] = group;
@@ -170,6 +194,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     // circle details
     final circleMap = <String, Circle>{};
     if (circleIds.isNotEmpty) {
+      _logger.info({
+        'text': '批量查询圈子资料',
+        'data': {'circleCount': circleIds.length},
+      });
       final circles = await _circleService.getCirclesByIds(circleIds.toList());
       for (final circle in circles) {
         circleMap[circle.circleId] = circle;
@@ -177,6 +205,7 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     }
 
     // 5) render mapping
+    _logger.info({'text': '开始映射渲染会话列表'});
     final list = <ChatModel>[];
     for (final item in merged) {
       final conversationId = item.meta.conversationId;
@@ -238,6 +267,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
       );
     }
 
+    _logger.info({
+      'text': '会话列表构建完成',
+      'data': {'count': list.length},
+    });
     return list;
   }
 
@@ -252,6 +285,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
 
   @override
   Future<void> deleteChat(String conversationId) async {
+    _logger.info({
+      'text': '删除会话(业务层)',
+      'data': {'conversationId': conversationId},
+    });
     await _conversationService.deleteConversation(conversationId);
     await _userConversationService.delete(conversationId);
   }
@@ -421,6 +458,10 @@ class ConversationBusiness implements ConversationRepositoryInterface {
     String conversationId,
     int version,
   ) async {
+    _logger.info({
+      'text': '按版本号同步会话元数据',
+      'data': {'conversationId': conversationId, 'version': version},
+    });
     try {
       final response = await getConversationsListByIdsApi(
         IGetConversationsListByIdsReq(conversationIds: [conversationId]),
@@ -448,8 +489,28 @@ class ConversationBusiness implements ConversationRepositoryInterface {
         }
         // 同步成功后刷新 UI
         notifyConversationUpdate();
+        _logger.info({
+          'text': '会话元数据同步成功',
+          'data': {
+            'conversationId': conversationId,
+            'count': items.length,
+          },
+        });
+      } else {
+        _logger.warn({
+          'text': '会话元数据同步返回失败',
+          'data': {
+            'conversationId': conversationId,
+            'code': response.code,
+            'msg': response.msg,
+          },
+        });
       }
     } catch (e) {
+      _logger.error({
+        'text': '会话元数据同步异常',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 

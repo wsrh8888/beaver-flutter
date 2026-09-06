@@ -20,9 +20,12 @@
  */
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/features/setting/agreement/bloc/event.dart';
 import 'package:beaver/features/setting/agreement/bloc/state.dart';
 import 'package:beaver/features/setting/agreement/data/repositories/repository.dart';
+
+final _logger = Logger('setting-agreement');
 
 class AgreementBloc extends Bloc<AgreementEvent, AgreementState> {
   final AgreementRepository _repository;
@@ -36,14 +39,17 @@ class AgreementBloc extends Bloc<AgreementEvent, AgreementState> {
     Emitter<AgreementState> emit,
   ) async {
     emit(state.copyWith(status: AgreementStatus.loading));
+    _logger.info({'text': '开始加载用户协议'});
 
     try {
       final agreement = await _repository.getAgreement();
+      _logger.info({'text': '用户协议加载成功'});
       emit(state.copyWith(
         status: AgreementStatus.success,
         agreement: agreement,
       ));
     } catch (e) {
+      _logger.warn({'text': '用户协议加载失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: AgreementStatus.error,
         errorMessage: '加载协议失败: $e',

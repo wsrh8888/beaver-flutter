@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/group/config/bloc/event.dart';
 import 'package:beaver/features/group/config/bloc/state.dart';
 import 'package:beaver/features/group/config/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('group-config');
 
 class GroupConfigBloc extends Bloc<GroupConfigEvent, GroupConfigState> {
   final GroupConfigRepository _repository;
@@ -38,15 +41,24 @@ class GroupConfigBloc extends Bloc<GroupConfigEvent, GroupConfigState> {
     Emitter<GroupConfigState> emit,
   ) async {
     emit(state.copyWith(status: GroupConfigStatus.loading));
+    _logger.info({'text': '加载群信息', 'data': {'groupId': event.groupId}});
     try {
       final info = await _repository.getGroupInfo(event.groupId);
       final members = await _repository.getGroupMembers(event.groupId);
+      _logger.info({
+        'text': '加载群信息成功',
+        'data': {'groupId': event.groupId, 'memberCount': members.length},
+      });
       emit(state.copyWith(
         status: GroupConfigStatus.success,
         groupInfo: info,
         groupName: info.title,
       ));
     } catch (e) {
+      _logger.error({
+        'text': '加载群信息失败',
+        'data': {'groupId': event.groupId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupConfigStatus.error,
         errorMessage: e.toString(),
@@ -59,6 +71,7 @@ class GroupConfigBloc extends Bloc<GroupConfigEvent, GroupConfigState> {
     Emitter<GroupConfigState> emit,
   ) async {
     if (state.groupName.isEmpty) {
+      _logger.warn({'text': '修改群名称为空'});
       emit(state.copyWith(
         status: GroupConfigStatus.error,
         errorMessage: '群名称不能为空',
@@ -66,23 +79,33 @@ class GroupConfigBloc extends Bloc<GroupConfigEvent, GroupConfigState> {
       return;
     }
 
+    _logger.info({
+      'text': '修改群名称',
+      'data': {'groupId': state.groupInfo?.groupId, 'groupName': state.groupName},
+    });
     try {
       final success = await _repository.updateGroupName(
         state.groupInfo!.groupId,
         state.groupName,
       );
       if (success) {
+        _logger.info({'text': '群名称修改成功', 'data': {'groupId': state.groupInfo?.groupId}});
         emit(state.copyWith(
           status: GroupConfigStatus.success,
           errorMessage: '群名称修改成功',
         ));
       } else {
+        _logger.warn({'text': '群名称修改失败', 'data': {'groupId': state.groupInfo?.groupId}});
         emit(state.copyWith(
           status: GroupConfigStatus.error,
           errorMessage: '修改失败',
         ));
       }
     } catch (e) {
+      _logger.error({
+        'text': '修改群名称异常',
+        'data': {'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupConfigStatus.error,
         errorMessage: e.toString(),
@@ -94,20 +117,27 @@ class GroupConfigBloc extends Bloc<GroupConfigEvent, GroupConfigState> {
     ExitGroupEvent event,
     Emitter<GroupConfigState> emit,
   ) async {
+    _logger.info({'text': '退出群聊', 'data': {'groupId': state.groupInfo?.groupId}});
     try {
       final success = await _repository.quitGroup(state.groupInfo!.groupId);
       if (success) {
+        _logger.info({'text': '退出群聊成功', 'data': {'groupId': state.groupInfo?.groupId}});
         emit(state.copyWith(
           status: GroupConfigStatus.success,
           errorMessage: '已退出群聊',
         ));
       } else {
+        _logger.warn({'text': '退出群聊失败', 'data': {'groupId': state.groupInfo?.groupId}});
         emit(state.copyWith(
           status: GroupConfigStatus.error,
           errorMessage: '退出失败',
         ));
       }
     } catch (e) {
+      _logger.error({
+        'text': '退出群聊异常',
+        'data': {'error': e.toString()},
+      });
       emit(state.copyWith(
         status: GroupConfigStatus.error,
         errorMessage: e.toString(),

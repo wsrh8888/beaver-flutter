@@ -24,6 +24,9 @@ import 'package:beaver/features/chat/list/bloc/event.dart';
 import 'package:beaver/features/chat/list/bloc/state.dart';
 import 'package:beaver/features/chat/list/data/repositories/repository.dart';
 import 'package:beaver/types/business/chat.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('chat-list');
 
 class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
   final ChatListRepository _chatListRepository;
@@ -42,18 +45,28 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     Emitter<ChatListState> emit,
   ) async {
     emit(state.copyWith(status: ChatListStatus.loading));
+    _logger.info({'text': '开始加载聊天列表'});
 
     try {
       final chats = await _chatListRepository.getChatList();
-    final pinnedChats = chats.where((c) => c.isTop).toList();
-    final regularChats = chats.where((c) => !c.isTop).toList();
+      final pinnedChats = chats.where((c) => c.isTop).toList();
+      final regularChats = chats.where((c) => !c.isTop).toList();
+      _logger.info({
+        'text': '聊天列表加载完成',
+        'data': {
+          'total': chats.length,
+          'pinned': pinnedChats.length,
+          'regular': regularChats.length,
+        },
+      });
 
-    emit(state.copyWith(
-      status: ChatListStatus.success,
-      chats: regularChats as List<ChatModel>?,
-      pinnedChats: pinnedChats as List<ChatModel>?,
-    ));
+      emit(state.copyWith(
+        status: ChatListStatus.success,
+        chats: regularChats as List<ChatModel>?,
+        pinnedChats: pinnedChats as List<ChatModel>?,
+      ));
     } catch (e) {
+      _logger.error({'text': '加载聊天列表失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ChatListStatus.error,
         errorMessage: '加载聊天列表失败: $e',
@@ -65,10 +78,18 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     TogglePinChatEvent event,
     Emitter<ChatListState> emit,
   ) async {
+    _logger.info({
+      'text': '切换会话置顶',
+      'data': {'conversationId': event.conversationId, 'isPinned': event.isPinned},
+    });
     try {
       await _chatListRepository.togglePinChat(event.conversationId, event.isPinned);
       add(const LoadChatListEvent());
     } catch (e) {
+      _logger.error({
+        'text': '置顶操作失败',
+        'data': {'conversationId': event.conversationId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ChatListStatus.error,
         errorMessage: '置顶操作失败: $e',
@@ -80,10 +101,18 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     DeleteChatEvent event,
     Emitter<ChatListState> emit,
   ) async {
+    _logger.info({
+      'text': '删除会话',
+      'data': {'conversationId': event.conversationId},
+    });
     try {
       await _chatListRepository.deleteChat(event.conversationId);
       add(const LoadChatListEvent());
     } catch (e) {
+      _logger.error({
+        'text': '删除会话失败',
+        'data': {'conversationId': event.conversationId, 'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ChatListStatus.error,
         errorMessage: '删除会话失败: $e',

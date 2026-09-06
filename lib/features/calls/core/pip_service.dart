@@ -21,6 +21,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('pip');
 
 class PiPService {
   static final PiPService _instance = PiPService._private();
@@ -41,7 +44,7 @@ class PiPService {
     try {
       return await _channel!.invokeMethod('isPiPSupported') ?? false;
     } catch (e) {
-      print('检查画中画支持失败: $e');
+      _logger.error({'text': '检查画中画支持失败', 'data': {'error': e.toString()}});
       return false;
     }
   }
@@ -53,7 +56,7 @@ class PiPService {
       await _channel!.invokeMethod('enterPiPMode');
       _isInPiPMode = true;
     } catch (e) {
-      print('进入画中画模式失败: $e');
+      _logger.error({'text': '进入画中画模式失败', 'data': {'error': e.toString()}});
     }
   }
   
@@ -64,7 +67,7 @@ class PiPService {
       await _channel!.invokeMethod('exitPiPMode');
       _isInPiPMode = false;
     } catch (e) {
-      print('退出画中画模式失败: $e');
+      _logger.error({'text': '退出画中画模式失败', 'data': {'error': e.toString()}});
     }
   }
   

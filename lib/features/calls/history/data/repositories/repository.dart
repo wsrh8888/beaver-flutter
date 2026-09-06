@@ -22,6 +22,9 @@
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/call.dart';
 import 'package:beaver/types/call.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-calls-history');
 
 class CallHistoryRepository {
   final CallRepositoryInterface _callRepository;
@@ -30,14 +33,33 @@ class CallHistoryRepository {
     : _callRepository = callRepository ?? getIt<CallRepositoryInterface>();
 
   Future<List<CallHistory>> getCallHistory() async {
+    try {
+
     return _callRepository.getCallHistory();
+    } catch (e, st) {
+      _logger.warn({'text':'CallHistoryRepository.getCallHistory 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<bool> deleteCallHistory(String callId) async {
+    try {
+
     return _callRepository.deleteCallHistory(callId);
+    } catch (e, st) {
+      _logger.warn({'text':'CallHistoryRepository.deleteCallHistory 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
   
   Future<bool> clearCallHistory() async {
+    try {
+    _logger.info({'text':'CallHistoryRepository.clearCallHistory 开始执行','data':{}});
+
     return _callRepository.clearCallHistory();
+    } catch (e, st) {
+      _logger.warn({'text':'CallHistoryRepository.clearCallHistory 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

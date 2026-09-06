@@ -20,9 +20,12 @@
  */
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/features/setting/privacy_page/bloc/event.dart';
 import 'package:beaver/features/setting/privacy_page/bloc/state.dart';
 import 'package:beaver/features/setting/privacy_page/data/repositories/repository.dart';
+
+final _logger = Logger('setting-privacy-page');
 
 class PrivacyBloc extends Bloc<PrivacyEvent, PrivacyState> {
   final PrivacyRepository _repository;
@@ -36,14 +39,17 @@ class PrivacyBloc extends Bloc<PrivacyEvent, PrivacyState> {
     Emitter<PrivacyState> emit,
   ) async {
     emit(state.copyWith(status: PrivacyStatus.loading));
+    _logger.info({'text': '开始加载隐私政策页面'});
 
     try {
       final privacyPolicy = await _repository.getPrivacyPolicy();
+      _logger.info({'text': '隐私政策页面加载成功'});
       emit(state.copyWith(
         status: PrivacyStatus.success,
         privacyPolicy: privacyPolicy,
       ));
     } catch (e) {
+      _logger.warn({'text': '隐私政策页面加载失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: PrivacyStatus.error,
         errorMessage: '加载隐私政策失败: $e',

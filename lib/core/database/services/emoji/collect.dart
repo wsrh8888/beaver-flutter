@@ -22,11 +22,17 @@
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-emoji-collect');
 
 class EmojiCollectService extends BaseService {
   const EmojiCollectService();
 
   Future<void> batchCreate(List<EmojiCollectTableCompanion> entries) async {
+    try {
+    _logger.info({'text':'EmojiCollectService.batchCreate 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final entry in entries) {
         batch.insert(
@@ -39,28 +45,51 @@ class EmojiCollectService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiCollectService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<Map<String, EmojiCollectTableData>> getCollectsByIds(
     List<String> ids,
   ) async {
+    try {
+
     final query = db.select(db.emojiCollectTable)
       ..where((t) => t.emojiCollectId.isIn(ids));
     final result = await query.get();
     return {for (var item in result) item.emojiCollectId: item};
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiCollectService.getCollectsByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<EmojiCollectTableData>> getAll() async {
+    try {
+    _logger.info({'text':'EmojiCollectService.getAll 开始执行','data':{}});
+
     return await db.select(db.emojiCollectTable).get();
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiCollectService.getAll 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<EmojiCollectTableData>> getUserCollects({
     int page = 1,
     int size = 500,
   }) async {
+    try {
+
     final query = db.select(db.emojiCollectTable)
       ..where((t) => t.isDeleted.equals(0))
       ..limit(size, offset: (page - 1) * size);
     return await query.get();
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiCollectService.getUserCollects 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

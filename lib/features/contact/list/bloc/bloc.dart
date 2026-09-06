@@ -30,6 +30,9 @@ import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/store/user/user.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('contact-list');
 
 class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   final ContactListRepository _contactListRepository;
@@ -81,6 +84,10 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
   ) async {
     // 遵循规范：从 Global Store 获取已组装好的数据
     final contacts = _friendStore.state.friends;
+    _logger.info({
+      'text': '加载联系人列表',
+      'data': {'本地好友数': contacts.length},
+    });
     final currentUserId = getIt<UserStore>().state.currentUserId;
 
     final groupedContacts = _contactListRepository.groupContactsByLetter(
@@ -109,6 +116,14 @@ class ContactListBloc extends Bloc<ContactListEvent, ContactListState> {
         groupNotificationCount: groupCount,
       ),
     );
+    _logger.info({
+      'text': '联系人列表加载完成',
+      'data': {
+        '好友数': contacts.length,
+        '好友请求未读': friendCount,
+        '群通知未读': groupCount,
+      },
+    });
   }
 
   void _onUpdateCurrentIndex(

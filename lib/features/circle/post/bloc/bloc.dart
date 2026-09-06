@@ -24,6 +24,9 @@ import 'package:beaver/features/circle/post/bloc/event.dart';
 import 'package:beaver/features/circle/post/bloc/state.dart';
 import 'package:beaver/features/circle/post/data/repositories/repository.dart';
 import 'package:beaver/types/api/circle.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-post');
 
 class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
   final CirclePostRepository _repository;
@@ -68,11 +71,16 @@ class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
     final withLocal = List<String>.from(state.mediaList)..add(localPath);
     emit(state.copyWith(mediaList: withLocal));
 
+    _logger.info({'text': '开始上传帖子图片', 'data': {'localPath': localPath}});
     final uploadedUrl = await _repository.uploadImage(localPath);
     final finalList = List<String>.from(withLocal);
     final index = finalList.indexOf(localPath);
 
     if (uploadedUrl.isEmpty || index == -1) {
+      _logger.error({
+        'text': '上传帖子图片失败',
+        'data': {'localPath': localPath, 'uploadedUrl': uploadedUrl},
+      });
       finalList.remove(localPath);
       emit(state.copyWith(
         mediaList: finalList,
@@ -108,6 +116,14 @@ class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
       return;
     }
 
+    _logger.info({
+      'text': '开始发布帖子',
+      'data': {
+        'circleId': circleId,
+        'contentLength': state.content.trim().length,
+        'imageCount': state.mediaList.length,
+      },
+    });
     emit(state.copyWith(status: CirclePostStatus.loading));
 
     final files = state.mediaList
@@ -121,6 +137,10 @@ class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
     );
 
     if (res.code != 0) {
+      _logger.error({
+        'text': '发布帖子失败',
+        'data': {'circleId': circleId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         status: CirclePostStatus.error,
         errorMessage: res.msg.isNotEmpty ? res.msg : '发布失败',
@@ -128,6 +148,7 @@ class CirclePostBloc extends Bloc<CirclePostEvent, CirclePostState> {
       return;
     }
 
+    _logger.info({'text': '发布帖子成功', 'data': {'circleId': circleId}});
     emit(state.copyWith(status: CirclePostStatus.success));
   }
 }

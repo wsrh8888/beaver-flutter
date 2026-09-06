@@ -19,9 +19,12 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/database/services/emoji/package.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/emoji.dart';
+
+final _logger = Logger('business-emoji-package');
 
 abstract class EmojiPackageBusinessInterface {
   Future<List<EmojiPackageModel>> getEmojiPackages({int page = 1, int size = 200});
@@ -32,11 +35,17 @@ class EmojiPackageBusiness implements EmojiPackageBusinessInterface {
 
   @override
   Future<List<EmojiPackageModel>> getEmojiPackages({int page = 1, int size = 200}) async {
-    final packages = await _emojiPackageService.getPackages(page: page, size: size);
-    return packages.map((row) => EmojiPackageModel(
-      packageId: row.packageId,
-      title: row.title,
-      coverFile: row.coverFile ?? '',
-    )).toList();
+    _logger.info({'text': '获取表情包列表', 'data': {'page': page, 'size': size}});
+    try {
+      final packages = await _emojiPackageService.getPackages(page: page, size: size);
+      return packages.map((row) => EmojiPackageModel(
+        packageId: row.packageId,
+        title: row.title,
+        coverFile: row.coverFile ?? '',
+      )).toList();
+    } catch (e) {
+      _logger.warn({'text': '获取表情包列表失败', 'data': {'page': page, 'size': size, 'error': e.toString()}});
+      rethrow;
+    }
   }
 }

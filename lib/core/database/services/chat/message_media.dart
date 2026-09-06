@@ -21,11 +21,16 @@
 
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-chat-message_media');
 
 class ChatMessageMediaService extends BaseService {
   const ChatMessageMediaService();
 
   Future<void> _ensureTable() async {
+    try {
+
     await db.customStatement('''
       CREATE TABLE IF NOT EXISTS chat_message_medias (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,9 +41,15 @@ class ChatMessageMediaService extends BaseService {
         UNIQUE (user_id, message_id)
       )
     ''');
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageMediaService._ensureTable 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<String>> getMessageIds(String userId) async {
+    try {
+
     if (userId.isEmpty) {
       return [];
     }
@@ -52,9 +63,16 @@ class ChatMessageMediaService extends BaseService {
         )
         .get();
     return rows.map((row) => row.read<String>('message_id')).toList();
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageMediaService.getMessageIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> batchCreate(String userId, List<String> messageIds) async {
+    try {
+    _logger.info({'text':'ChatMessageMediaService.batchCreate 开始执行','data':{}});
+
     if (userId.isEmpty || messageIds.isEmpty) {
       return;
     }
@@ -72,5 +90,9 @@ class ChatMessageMediaService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'ChatMessageMediaService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

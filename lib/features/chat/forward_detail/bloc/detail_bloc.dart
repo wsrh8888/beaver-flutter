@@ -26,6 +26,9 @@ import 'package:beaver/types/business/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'detail_event.dart';
 import 'detail_state.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('chat-forward-detail');
 
 class ForwardDetailBloc extends Bloc<ForwardDetailEvent, ForwardDetailState> {
   ForwardDetailBloc() : super(const ForwardDetailState()) {
@@ -34,6 +37,7 @@ class ForwardDetailBloc extends Bloc<ForwardDetailEvent, ForwardDetailState> {
 
   Future<void> _onFetchDetail(FetchForwardDetailEvent event, Emitter<ForwardDetailState> emit) async {
     emit(state.copyWith(status: ForwardDetailStatus.loading));
+    _logger.info({'text': '加载转发消息详情', 'data': {'recordId': event.recordId}});
 
     final res = await getForwardDetailsApi(
       IGetForwardDetailsReq(recordId: event.recordId),
@@ -41,6 +45,10 @@ class ForwardDetailBloc extends Bloc<ForwardDetailEvent, ForwardDetailState> {
 
     if (res.code == 0 && res.result != null) {
       final items = res.result!.list;
+      _logger.info({
+        'text': '加载转发消息详情成功',
+        'data': {'recordId': event.recordId, 'title': res.result!.title, 'count': items.length},
+      });
       final messages = items.map((item) {
         final msgJson = jsonDecode(item.msg);
         final msgContent = MessageContentModel.fromJson(msgJson);
@@ -64,6 +72,10 @@ class ForwardDetailBloc extends Bloc<ForwardDetailEvent, ForwardDetailState> {
         messages: messages,
       ));
     } else {
+      _logger.warn({
+        'text': '加载转发消息详情失败',
+        'data': {'recordId': event.recordId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         status: ForwardDetailStatus.failure,
         error: res.msg,

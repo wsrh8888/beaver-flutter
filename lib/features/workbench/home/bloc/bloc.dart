@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/workbench/home/bloc/event.dart';
 import 'package:beaver/features/workbench/home/bloc/state.dart';
 import 'package:beaver/features/workbench/home/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('workbench-home');
 
 class WorkbenchHomeBloc extends Bloc<WorkbenchHomeEvent, WorkbenchHomeState> {
   final WorkbenchHomeRepository _repository;
@@ -36,9 +39,11 @@ class WorkbenchHomeBloc extends Bloc<WorkbenchHomeEvent, WorkbenchHomeState> {
     Emitter<WorkbenchHomeState> emit,
   ) async {
     emit(state.copyWith(status: WorkbenchHomeStatus.loading));
+    _logger.info({'text': '加载工作台应用'});
 
     final res = await _repository.loadApps();
     if (res.code != 0) {
+      _logger.warn({'text': '加载工作台应用失败', 'data': {'code': res.code, 'msg': res.msg}});
       emit(state.copyWith(
         status: WorkbenchHomeStatus.error,
         errorMessage: res.msg.isNotEmpty ? res.msg : '加载应用失败',
@@ -46,6 +51,7 @@ class WorkbenchHomeBloc extends Bloc<WorkbenchHomeEvent, WorkbenchHomeState> {
       return;
     }
 
+    _logger.info({'text': '加载工作台应用成功', 'data': {'groupCount': res.result?.groups.length ?? 0}});
     emit(state.copyWith(
       status: WorkbenchHomeStatus.success,
       groups: res.result?.groups ?? [],

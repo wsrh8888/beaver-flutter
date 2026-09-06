@@ -22,6 +22,9 @@
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-emoji-package_emoji');
 
 class EmojiPackageEmojiService extends BaseService {
   const EmojiPackageEmojiService();
@@ -29,6 +32,9 @@ class EmojiPackageEmojiService extends BaseService {
   Future<void> batchCreate(
     List<EmojiPackageEmojiTableCompanion> entries,
   ) async {
+    try {
+    _logger.info({'text':'EmojiPackageEmojiService.batchCreate 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final entry in entries) {
         batch.insert(
@@ -41,18 +47,30 @@ class EmojiPackageEmojiService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiPackageEmojiService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<EmojiPackageEmojiTableData>> getByPackageId(
     String packageId,
   ) async {
+    try {
+
     final query = db.select(db.emojiPackageEmojiTable)
       ..where((t) => t.packageId.equals(packageId))
       ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]);
     return await query.get();
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiPackageEmojiService.getByPackageId 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<List<Emoji>> getEmojisByPackageId(String packageId) async {
+    try {
+
     final query = db.select(db.emojis).join([
       innerJoin(
         db.emojiPackageEmojiTable,
@@ -63,5 +81,9 @@ class EmojiPackageEmojiService extends BaseService {
 
     final rows = await query.get();
     return rows.map((row) => row.readTable(db.emojis)).toList();
+    } catch (e, st) {
+      _logger.warn({'text':'EmojiPackageEmojiService.getEmojisByPackageId 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

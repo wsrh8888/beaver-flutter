@@ -22,19 +22,30 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-friend-friend');
 
 class FriendService extends BaseService {
   const FriendService();
 
   /// 根据 IDs 获取好友记录
   Future<List<Friend>> getFriendRecordsByIds(List<String> friendshipIds) async {
+    try {
+
     return (db.select(
       db.friends,
     )..where((t) => t.friendId.isIn(friendshipIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.getFriendRecordsByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取两个用户之间的好友关系
   Future<Friend?> getFriendByPeerId(String currentUserId, String peerId) async {
+    try {
+
     final friends = await (db.select(db.friends)..where(
           (t) =>
               t.isDeleted.equals(0) &
@@ -45,41 +56,73 @@ class FriendService extends BaseService {
         ))
         .get();
     return friends.isNotEmpty ? friends.first : null;
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.getFriendByPeerId 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取所有好友列表
   Future<List<Friend>> getFriends() async {
+    try {
+
     return (db.select(db.friends)..where((t) => t.isDeleted.equals(0))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.getFriends 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 删除好友 (本地标识删除)
   Future<void> deleteFriend(String friendId) async {
+    try {
+
     await (db.update(db.friends)..where((t) => t.friendId.equals(friendId)))
         .write(const FriendsCompanion(isDeleted: Value(1)));
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.deleteFriend 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据 IDs 获取验证记录
   Future<List<FriendVerify>> getFriendVerifiesByIds(
     List<String> verifyIds,
   ) async {
+    try {
+
     return (db.select(
       db.friendVerifies,
     )..where((t) => t.verifyId.isIn(verifyIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.getFriendVerifiesByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建或更新好友
   Future<void> batchCreate(List<FriendsCompanion> friends) async {
+    try {
+    _logger.info({'text':'FriendService.batchCreate 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final companion in friends) {
         batch.insert(db.friends, companion, mode: InsertMode.insertOrReplace);
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建或更新好友验证
   Future<void> batchCreateVerifies(
     List<FriendVerifiesCompanion> verifies,
   ) async {
+    try {
+    _logger.info({'text':'FriendService.batchCreateVerifies 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final companion in verifies) {
         batch.insert(
@@ -89,6 +132,10 @@ class FriendService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.batchCreateVerifies 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新好友备注
@@ -97,6 +144,8 @@ class FriendService extends BaseService {
     String? sendUserNotice,
     String? revUserNotice,
   }) async {
+    try {
+
     await (db.update(db.friends)..where((t) => t.friendId.equals(friendId)))
         .write(
       FriendsCompanion(
@@ -108,5 +157,9 @@ class FriendService extends BaseService {
             : const Value.absent(),
       ),
     );
+    } catch (e, st) {
+      _logger.warn({'text':'FriendService.updateNotice 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

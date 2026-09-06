@@ -25,12 +25,17 @@ import 'package:beaver/api/auth.dart';
 import 'package:beaver/types/api/auth.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
 import 'package:beaver/common/request/request.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-auth-login');
 
 class LoginRepository {
   Future<BaseResponse<EmailPasswordLoginRes>> login(
     String email,
     String password,
   ) async {
+    try {
+
     final deviceId = await StorageUtil.getDeviceId();
     final req = EmailPasswordLoginReq(
       email: email,
@@ -45,5 +50,9 @@ class LoginRepository {
       await StorageUtil.setString('userId', response.result!.userId);
     }
     return response;
+    } catch (e, st) {
+      _logger.warn({'text':'LoginRepository.login 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

@@ -21,6 +21,7 @@
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:flutter/foundation.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/types/call.dart';
@@ -28,6 +29,8 @@ import 'package:beaver/api/call.dart';
 import 'package:beaver/types/api/call.dart' as api;
 import 'package:beaver/store/contact/contact.dart';
 import 'package:flutter/material.dart' hide ConnectionState;
+
+final _logger = Logger('business-call');
 
 abstract class CallRepositoryInterface {
 }
@@ -45,15 +48,17 @@ class CallBusiness implements CallRepositoryInterface {
 
   // 发起通话
   Future<api.CallInfoRes?> makeCall(String conversationId, int callType, int callMode) async {
+    _logger.info({'text': '发起通话', 'data': {'conversationId': conversationId, 'callType': callType, 'callMode': callMode}});
     final response = await startCallApi(api.StartCallReq(
       conversationId: conversationId,
       callType: callType,
       callMode: callMode,
     ));
-    
+
     if (response.code == 0 && response.result != null) {
       return response.result;
     }
+    _logger.warn({'text': '发起通话失败', 'data': {'code': response.code, 'msg': response.msg}});
     return null;
   }
 
@@ -93,11 +98,12 @@ class CallBusiness implements CallRepositoryInterface {
   
   // 初始化LiveKit房间
   Future<void> initialize(String roomId, String roomToken, String liveKitUrl) async {
+    _logger.info({'text': '初始化通话房间', 'data': {'roomId': roomId, 'liveKitUrl': liveKitUrl}});
     _currentRoomId = roomId;
     if (_isInitialized && _room.connectionState == ConnectionState.connected) return;
-    
+
     try {
-      debugPrint('开始连接 LiveKit 房间: $liveKitUrl');
+      _logger.info({'text': '开始连接 LiveKit 房间', 'data': {'liveKitUrl': liveKitUrl}});
       await _room.connect(liveKitUrl, roomToken);
       _isInitialized = true;
       
@@ -121,14 +127,18 @@ class CallBusiness implements CallRepositoryInterface {
         }
       }
     } catch (e) {
-      debugPrint('LiveKit连接失败: $e');
+      _logger.warn({'text': 'LiveKit 连接失败', 'data': {'error': e.toString()}});
       rethrow;
     }
   }
   
   // 邀请参与者
   Future<void> inviteParticipants(List<String> userIds) async {
-    if (_currentRoomId == null) return;
+    _logger.info({'text': '邀请参与者', 'data': {'count': userIds.length}});
+    if (_currentRoomId == null) {
+      _logger.warn({'text': '邀请参与者失败：未处于通话房间', 'data': {}});
+      return;
+    }
     await inviteParticipantsApi(api.InviteParticipantsReq(
       roomId: _currentRoomId!,
       userIds: userIds,
@@ -150,14 +160,18 @@ class CallBusiness implements CallRepositoryInterface {
   
   // 开始通话
   Future<void> startCall() async {
-    if (!_isInitialized) return;
-    
+    _logger.info({'text': '开始通话', 'data': {}});
+    if (!_isInitialized) {
+      _logger.warn({'text': '开始通话失败：房间未初始化', 'data': {}});
+      return;
+    }
+
     try {
       // 发布本地音视频轨道
       await _room.localParticipant?.setCameraEnabled(true);
       await _room.localParticipant?.setMicrophoneEnabled(true);
     } catch (e) {
-      debugPrint('开始通话发布轨道失败: $e');
+      _logger.warn({'text': '开始通话发布轨道失败', 'data': {'error': e.toString()}});
     }
   }
   
@@ -197,13 +211,13 @@ class CallBusiness implements CallRepositoryInterface {
     final listener = _room.createListener();
     listener
       ..on<ParticipantConnectedEvent>((event) {
-        debugPrint('参与者加入: ${event.participant.identity}');
-        _upsertMember(event.participant.identity, 
+        _logger.info({'text': '参与者加入房间', 'data': {'identity': event.participant.identity}});
+        _upsertMember(event.participant.identity,
           status: CallParticipantStatus.joined,
           nickName: event.participant.name);
       })
       ..on<ParticipantDisconnectedEvent>((event) {
-        debugPrint('参与者离开: ${event.participant.identity}');
+        _logger.info({'text': '参与者离开房间', 'data': {'identity': event.participant.identity}});
         _upsertMember(event.participant.identity, status: CallParticipantStatus.left);
       })
       ..on<TrackSubscribedEvent>((event) {

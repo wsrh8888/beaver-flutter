@@ -34,6 +34,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('chat-detail-page');
 
 class ChatDetailPage extends StatefulWidget {
   final String? conversationId;
@@ -64,7 +67,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   void _ensureConversationLoaded({bool force = false}) {
     final conversationId = widget.conversationId;
     if (conversationId == null || conversationId.isEmpty) {
-      print('[ChatDetailPage] conversationId 缺失，无法加载会话');
+      _logger.error({'text': '会话ID缺失，无法加载会话'});
       return;
     }
     if (!force && _loadedConversationId == conversationId) return;

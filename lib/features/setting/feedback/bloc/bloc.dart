@@ -25,6 +25,9 @@ import 'package:beaver/features/setting/feedback/bloc/state.dart';
 import 'package:beaver/features/setting/feedback/data/repositories/repository.dart';
 import 'package:beaver/features/setting/feedback/data/models/feedback.dart';
 import 'package:beaver/features/setting/feedback/data/constants.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('feedback');
 
 class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
   final FeedbackRepository _repository;
@@ -86,6 +89,13 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
     Emitter<FeedbackState> emit,
   ) async {
     if (state.selectedType == null || state.content.isEmpty) {
+      _logger.warn({
+        'text': '提交反馈参数不完整',
+        'data': {
+          'hasType': state.selectedType != null,
+          'contentLength': state.content.length,
+        },
+      });
       emit(state.copyWith(
         status: FeedbackStatus.error,
         errorMessage: '请选择反馈类型并填写反馈内容',
@@ -93,6 +103,14 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
       return;
     }
 
+    _logger.info({
+      'text': '提交反馈',
+      'data': {
+        'type': state.selectedType,
+        'contentLength': state.content.length,
+        'imageCount': state.uploadedImages?.length ?? 0,
+      },
+    });
     emit(state.copyWith(status: FeedbackStatus.loading));
     try {
       final success = await _repository.submitFeedback(
@@ -101,14 +119,17 @@ class FeedbackBloc extends Bloc<FeedbackEvent, FeedbackState> {
         images: state.uploadedImages,
       );
       if (success) {
+        _logger.info({'text': '反馈提交成功'});
         emit(state.copyWith(status: FeedbackStatus.success));
       } else {
+        _logger.warn({'text': '反馈提交失败'});
         emit(state.copyWith(
           status: FeedbackStatus.error,
           errorMessage: '提交失败，请稍后再试',
         ));
       }
     } catch (e) {
+      _logger.error({'text': '反馈提交异常', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: FeedbackStatus.error,
         errorMessage: e.toString(),

@@ -26,6 +26,9 @@ import 'package:beaver/store/friend/friend.dart';
 import 'package:beaver/types/business/contact.dart';
 import 'event.dart';
 import 'state.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('contact-selector');
 
 class ContactSelectorBloc extends Bloc<ContactSelectorEvent, ContactSelectorState> {
   final FriendStore _friendStore;
@@ -58,6 +61,7 @@ class ContactSelectorBloc extends Bloc<ContactSelectorEvent, ContactSelectorStat
     Emitter<ContactSelectorState> emit,
   ) async {
     final contacts = _friendStore.state.friends;
+    _logger.info({'text': '加载可选联系人', 'data': {'count': contacts.length}});
     emit(state.copyWith(status: ContactSelectorStatus.success, contacts: contacts));
   }
 
@@ -70,11 +74,16 @@ class ContactSelectorBloc extends Bloc<ContactSelectorEvent, ContactSelectorStat
       (c) => c.userId == event.contact.userId,
     );
 
-    if (index == -1) {
+    final isSelect = index == -1;
+    if (isSelect) {
       selectedContacts.add(event.contact);
     } else {
       selectedContacts.removeAt(index);
     }
+    _logger.info({
+      'text': isSelect ? '选中联系人' : '取消选中联系人',
+      'data': {'userId': event.contact.userId, 'selectedCount': selectedContacts.length},
+    });
 
     emit(state.copyWith(selectedContacts: selectedContacts));
   }
@@ -83,6 +92,7 @@ class ContactSelectorBloc extends Bloc<ContactSelectorEvent, ContactSelectorStat
     SearchContactsEvent event,
     Emitter<ContactSelectorState> emit,
   ) async {
+    _logger.info({'text': '搜索联系人', 'data': {'query': event.query}});
     emit(state.copyWith(searchQuery: event.query));
   }
 }

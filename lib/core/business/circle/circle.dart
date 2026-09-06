@@ -27,6 +27,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/circle.dart';
 import 'package:beaver/types/business/circle.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-business');
 
 /// 圈子业务门面（本地库 + 必要 API）
 class CircleBusiness {
@@ -81,6 +84,10 @@ class CircleBusiness {
     String description = '',
     String avatar = '',
   }) async {
+    _logger.info({
+      'text': '创建圈子后写入本地',
+      'data': {'circleId': circleId, 'name': name},
+    });
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     await _circleService.upsert(
       CirclesCompanion(
@@ -101,6 +108,10 @@ class CircleBusiness {
 
   /// 详情/加入成功后落库
   Future<void> upsertFromDetail(IGetCircleDetailRes detail) async {
+    _logger.info({
+      'text': '圈子详情/加入成功后落库',
+      'data': {'circleId': detail.circleId, 'role': detail.role},
+    });
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final local = await _circleService.getCircleById(detail.circleId);
     await _circleService.upsert(
@@ -127,7 +138,9 @@ class CircleBusiness {
     final circleId = circleIdOrConversationId.startsWith('circle_')
         ? circleIdOrConversationId.substring('circle_'.length)
         : circleIdOrConversationId;
+    _logger.info({'text': '开始移除圈子', 'data': {'circleId': circleId}});
     await _circleService.deleteCircle(circleId);
+    _logger.info({'text': '移除圈子完成', 'data': {'circleId': circleId}});
     notifyCircleUpdate([circleId]);
   }
 }

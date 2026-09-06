@@ -23,25 +23,43 @@ import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-group-group');
 
 class GroupService extends BaseService {
   const GroupService();
 
   /// 创建群组
   Future<void> create(GroupsCompanion group) async {
+    try {
+
     await db.into(db.groups).insert(group);
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.create 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 创建或更新群组（upsert操作）
   Future<void> upsert(GroupsCompanion group) async {
+    try {
+
     await db.into(db.groups).insert(
           group,
           mode: InsertMode.insertOrReplace,
         );
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量创建群组（支持插入或更新）
   Future<void> batchCreate(List<IGroupSyncItem> groups) async {
+    try {
+    _logger.info({'text':'GroupService.batchCreate 开始执行','data':{}});
+
     if (groups.isEmpty) {
       return;
     }
@@ -65,10 +83,17 @@ class GroupService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 批量插入或更新群组（基于版本号判断是否需要更新）
   Future<void> batchUpsert(List<IGroupSyncItem> groups) async {
+    try {
+    _logger.info({'text':'GroupService.batchUpsert 开始执行','data':{}});
+
     if (groups.isEmpty) {
       return;
     }
@@ -92,23 +117,41 @@ class GroupService extends BaseService {
         ));
       }
     }
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.batchUpsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据群组ID获取群组信息
   Future<Group?> getGroupById(String groupId) async {
+    try {
+
     return (db.select(db.groups)..where((t) => t.groupId.equals(groupId))).getSingleOrNull();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.getGroupById 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 根据群组ID列表批量获取群组信息
   Future<List<Group>> getGroupsByIds(List<String> groupIds) async {
+    try {
+
     if (groupIds.isEmpty) {
       return [];
     }
     return (db.select(db.groups)..where((t) => t.groupId.isIn(groupIds))).get();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.getGroupsByIds 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取当前用户的有效群组列表
   Future<List<Group>> getActiveGroups() async {
+    try {
+
     return (db.select(db.groups)
           ..where((t) => t.status.equals(1))
           ..orderBy([
@@ -116,10 +159,16 @@ class GroupService extends BaseService {
             (t) => OrderingTerm.desc(t.createdAt),
           ]))
         .get();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.getActiveGroups 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 更新群组信息
   Future<void> updateGroup(String groupId, Map<String, dynamic> updateData) async {
+    try {
+
     updateData['updatedAt'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
     final companion = GroupsCompanion(
@@ -132,10 +181,20 @@ class GroupService extends BaseService {
     );
 
     await (db.update(db.groups)..where((t) => t.groupId.equals(groupId))).write(companion);
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.updateGroup 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 删除群组
   Future<void> deleteGroup(String groupId) async {
+    try {
+
     await (db.delete(db.groups)..where((t) => t.groupId.equals(groupId))).go();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupService.deleteGroup 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

@@ -23,12 +23,18 @@ import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/base.dart';
 import 'package:beaver/types/api/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-group-group_join_request');
 
 class GroupJoinRequestService extends BaseService {
   const GroupJoinRequestService();
 
   /// 批量创建入群申请
   Future<void> batchCreate(List<IGroupJoinRequestSyncItem> requests) async {
+    try {
+    _logger.info({'text':'GroupJoinRequestService.batchCreate 开始执行','data':{}});
+
     await db.batch((batch) {
       for (final req in requests) {
         batch.insert(
@@ -47,10 +53,16 @@ class GroupJoinRequestService extends BaseService {
         );
       }
     });
+    } catch (e, st) {
+      _logger.warn({'text':'GroupJoinRequestService.batchCreate 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取未读（待处理）申请数
   Future<int> getUnreadCount() async {
+    try {
+
     // 这里简单处理：所有由于我是管理员/创建者而收到的待处理申请
     // 实际业务可能更复杂，这里先根据 status == 0 统计
     final query = db.selectOnly(db.groupJoinRequests)
@@ -58,10 +70,21 @@ class GroupJoinRequestService extends BaseService {
       ..where(db.groupJoinRequests.status.equals(0));
     final result = await query.map((row) => row.read<int>(db.groupJoinRequests.id.count())).getSingle();
     return result ?? 0;
+    } catch (e, st) {
+      _logger.warn({'text':'GroupJoinRequestService.getUnreadCount 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   /// 获取所有入群申请
   Future<List<GroupJoinRequest>> getAllRequests() async {
+    try {
+    _logger.info({'text':'GroupJoinRequestService.getAllRequests 开始执行','data':{}});
+
     return await db.select(db.groupJoinRequests).get();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupJoinRequestService.getAllRequests 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

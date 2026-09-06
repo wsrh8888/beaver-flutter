@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-friend');
 
 /// Handles friends table updates.
 class FriendReceiver {
@@ -28,7 +31,11 @@ class FriendReceiver {
     final tableUpdates =
         (tableUpdatesBody['tableUpdates'] ?? tableUpdatesBody['tables'])
             as List?;
-    if (tableUpdates == null) return;
+    if (tableUpdates == null) {
+      _logger.warn({'text': '收到好友表更新但 tableUpdates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理好友表更新', 'data': {'count': tableUpdates.length}});
 
     final Map<String, int> latestVersionByFriendId = {};
     final friendUpdates = tableUpdates
@@ -52,7 +59,11 @@ class FriendReceiver {
     }
 
     for (final item in latestVersionByFriendId.entries) {
-      await getIt<FriendBusiness>().handleTableUpdates(item.value, item.key);
+      try {
+        await getIt<FriendBusiness>().handleTableUpdates(item.value, item.key);
+      } catch (e) {
+        _logger.warn({'text': '处理好友更新失败', 'data': {'friendId': item.key, 'version': item.value, 'error': e.toString()}});
+      }
     }
   }
 }

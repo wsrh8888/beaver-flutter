@@ -20,9 +20,14 @@
  */
 
 import 'package:beaver/features/user/config/data/models/config.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-user-config');
 
 class UserConfigRepository {
   Future<FriendInfo> getFriendInfo(String conversationId) async {
+    try {
+
     // 模拟获取好友信息
     await Future.delayed(const Duration(seconds: 1));
     return FriendInfo(
@@ -31,18 +36,34 @@ class UserConfigRepository {
       fileName: 'https://neeko-copilot.bytedance.net/api/text2image?prompt=avatar%20portrait&size=512x512',
       isOnline: true,
     );
+    } catch (e, st) {
+      _logger.warn({'text':'UserConfigRepository.getFriendInfo 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> toggleTopChat(String conversationId, bool isPinned) async {
+    try {
+
     // 模拟置顶聊天
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'UserConfigRepository.toggleTopChat 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> deleteFriend(String friendId) async {
+    try {
+
     // 模拟删除好友
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'UserConfigRepository.deleteFriend 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

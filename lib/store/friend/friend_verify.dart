@@ -26,6 +26,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/friend/friend.dart';
 import 'package:beaver/core/business/friend/friend_verify.dart';
 import 'package:beaver/core/database/db.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend-verify');
 
 class FriendVerifyStoreState extends Equatable {
   final List<dynamic> friendVerifyList;
@@ -85,7 +88,10 @@ class FriendVerifyStore extends Cubit<FriendVerifyStoreState> {
         state.copyWith(friendVerifyList: requests, unreadCount: unreadCount),
       );
     } catch (e) {
-      print('FriendVerifyStore: 初始化失败: $e');
+      _logger.error({
+        'text': '好友验证列表初始化失败',
+        'data': {'error': e.toString()},
+      });
     }
   }
 

@@ -25,6 +25,9 @@ import 'package:beaver/features/user/profile/bloc/state.dart';
 import 'package:beaver/features/user/profile/data/repositories/repository.dart';
 import 'package:beaver/types/business/user.dart';
 import 'package:beaver/api/file.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('user-profile');
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final ProfileRepository _profileRepository;
@@ -49,6 +52,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({'text': '加载用户信息'});
 
     try {
       final profileUserInfo = await _profileRepository.getUserInfo();
@@ -60,6 +64,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         gender: profileUserInfo.gender,
         abstract: profileUserInfo.abstract,
       );
+      _logger.info({
+        'text': '加载用户信息成功',
+        'data': {'userId': profileUserInfo.userId},
+      });
       emit(state.copyWith(
         status: ProfileStatus.success,
         userInfo: userInfo,
@@ -72,6 +80,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         },
       ));
     } catch (e) {
+      _logger.error({
+        'text': '加载用户信息失败',
+        'data': {'error': e.toString()},
+      });
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '加载用户信息失败: $e',
@@ -113,6 +125,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state.userInfo == null) return;
 
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({
+      'text': '保存昵称',
+      'data': {'nickname': state.formData['nickname']},
+    });
 
     try {
       final success = await _profileRepository.updateUserInfo({'nickName': state.formData['nickname']});
@@ -120,6 +136,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final updatedUserInfo = state.userInfo!.copyWith(nickname: state.formData['nickname']);
         final updatedModals = Map<String, bool>.from(state.modals);
         updatedModals['nickname'] = false;
+        _logger.info({'text': '昵称更新成功'});
         emit(state.copyWith(
           status: ProfileStatus.success,
           userInfo: updatedUserInfo,
@@ -127,9 +144,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           errorMessage: '昵称更新成功',
         ));
       } else {
+        _logger.warn({'text': '昵称更新失败'});
         emit(state.copyWith(status: ProfileStatus.error, errorMessage: '昵称更新失败'));
       }
     } catch (e) {
+      _logger.error({'text': '昵称更新失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '昵称更新失败: $e',
@@ -144,6 +163,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state.userInfo == null) return;
 
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({'text': '保存邮箱', 'data': {'email': state.formData['email']}});
 
     try {
       final success = await _profileRepository.updateEmail(
@@ -154,6 +174,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final updatedUserInfo = state.userInfo!.copyWith(email: state.formData['email']);
         final updatedModals = Map<String, bool>.from(state.modals);
         updatedModals['email'] = false;
+        _logger.info({'text': '邮箱更新成功'});
         emit(state.copyWith(
           status: ProfileStatus.success,
           userInfo: updatedUserInfo,
@@ -161,9 +182,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           errorMessage: '邮箱更新成功',
         ));
       } else {
+        _logger.warn({'text': '邮箱更新失败'});
         emit(state.copyWith(status: ProfileStatus.error, errorMessage: '邮箱更新失败'));
       }
     } catch (e) {
+      _logger.error({'text': '邮箱更新失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '邮箱更新失败: $e',
@@ -178,6 +201,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state.userInfo == null) return;
 
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({'text': '保存个人简介'});
 
     try {
       final success = await _profileRepository.updateUserInfo({'abstract': state.formData['bio']});
@@ -185,6 +209,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final updatedUserInfo = state.userInfo!.copyWith(abstract: state.formData['bio']);
         final updatedModals = Map<String, bool>.from(state.modals);
         updatedModals['description'] = false;
+        _logger.info({'text': '个人简介更新成功'});
         emit(state.copyWith(
           status: ProfileStatus.success,
           userInfo: updatedUserInfo,
@@ -192,9 +217,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           errorMessage: '个人简介更新成功',
         ));
       } else {
+        _logger.warn({'text': '个人简介更新失败'});
         emit(state.copyWith(status: ProfileStatus.error, errorMessage: '个人简介更新失败'));
       }
     } catch (e) {
+      _logger.error({'text': '个人简介更新失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '个人简介更新失败: $e',
@@ -209,6 +236,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state.userInfo == null) return;
 
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({'text': '保存性别', 'data': {'gender': state.formData['gender']}});
 
     try {
       final success = await _profileRepository.updateUserInfo({'gender': state.formData['gender']});
@@ -216,6 +244,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final updatedUserInfo = state.userInfo!.copyWith(gender: state.formData['gender']);
         final updatedModals = Map<String, bool>.from(state.modals);
         updatedModals['gender'] = false;
+        _logger.info({'text': '性别更新成功'});
         emit(state.copyWith(
           status: ProfileStatus.success,
           userInfo: updatedUserInfo,
@@ -223,9 +252,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           errorMessage: '性别更新成功',
         ));
       } else {
+        _logger.warn({'text': '性别更新失败'});
         emit(state.copyWith(status: ProfileStatus.error, errorMessage: '性别更新失败'));
       }
     } catch (e) {
+      _logger.error({'text': '性别更新失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '性别更新失败: $e',
@@ -241,10 +272,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       isCodeSending: true,
       errorMessage: '发送验证码...',
     ));
+    _logger.info({'text': '发送邮箱验证码', 'data': {'email': state.formData['email']}});
 
     try {
       final success = await _profileRepository.sendEmailCode(state.formData['email']);
       if (success) {
+        _logger.info({'text': '邮箱验证码发送成功'});
         emit(state.copyWith(
           isCodeSending: false,
           countdown: 60,
@@ -257,9 +290,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           emit(state.copyWith(countdown: i));
         }
       } else {
+        _logger.warn({'text': '邮箱验证码发送失败'});
         emit(state.copyWith(isCodeSending: false, errorMessage: '发送失败'));
       }
     } catch (e) {
+      _logger.error({'text': '发送邮箱验证码失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         isCodeSending: false,
         errorMessage: '发送验证码失败: $e',
@@ -274,6 +309,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (state.userInfo == null) return;
 
     emit(state.copyWith(status: ProfileStatus.loading));
+    _logger.info({'text': '更新头像', 'data': {'imagePath': event.imagePath}});
     try {
       final uploadRes = await uploadFileApi(event.imagePath);
       if (uploadRes.code == 0 && uploadRes.result != null) {
@@ -281,21 +317,28 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final success = await _profileRepository.updateUserInfo({'fileName': fileUrl});
         if (success) {
           final updatedUserInfo = state.userInfo!.copyWith(avatar: fileUrl);
+          _logger.info({'text': '头像更新成功', 'data': {'fileUrl': fileUrl}});
           emit(state.copyWith(
             status: ProfileStatus.success,
             userInfo: updatedUserInfo,
             errorMessage: '头像更新成功',
           ));
         } else {
+          _logger.warn({'text': '头像资料更新失败'});
           emit(state.copyWith(status: ProfileStatus.error, errorMessage: '资料更新失败'));
         }
       } else {
+        _logger.warn({
+          'text': '头像文件上传失败',
+          'data': {'code': uploadRes.code, 'msg': uploadRes.msg},
+        });
         emit(state.copyWith(
           status: ProfileStatus.error,
           errorMessage: '文件上传失败: ${uploadRes.msg}',
         ));
       }
     } catch (e) {
+      _logger.error({'text': '头像更新失败', 'data': {'error': e.toString()}});
       emit(state.copyWith(
         status: ProfileStatus.error,
         errorMessage: '头像更新失败: $e',

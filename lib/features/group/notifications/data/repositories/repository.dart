@@ -22,16 +22,31 @@
 import 'package:beaver/core/business/group/group.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/group.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-group-notifications');
 
 class GroupNotificationRepository {
   final _groupBusiness = getIt<GroupBusiness>();
 
   Future<List<GroupNotification>> getGroupNotifications() async {
+    try {
+
     return await _groupBusiness.getGroupNotifications();
+    } catch (e, st) {
+      _logger.warn({'text':'GroupNotificationRepository.getGroupNotifications 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<bool> updateRequestStatus(int id, int status) async {
+    try {
+
     return await _groupBusiness.updateGroupRequestStatus(id, status);
+    } catch (e, st) {
+      _logger.warn({'text':'GroupNotificationRepository.updateRequestStatus 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 

@@ -22,11 +22,16 @@
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/db.dart';
 import '../base.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('db-media-media');
 
 class MediaService extends BaseService {
   const MediaService();
 
   Future<void> upsert(Map<String, dynamic> req) async {
+    try {
+
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     await db.into(db.mediaTable).insert(
       MediaTableCompanion(
@@ -41,15 +46,31 @@ class MediaService extends BaseService {
       ),
       mode: InsertMode.insertOrReplace,
     );
+    } catch (e, st) {
+      _logger.warn({'text':'MediaService.upsert 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<Map<String, dynamic>?> getMediaByUrl(String url) async {
+    try {
+
     final result = await (db.select(db.mediaTable)..where((t) => t.url.equals(url))).get();
     if (result.isEmpty) return null;
     return result.first.toJson();
+    } catch (e, st) {
+      _logger.warn({'text':'MediaService.getMediaByUrl 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 
   Future<void> deleteByUrl(String url) async {
+    try {
+
     await (db.delete(db.mediaTable)..where((t) => t.url.equals(url))).go();
+    } catch (e, st) {
+      _logger.warn({'text':'MediaService.deleteByUrl 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

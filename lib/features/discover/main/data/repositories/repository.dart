@@ -20,10 +20,19 @@
  */
 
 import 'package:beaver/features/discover/main/data/models/discover.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-discover-main');
 
 class DiscoverMainRepository {
   Future<List<DiscoverItem>> getDiscoverItems() async {
+    try {
+
     // 底栏已改为「工作台」；朋友圈迁入工作台；AI / 扫一扫入口已移除
     return const [];
+    } catch (e, st) {
+      _logger.warn({'text':'DiscoverMainRepository.getDiscoverItems 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }

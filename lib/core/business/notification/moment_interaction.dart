@@ -25,6 +25,9 @@ import 'package:beaver/core/database/services/notification/event.dart';
 import 'package:beaver/core/database/services/notification/inbox.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/business/moment_interaction.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('moment-interaction');
 
 /// 朋友圈互动消息（对标微信「朋友圈消息」）
 class MomentInteractionBusiness {
@@ -90,7 +93,12 @@ class MomentInteractionBusiness {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is Map<String, dynamic>) return decoded;
-    } catch (_) {}
+    } catch (e) {
+      _logger.warn({
+        'text': '朋友圈互动消息负载解析失败',
+        'data': {'raw': raw, 'error': e.toString()},
+      });
+    }
     return {};
   }
 }

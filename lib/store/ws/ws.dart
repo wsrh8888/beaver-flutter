@@ -21,6 +21,9 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('store-ws');
 
 enum WsConnectionStatus {
   connected,
@@ -62,18 +65,22 @@ class WsStore extends Cubit<WsStoreState> {
 
   void setConnecting() {
     if (state.status == WsConnectionStatus.connecting) return;
+    _logger.info({'text': 'WebSocket 连接中', 'data': {}});
     emit(state.copyWith(status: WsConnectionStatus.connecting));
   }
 
   void setSyncing() {
+    _logger.info({'text': 'WebSocket 正在收取数据', 'data': {}});
     emit(state.copyWith(status: WsConnectionStatus.syncing));
   }
 
   void setConnected() {
+    _logger.info({'text': 'WebSocket 已连接', 'data': {}});
     emit(state.copyWith(status: WsConnectionStatus.connected));
   }
 
   void setDisconnected() {
+    _logger.warn({'text': 'WebSocket 已断开', 'data': {}});
     emit(state.copyWith(status: WsConnectionStatus.disconnected));
   }
 }

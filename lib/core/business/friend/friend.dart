@@ -28,6 +28,9 @@ import 'package:beaver/di/injection.dart';
 import 'package:intl/intl.dart';
 import 'package:beaver/types/api/friend.dart';
 import 'package:beaver/types/business/contact.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('friend-business');
 
 /// 好友业务逻辑
 class FriendBusiness implements FriendRepositoryInterface {
@@ -125,7 +128,17 @@ class FriendBusiness implements FriendRepositoryInterface {
    * @description 删除好友
    */
   Future<void> deleteFriend(String friendId) async {
-    await _service.deleteFriend(friendId);
+    _logger.info({'text': '开始删除好友', 'data': {'friendId': friendId}});
+    try {
+      await _service.deleteFriend(friendId);
+      _logger.info({'text': '删除好友成功', 'data': {'friendId': friendId}});
+    } catch (e) {
+      _logger.error({
+        'text': '删除好友失败',
+        'data': {'friendId': friendId, 'error': e.toString()},
+      });
+      rethrow;
+    }
   }
 
   /**
@@ -133,12 +146,32 @@ class FriendBusiness implements FriendRepositoryInterface {
    */
   Future<bool> updateRemarkName(String friendId, String notice) async {
     final myUserId = DatabaseManager.currentUserId ?? '';
-    if (myUserId.isEmpty) return false;
+    if (myUserId.isEmpty) {
+      _logger.warn({
+        'text': '更新备注失败：当前用户未登录',
+        'data': {'friendId': friendId},
+      });
+      return false;
+    }
 
+    _logger.info({
+      'text': '开始更新好友备注',
+      'data': {'friendId': friendId, 'notice': notice},
+    });
     final response = await updateRemarkNameApi(
       INoticeUpdateReq(friendId: friendId, notice: notice),
     );
-    if (!response.isSuccess) return false;
+    if (!response.isSuccess) {
+      _logger.error({
+        'text': '更新好友备注接口失败',
+        'data': {
+          'friendId': friendId,
+          'code': response.code,
+          'msg': response.msg,
+        },
+      });
+      return false;
+    }
 
     final friend = await _service.getFriendByPeerId(myUserId, friendId);
     if (friend != null) {
@@ -155,19 +188,30 @@ class FriendBusiness implements FriendRepositoryInterface {
       }
       notifyFriendUpdate([friend.friendId]);
     }
+    _logger.info({
+      'text': '更新好友备注成功',
+      'data': {'friendId': friendId, 'notice': notice},
+    });
     return true;
   }
 
   @override
   Future<List<FriendRequest>> getFriendRequests() async {
     final currentUserId = DatabaseManager.currentUserId ?? '';
-    if (currentUserId.isEmpty) return [];
+    if (currentUserId.isEmpty) {
+      _logger.warn({'text': '获取好友请求失败：当前用户未登录'});
+      return [];
+    }
 
     final verifyService = getIt<FriendVerifyService>();
     final userBusiness = getIt<UserBusiness>();
 
     // 1. 获取验证记录
     final verifies = await verifyService.getValidList(currentUserId);
+    _logger.info({
+      'text': '已获取好友验证记录',
+      'data': {'count': verifies.length},
+    });
     if (verifies.isEmpty) return [];
 
     // 2. 收集需要查询的用户ID
@@ -180,6 +224,10 @@ class FriendBusiness implements FriendRepositoryInterface {
 
     // 3. 批量获取用户信息
     final userInfos = await userBusiness.getUsersBasicInfo(userIds);
+    _logger.info({
+      'text': '已批量获取用户基本信息',
+      'data': {'need': userIds.length, 'got': userInfos.length},
+    });
     final userMap = {for (var u in userInfos) u.userId: u};
 
     // 4. 组装数据
@@ -215,6 +263,10 @@ class FriendBusiness implements FriendRepositoryInterface {
     // 按时间降序排序
     requests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+    _logger.info({
+      'text': '组装好友请求列表完成',
+      'data': {'count': requests.length},
+    });
     return requests;
   }
 
@@ -229,19 +281,32 @@ class FriendBusiness implements FriendRepositoryInterface {
    */
   Future<void> handleTableUpdates(int version, String? friendId) async {
     if (friendId == null || friendId.trim().isEmpty) {
+      _logger.warn({'text': '好友表更新缺少 friendId，跳过'});
       notifyFriendUpdate(const []);
       return;
     }
 
     final lastVersion = _lastHandledVersionByFriendId[friendId] ?? 0;
     if (version <= lastVersion) {
+      _logger.info({
+        'text': '好友表更新版本已处理，跳过',
+        'data': {'friendId': friendId, 'version': version, 'lastVersion': lastVersion},
+      });
       return;
     }
 
+    _logger.info({
+      'text': '开始拉取好友详情',
+      'data': {'friendId': friendId, 'version': version},
+    });
     final response = await getFriendsListByIdsApi(
       IGetFriendsListByIdsReq(friendIds: [friendId]),
     );
     if (response.code != 0 || response.result == null) {
+      _logger.error({
+        'text': '拉取好友详情接口失败',
+        'data': {'friendId': friendId, 'code': response.code, 'msg': response.msg},
+      });
       return;
     }
 
@@ -253,6 +318,10 @@ class FriendBusiness implements FriendRepositoryInterface {
     }
 
     _lastHandledVersionByFriendId[friendId] = version;
+    _logger.info({
+      'text': '好友表更新处理完成',
+      'data': {'friendId': friendId, 'version': version},
+    });
     notifyFriendUpdate([friendId]);
   }
 }

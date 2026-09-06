@@ -29,6 +29,9 @@ import 'package:beaver/store/group/group.dart';
 import 'package:beaver/types/business/chat.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('chat');
 
 class ChatStoreState extends Equatable {
   final List<ChatModel> conversations;
@@ -172,8 +175,13 @@ class ChatStore extends Cubit<ChatStoreState> {
   }
 
   Future<void> init() async {
+    _logger.info({'text': '开始加载会话列表'});
     try {
       final conversations = await _conversationBusiness.getChatList();
+      _logger.info({
+        'text': '会话列表加载完成',
+        'data': {'count': conversations.length},
+      });
 
       var totalUnread = 0;
       for (final conv in conversations) {
@@ -188,21 +196,36 @@ class ChatStore extends Cubit<ChatStoreState> {
       );
       _onStoreUpdate();
     } catch (e) {
-      print('ChatStore: init failed: $e');
+      _logger.error({
+        'text': '加载会话列表失败',
+        'data': {'error': e.toString()},
+      });
     }
   }
 
   Future<void> togglePinChat(String conversationId, bool isPinned) async {
+    _logger.info({
+      'text': '切换会话置顶',
+      'data': {'conversationId': conversationId, 'isPinned': isPinned},
+    });
     await _conversationBusiness.togglePinChat(conversationId, isPinned);
     await init();
   }
 
   Future<void> deleteChat(String conversationId) async {
+    _logger.info({
+      'text': '删除会话',
+      'data': {'conversationId': conversationId},
+    });
     await _conversationBusiness.deleteChat(conversationId);
     await init();
   }
 
   Future<void> markAsRead(String conversationId) async {
+    _logger.info({
+      'text': '标记会话已读',
+      'data': {'conversationId': conversationId},
+    });
     await _conversationBusiness.markAsRead(conversationId);
     // Business 层已经调用了 init()，这里为了双重保险也可以再调一次，或者依赖 Business 层的通知。
   }

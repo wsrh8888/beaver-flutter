@@ -22,6 +22,7 @@
 import 'dart:async';
 
 import 'package:beaver/api/notification.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/database/services/notification/inbox.dart';
 import 'package:beaver/core/database/services/notification/read_cursor.dart';
 import 'package:beaver/di/injection.dart';
@@ -30,6 +31,8 @@ import 'package:beaver/types/api/notification.dart';
 const notificationCategories = ['social', 'group', 'system', 'moment'];
 
 /// 通知收件箱业务逻辑 (对标 PC business/notification/inbox.ts)
+final _logger = Logger('business-notification-inbox');
+
 class NotificationInboxBusiness {
   final _inboxService = getIt<NotificationInboxService>();
   final _updateController = StreamController<void>.broadcast();
@@ -45,77 +48,95 @@ class NotificationInboxBusiness {
     String eventId,
     String userId,
   ) async {
+    _logger.info({'text': '收到通知收件箱表更新', 'data': {'eventId': eventId, 'userId': userId}});
     await syncInboxesByEventIds(userId, [eventId]);
   }
 
   Future<void> syncInboxesByEventIds(String userId, List<String> eventIds) async {
+    _logger.info({'text': '开始按事件ID同步通知收件箱', 'data': {'userId': userId, 'count': eventIds.length}});
     if (eventIds.isEmpty || userId.isEmpty) return;
 
     const batchSize = 50;
-    for (var i = 0; i < eventIds.length; i += batchSize) {
-      final batchIds = eventIds.sublist(
-        i,
-        i + batchSize > eventIds.length ? eventIds.length : i + batchSize,
-      );
+    try {
+      for (var i = 0; i < eventIds.length; i += batchSize) {
+        final batchIds = eventIds.sublist(
+          i,
+          i + batchSize > eventIds.length ? eventIds.length : i + batchSize,
+        );
 
-      final res = await getNotificationInboxByIdsApi(
-        IGetNotificationInboxByIdsReq(eventIds: batchIds),
-      );
-      if (res.code != 0 || res.result == null || res.result!.inbox.isEmpty) {
-        continue;
+        final res = await getNotificationInboxByIdsApi(
+          IGetNotificationInboxByIdsReq(eventIds: batchIds),
+        );
+        if (res.code != 0 || res.result == null || res.result!.inbox.isEmpty) {
+          _logger.warn({
+            'text': '获取通知收件箱失败',
+            'data': {'code': res.code, 'msg': res.msg, 'batchCount': batchIds.length},
+          });
+          continue;
+        }
+
+        final inboxRows = res.result!.inbox
+            .map(
+              (inbox) => {
+                'userId': userId,
+                'eventId': inbox.eventId,
+                'eventType': inbox.eventType,
+                'category': inbox.category,
+                'version': inbox.version,
+                'isRead': inbox.isRead ? 1 : 0,
+                'readAt': inbox.readAt,
+                'status': inbox.status,
+                'isDeleted': inbox.isDeleted ? 1 : 0,
+                'silent': inbox.silent ? 1 : 0,
+                'createdAt': inbox.createdAt,
+                'updatedAt': inbox.updatedAt,
+              },
+            )
+            .toList();
+
+        await _inboxService.batchCreate({'inboxes': inboxRows});
       }
 
-      final inboxRows = res.result!.inbox
-          .map(
-            (inbox) => {
-              'userId': userId,
-              'eventId': inbox.eventId,
-              'eventType': inbox.eventType,
-              'category': inbox.category,
-              'version': inbox.version,
-              'isRead': inbox.isRead ? 1 : 0,
-              'readAt': inbox.readAt,
-              'status': inbox.status,
-              'isDeleted': inbox.isDeleted ? 1 : 0,
-              'silent': inbox.silent ? 1 : 0,
-              'createdAt': inbox.createdAt,
-              'updatedAt': inbox.updatedAt,
-            },
-          )
-          .toList();
-
-      await _inboxService.batchCreate({'inboxes': inboxRows});
+      notifyInboxUpdate();
+    } catch (e) {
+      _logger.warn({'text': '按事件ID同步通知收件箱异常', 'data': {'userId': userId, 'error': e.toString()}});
+      rethrow;
     }
-
-    notifyInboxUpdate();
   }
 
   Future<Map<String, dynamic>> getUnreadSummary(
     String userId, {
     List<String>? categories,
   }) async {
-    final filterCategories = categories ?? notificationCategories;
-    final Map<String, int> byCat = {};
-    int total = 0;
+    _logger.info({'text': '获取未读通知汇总', 'data': {'userId': userId}});
+    try {
+      final filterCategories = categories ?? notificationCategories;
+      final Map<String, int> byCat = {};
+      int total = 0;
 
-    for (final category in filterCategories) {
-      final cursorService = getIt<NotificationReadCursorService>();
-      final cursor = await cursorService.getReadCursor({
-        'userId': userId,
-        'category': category,
-      });
-      final lastReadAt = cursor?['lastReadAt'] as int? ?? 0;
+      for (final category in filterCategories) {
+        final cursorService = getIt<NotificationReadCursorService>();
+        final cursor = await cursorService.getReadCursor({
+          'userId': userId,
+          'category': category,
+        });
+        final lastReadAt = cursor?['lastReadAt'] as int? ?? 0;
 
-      final unreadCount = await _inboxService.getUnreadCountAfterTime(
-        userId: userId,
-        category: category,
-        afterTime: lastReadAt,
-      );
+        final unreadCount = await _inboxService.getUnreadCountAfterTime(
+          userId: userId,
+          category: category,
+          afterTime: lastReadAt,
+        );
 
-      byCat[category] = unreadCount;
-      total += unreadCount;
+        byCat[category] = unreadCount;
+        total += unreadCount;
+      }
+
+      _logger.info({'text': '未读通知汇总完成', 'data': {'total': total}});
+      return {'total': total, 'byCat': byCat};
+    } catch (e) {
+      _logger.warn({'text': '获取未读通知汇总失败', 'data': {'userId': userId, 'error': e.toString()}});
+      rethrow;
     }
-
-    return {'total': total, 'byCat': byCat};
   }
 }

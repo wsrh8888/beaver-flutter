@@ -28,6 +28,9 @@ import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/core/business/chat/conversation.dart';
 import 'package:drift/drift.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('user-conversation');
 
 /// 用户会话业务逻辑 (对标 PC business/chat/user-conversation.ts)
 class UserConversationBusiness {
@@ -69,7 +72,10 @@ class UserConversationBusiness {
         getIt<ConversationBusiness>().notifyConversationUpdate();
       }
     } catch (e) {
-      print('[UserConversationBusiness] syncUserConversationByVersion failed: $e');
+      _logger.error({
+        'text': '同步用户会话设置失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 
@@ -86,7 +92,10 @@ class UserConversationBusiness {
     if (meta == null) return;
 
     final maxSeq = meta.maxSeq;
-    print('[UserConversationBusiness] 标记已读: conv=$conversationId, seq=$maxSeq');
+    _logger.info({
+      'text': '标记会话已读',
+      'data': {'conversationId': conversationId, 'maxSeq': maxSeq},
+    });
 
     await _userConversationService.markAsRead(conversationId, maxSeq);
 
@@ -99,7 +108,10 @@ class UserConversationBusiness {
         IUpdateReadSeqReq(conversationId: conversationId, readSeq: maxSeq),
       );
     } catch (e) {
-      print('[UserConversationBusiness] 离线同步已读状态失败: $e');
+      _logger.error({
+        'text': '离线同步已读状态失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 
@@ -116,7 +128,10 @@ class UserConversationBusiness {
         IPinnedChatReq(conversationId: conversationId, isPinned: isPinned),
       );
     } catch (e) {
-      print('[UserConversationBusiness] 同步置顶状态失败: $e');
+      _logger.error({
+        'text': '同步置顶状态失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 
@@ -133,7 +148,10 @@ class UserConversationBusiness {
         IMuteChatReq(conversationId: conversationId, isMuted: isMuted),
       );
     } catch (e) {
-      print('[UserConversationBusiness] 同步免打扰状态失败: $e');
+      _logger.error({
+        'text': '同步免打扰状态失败',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 }

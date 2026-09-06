@@ -27,13 +27,22 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/core/database/services/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/types/api/datasync.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('datasync-notification');
 
 /// 通知中心数据同步 (对标 PC notificationDatasync)
 class NotificationSync {
   Future<void> checkAndSync() async {
-    await _syncEvents();
-    await _syncInboxes();
-    await _syncReadCursors();
+    _logger.info({'text': '开始同步通知中心数据（事件/收件箱/已读游标）'});
+    try {
+      await _syncEvents();
+      await _syncInboxes();
+      await _syncReadCursors();
+      _logger.info({'text': '通知中心数据同步完成'});
+    } catch (e) {
+      _logger.warn({'text': '通知中心数据同步异常', 'data': {'error': e.toString()}});
+    }
   }
 
   Future<void> _syncEvents() async {
@@ -47,7 +56,10 @@ class NotificationSync {
     final response = await datasyncGetSyncNotificationEventsApi(
       IGetSyncNotificationEventsReq(sinceVersion: sinceVersion),
     );
-    if (response.code != 0 || response.result == null) return;
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '获取通知事件版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
+      return;
+    }
 
     final eventVersions = response.result!.eventVersions;
     final needEventIds = await _filterEventVersions(eventService, eventVersions);
@@ -83,7 +95,10 @@ class NotificationSync {
     final response = await datasyncGetSyncNotificationInboxesApi(
       IGetSyncNotificationInboxesReq(sinceVersion: sinceVersion),
     );
-    if (response.code != 0 || response.result == null) return;
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '获取通知收件箱版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
+      return;
+    }
 
     final inboxVersions = response.result!.inboxVersions;
     final needEventIds = await _filterInboxVersions(
@@ -122,7 +137,10 @@ class NotificationSync {
     final response = await datasyncGetSyncNotificationReadCursorsApi(
       IGetSyncNotificationReadCursorsReq(sinceVersion: sinceVersion),
     );
-    if (response.code != 0 || response.result == null) return;
+    if (response.code != 0 || response.result == null) {
+      _logger.warn({'text': '获取通知已读游标版本变更失败', 'data': {'code': response.code, 'msg': response.msg}});
+      return;
+    }
 
     final cursorVersions = response.result!.cursorVersions;
     final categories = cursorVersions

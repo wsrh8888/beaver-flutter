@@ -24,6 +24,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:beaver/features/common/scan/bloc/event.dart';
 import 'package:beaver/features/common/scan/bloc/state.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('scan');
 
 class ScanBloc extends Bloc<ScanEvent, ScanState> {
   ScanBloc() : super(const ScanState()) {
@@ -39,12 +42,15 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
   ) async {
     final status = await Permission.camera.status;
     if (status.isGranted) {
+      _logger.info({'text': '相机权限已授予，开始扫码'});
       emit(state.copyWith(status: ScanStatus.scanning));
     } else {
       final requestStatus = await Permission.camera.request();
       if (requestStatus.isGranted) {
+        _logger.info({'text': '相机权限已申请授予，开始扫码'});
         emit(state.copyWith(status: ScanStatus.scanning));
       } else {
+        _logger.warn({'text': '相机权限被拒绝，无法扫码'});
         emit(state.copyWith(status: ScanStatus.permissionDenied));
       }
     }
@@ -55,6 +61,7 @@ class ScanBloc extends Bloc<ScanEvent, ScanState> {
     Emitter<ScanState> emit,
   ) {
     if (state.status == ScanStatus.success) return;
+    _logger.info({'text': '扫码识别到内容', 'data': {'code': event.code}});
     emit(state.copyWith(status: ScanStatus.success, result: event.code));
   }
 

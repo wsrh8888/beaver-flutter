@@ -23,6 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:beaver/features/circle/feed/bloc/event.dart';
 import 'package:beaver/features/circle/feed/bloc/state.dart';
 import 'package:beaver/features/circle/feed/data/repositories/repository.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('circle-feed');
 
 class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
   final CircleFeedRepository _repository;
@@ -51,6 +54,11 @@ class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
       emit(state.copyWith(status: CircleFeedStatus.loading));
     }
 
+    _logger.info({
+      'text': '加载圈子动态',
+      'data': {'circleId': circleId, 'refresh': isRefresh, 'page': nextPage},
+    });
+
     final res = await _repository.getPostList(
       circleId: circleId,
       page: nextPage,
@@ -58,6 +66,10 @@ class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
     );
 
     if (res.code != 0) {
+      _logger.warn({
+        'text': '加载圈子动态失败',
+        'data': {'circleId': circleId, 'page': nextPage, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         status: CircleFeedStatus.error,
         errorMessage: res.msg.isNotEmpty ? res.msg : '获取帖子失败',
@@ -68,6 +80,17 @@ class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
     final newPosts = res.result?.list ?? [];
     final updatedPosts =
         isRefresh ? newPosts : [...state.posts, ...newPosts];
+
+    _logger.info({
+      'text': '加载圈子动态成功',
+      'data': {
+        'circleId': circleId,
+        'page': nextPage,
+        'newCount': newPosts.length,
+        'total': updatedPosts.length,
+        'hasMore': newPosts.length >= limit,
+      },
+    });
 
     emit(state.copyWith(
       status: CircleFeedStatus.success,
@@ -86,6 +109,10 @@ class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
 
     final post = state.posts[index];
     final nextStatus = !post.isLiked;
+    _logger.info({
+      'text': '切换圈子动态点赞',
+      'data': {'postId': event.postId, 'action': nextStatus ? 'like' : 'unlike'},
+    });
     final optimistic = post.copyWith(
       isLiked: nextStatus,
       likeCount: (post.likeCount + (nextStatus ? 1 : -1)).clamp(0, 1 << 30),
@@ -102,6 +129,10 @@ class CircleFeedBloc extends Bloc<CircleFeedEvent, CircleFeedState> {
 
     if (res.code != 0) {
       updated[index] = post;
+      _logger.warn({
+        'text': '切换圈子动态点赞失败，已回滚',
+        'data': {'postId': event.postId, 'code': res.code, 'msg': res.msg},
+      });
       emit(state.copyWith(
         posts: List.of(updated),
         errorMessage: res.msg.isNotEmpty ? res.msg : '操作失败',

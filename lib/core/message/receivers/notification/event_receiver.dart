@@ -21,6 +21,9 @@
 
 import 'package:beaver/core/business/notification/event.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('receiver-notification-event');
 
 /// 通知事件接收器 - 处理 notification_event 表的操作 (对标 PC receivers/notification/event-receiver.ts)
 class EventReceiver {
@@ -31,7 +34,11 @@ class EventReceiver {
    */
   Future<void> handleTableUpdates(Map<String, dynamic> body) async {
     final updates = (body['tableUpdates'] ?? body['tables']) as List?;
-    if (updates == null) return;
+    if (updates == null) {
+      _logger.warn({'text': '收到通知事件表更新但 updates 为空'});
+      return;
+    }
+    _logger.info({'text': '开始处理通知事件表更新', 'data': {'count': updates.length}});
 
     for (final update in updates) {
       final table = update['table'] as String?;
@@ -41,7 +48,11 @@ class EventReceiver {
         for (final item in data) {
           final eventId = item['eventId'] as String?;
           if (eventId != null) {
-            await _eventBusiness.handleTableUpdates(eventId);
+            try {
+              await _eventBusiness.handleTableUpdates(eventId);
+            } catch (e) {
+              _logger.warn({'text': '处理通知事件更新失败', 'data': {'eventId': eventId, 'error': e.toString()}});
+            }
           }
         }
       }

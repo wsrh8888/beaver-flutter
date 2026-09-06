@@ -20,6 +20,9 @@
  */
 
 import 'package:beaver/features/setting/feedback/data/models/feedback.dart';
+import 'package:beaver/common/logger/index.dart';
+
+final _logger = Logger('repo-setting-feedback');
 
 class FeedbackRepository {
   Future<bool> submitFeedback({
@@ -27,9 +30,15 @@ class FeedbackRepository {
     required String content,
     required List<UploadedImage> images,
   }) async {
+    try {
+
     // 模拟提交反馈
     await Future.delayed(const Duration(seconds: 1));
     return true;
+    } catch (e, st) {
+      _logger.warn({'text':'FeedbackRepository.submitFeedback 执行失败','data':{'error': e.toString(), 'stack': st.toString()}});
+      rethrow;
+    }
   }
 }
 
