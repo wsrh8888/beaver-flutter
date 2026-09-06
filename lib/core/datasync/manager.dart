@@ -48,47 +48,74 @@ class DataSyncManager {
   /// 自动开始全量同步流程
   /// [isBackground] 是否为后台同步，后台同步不会触发全量加载的 UI 状态
   Future<void> autoSync({bool isBackground = false}) async {
-    if (_isSyncing) return;
+    if (_isSyncing) {
+      _logger.info({
+        'text': '已在同步中，跳过本次同步请求',
+        'data': {'isBackground': isBackground},
+      });
+      return;
+    }
 
     // 如果最近 60 秒内同步过，且是后台触发，则跳过
     final now = DateTime.now().millisecondsSinceEpoch;
     if (isBackground && (now - _lastSyncTime < 60000)) {
+      _logger.info({
+        'text': '后台同步距上次不足60秒，跳过',
+        'data': {'lastSyncAgoMs': now - _lastSyncTime},
+      });
       return;
     }
 
+    final syncStart = DateTime.now().millisecondsSinceEpoch;
     try {
-      _logger.info({'text': '开始全量同步', 'data': {'isBackground': isBackground}});
+      _logger.info({
+        'text': '开始全量同步',
+        'data': {'isBackground': isBackground},
+      });
       _isSyncing = true;
-      
+
       // 只有非后台同步才发送 syncing 状态（触发 UI 遮罩或加载条）
       if (!isBackground) {
         _statusController.add('syncing');
       }
 
       // 1. 同步用户资料
+      _logger.info({'text': '同步模块：用户资料'});
       await userDatasync.checkAndSync();
       // 2. 聊天相关同步 (含消息、会话元数据、用户会话设置)
+      _logger.info({'text': '同步模块：聊天消息'});
       await chatDatasync.checkAndSync();
       // 3. 好友关系同步 (含好友资料、好友验证)
+      _logger.info({'text': '同步模块：好友关系'});
       await friendDatasync.checkAndSync();
       // 4. 群组资料同步 (含群资料、群成员、入群申请)
+      _logger.info({'text': '同步模块：群组资料'});
       await groupDatasync.checkAndSync();
       // 5. 圈子资料同步
+      _logger.info({'text': '同步模块：圈子资料'});
       await circleDatasync.checkAndSync();
       // 6. 表情同步
+      _logger.info({'text': '同步模块：表情'});
       await emojiSync.checkAndSync();
       // 7. 通知事件同步
+      _logger.info({'text': '同步模块：通知事件'});
       await notificationSync.checkAndSync();
 
       _isSyncing = false;
       _lastSyncTime = DateTime.now().millisecondsSinceEpoch;
-      
+      final cost = DateTime.now().millisecondsSinceEpoch - syncStart;
+      _logger.info({
+        'text': '全量同步完成',
+        'data': {'costMs': cost, 'isBackground': isBackground},
+      });
+
       // 只有非后台同步才发送 ready 状态（触发 initApp 重新加载内存）
       if (!isBackground) {
         _statusController.add('ready');
       }
     } catch (e) {
       _isSyncing = false;
+      _logger.error({'text': '全量同步失败', 'data': {'error': e.toString()}});
       if (!isBackground) {
         _statusController.add('error');
       }

@@ -80,6 +80,7 @@ class AppStore extends Cubit<AppStoreState> {
   AppStore() : super(const AppStoreState()) {
     // 监听同步管理器的状态
     _syncSubscription = syncManager.statusStream.listen((status) {
+      _logger.info({'text': '收到同步状态变更', 'data': {'status': status}});
       if (status == 'ready') {
         // 全量同步完成，触发 AppStore 重新加载业务数据到内存
         initApp();
@@ -143,8 +144,12 @@ class AppStore extends Cubit<AppStoreState> {
    * 先同步身份 ID，然后并行初始化其余业务
    */
   Future<void> initApp() async {
-    if (DatabaseManager.currentUserId == null) return;
+    if (DatabaseManager.currentUserId == null) {
+      _logger.warn({'text': 'initApp 跳过：currentUserId 为空'});
+      return;
+    }
 
+    _logger.info({'text': '开始初始化应用业务数据'});
     emit(state.copyWith(status: AppLifecycleStatus.syncing));
 
     try {
@@ -163,12 +168,15 @@ class AppStore extends Cubit<AppStoreState> {
       final messageMediaStore = getIt<MessageMediaStore>();
 
       // 1. 先初始化基础数据底座 (ContactStore 存储全局用户 Metadata)
+      _logger.info({'text': '初始化步骤：基础数据底座(Contact)'});
       await contactStore.init();
 
       // 2. 初始化身份 UserStore (确认身份并同步个人最新资料)
+      _logger.info({'text': '初始化步骤：身份资料(User)'});
       await userStore.init();
 
       // 3. 并行执行其余业务初始化
+      _logger.info({'text': '初始化步骤：并行加载其余业务Store'});
       await Future.wait([
         chatStore.init(),
         friendStore.init(),
@@ -182,6 +190,7 @@ class AppStore extends Cubit<AppStoreState> {
         messageMediaStore.init(),
       ]);
 
+      _logger.info({'text': '应用业务初始化完成'});
       emit(
         state.copyWith(status: AppLifecycleStatus.ready, isInitComplete: true),
       );

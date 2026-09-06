@@ -30,7 +30,7 @@ import 'package:beaver/store/contact/contact.dart';
 
 /// 通话 WS 信令接收器（对标 Desktop CallMessageRouter）
 // 模块级日志实例（对标 PC：在文件顶部定义 logger）
-final _logger = Logger('CallMessageReceiver');
+final _logger = Logger('call-message-receiver');
 
 class CallMessageReceiver {
   final _openedIncomingRooms = <String>{};

@@ -41,6 +41,7 @@ void main() async {
 
   // 1. 初始化日志
   await Logger.init();
+  _logger.info({'text': '应用启动：日志模块已就绪'});
 
   // 2. 全局异常兜底（对标 PC main.ts 的 uncaughtException / unhandledRejection）
   // 2.1 Flutter 框架层异常（build / layout / 手势等）
@@ -67,33 +68,47 @@ void main() async {
   };
 
   // 3. 初始化本地存储
+  _logger.info({'text': '启动步骤：初始化本地存储'});
   await StorageUtil.init();
 
   // 4. 初始化设备信息
+  _logger.info({'text': '启动步骤：初始化设备信息'});
   await AppConfig.init();
 
   // 5. UA 适配层注入
   HttpOverrides.global = BeaverUaHttpAdapter();
 
   // 配置依赖注入
+  _logger.info({'text': '启动步骤：配置依赖注入'});
   await configureDependencies();
 
   // 只要有 userId 就初始化数据库；有 token 再连接 WS
   final token = StorageUtil.getString('token');
   final userId = StorageUtil.getString('userId');
+  _logger.info({
+    'text': '启动步骤：读取登录态',
+    'data': {
+      'hasUserId': userId != null && userId.isNotEmpty,
+      'hasToken': token != null && token.isNotEmpty,
+    },
+  });
   if (userId != null && userId.isNotEmpty) {
     // 注入用户身份，使云端日志可关联用户
     Logger.setUserId(userId);
+    _logger.info({'text': '启动步骤：初始化本地数据库'});
     await DatabaseManager.init(userId);
     if (token != null && token.isNotEmpty) {
+      _logger.info({'text': '启动步骤：连接WebSocket'});
       getIt<WsConnectionManager>().connectWithToken(token);
     }
     // 自动初始化全局 Store 数据 (对标 desktop.initApp)
+    _logger.info({'text': '启动步骤：初始化业务Store'});
     getIt<AppStore>().initApp();
   }
 
   // 6. 异步任务未捕获异常兜底（异步回调中抛出的异常走此通道）
   runZonedGuarded<void>(() {
+    _logger.info({'text': '启动步骤：进入应用主界面'});
     runApp(const BeaverApp());
   }, (error, stack) {
     _logger.error({

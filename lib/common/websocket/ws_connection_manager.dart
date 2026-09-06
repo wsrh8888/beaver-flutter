@@ -24,6 +24,10 @@ import 'package:beaver/core/message/index.dart';
 import 'package:beaver/di/injection.dart';
 import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/logger/index.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('ws-connection');
 
 /// WebSocket 连接管理器
 ///
@@ -35,8 +39,13 @@ class WsConnectionManager {
   MessageManager get _messageManager => getIt<MessageManager>();
 
   Future<void> connectWithToken(String token) async {
+    _logger.info({
+      'text': '开始建立WebSocket连接',
+      'data': {'hasToken': token.isNotEmpty},
+    });
     disconnect();
-    
+    _logger.info({'text': '已断开旧连接'});
+
     // 从本地存储或硬件中提取身份和物理指纹
     final userId = StorageUtil.getString('userId') ?? '';
     final deviceId = await StorageUtil.getDeviceId();
@@ -51,21 +60,34 @@ class WsConnectionManager {
       onDisconnect: () => _messageManager.onWsDisconnect(),
       onError: (e) => _messageManager.onWsError(e),
     );
+    _logger.info({
+      'text': '已创建WS客户端，发起连接',
+      'data': {
+        'hasUserId': userId.isNotEmpty,
+        'hasDeviceId': deviceId.isNotEmpty,
+      },
+    });
     _wsClient!.connect();
   }
 
   void disconnect() {
+    _logger.info({'text': '主动断开WebSocket连接'});
     _wsClient?.dispose();
     _wsClient = null;
     getIt<WsStore>().setDisconnected();
   }
 
   void send(Map<String, dynamic> data) {
+    _logger.info({
+      'text': '发送WS消息',
+      'data': {'command': data['command']},
+    });
     _wsClient?.send(data);
   }
 
   /// 唤醒检查并自动重连
   void onAppResume() {
+    _logger.info({'text': '应用回到前台，检查并自动重连'});
     _wsClient?.resume();
   }
 }

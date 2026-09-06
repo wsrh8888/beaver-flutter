@@ -30,6 +30,10 @@ import 'package:beaver/types/api/user.dart';
 import 'package:beaver/types/api/datasync.dart';
 import 'package:beaver/types/business/user.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+import 'package:beaver/common/logger/index.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('user-business');
 
 /// 用户业务逻辑
 class UserBusiness implements UserRepositoryInterface {
@@ -104,8 +108,14 @@ class UserBusiness implements UserRepositoryInterface {
 
         // 发送更新流
         _profileUpdateController.add(await getMyUserInfo());
+      } else {
+        _logger.warn({
+          'text': '同步个人资料返回异常',
+          'data': {'code': res.code, 'msg': res.msg},
+        });
       }
     } catch (e) {
+      _logger.error({'text': '同步个人资料失败', 'data': {'error': e.toString()}});
     }
   }
 
@@ -226,8 +236,17 @@ class UserBusiness implements UserRepositoryInterface {
       if (res.code == 0 && res.result != null && res.result!.users.isNotEmpty) {
         await _userService.batchCreate(res.result!.users);
         notifyUserUpdate([targetId]);
+      } else {
+        _logger.warn({
+          'text': '按版本同步用户资料返回异常',
+          'data': {'code': res.code, 'msg': res.msg, 'targetId': targetId},
+        });
       }
     } catch (e) {
+      _logger.error({
+        'text': '按版本同步用户资料失败',
+        'data': {'error': e.toString(), 'targetId': targetId},
+      });
     }
   }
 }

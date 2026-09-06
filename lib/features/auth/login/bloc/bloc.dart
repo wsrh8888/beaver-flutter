@@ -26,6 +26,10 @@ import 'package:beaver/features/auth/login/data/repositories/repository.dart';
 import 'package:beaver/store/app/app.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('login');
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginRepository authRepository;
@@ -39,23 +43,38 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Emitter<LoginState> emit,
   ) async {
     emit(state.copyWith(status: LoginStatus.loading));
+    _logger.info({'text': '登录请求开始'});
 
     try {
       final response = await authRepository.login(event.email, event.password);
+      _logger.info({
+        'text': '登录接口返回',
+        'data': {
+          'code': response.code,
+          'hasResult': response.result != null,
+        },
+      });
       if (response.code == 0 && response.result != null) {
         final appStore = getIt<AppStore>();
         // 重要：登录成功后，必须立即初始化数据库，以便首页能读取到本地数据
+        _logger.info({'text': '登录成功，初始化本地数据库'});
         await appStore.initUserDatabase(response.result!.userId);
 
         // 1. 先跳转到首页 (通过 emit success 状态)
         emit(state.copyWith(status: LoginStatus.success));
+        _logger.info({'text': '登录成功，跳转首页'});
 
         // 2. 异步连接 WebSocket (不再阻塞 UI 跳转)
         // 使用 Future.microtask 或直接调用，因为它已经是一个异步过程的开始
         Future.microtask(() {
+          _logger.info({'text': '异步连接WebSocket'});
           getIt<WsConnectionManager>().connectWithToken(response.result!.token);
         });
       } else {
+        _logger.warn({
+          'text': '登录失败',
+          'data': {'code': response.code, 'msg': response.msg},
+        });
         emit(
           state.copyWith(
             status: LoginStatus.error,
@@ -64,6 +83,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
       }
     } catch (e) {
+      _logger.error({'text': '登录异常', 'data': {'error': e.toString()}});
       emit(
         state.copyWith(status: LoginStatus.error, errorMessage: e.toString()),
       );

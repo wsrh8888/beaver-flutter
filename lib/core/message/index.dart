@@ -49,11 +49,17 @@ class MessageManager {
   final CallMessageReceiver _callReceiver = CallMessageReceiver();
 
   Future<void> onWsConnect() async {
+    _logger.info({'text': 'WS已连接，开始执行数据同步'});
     getIt<WsStore>().setSyncing();
     try {
       _isDataSyncing = true;
       final isBackground = getIt<AppStore>().state.isInitComplete;
+      _logger.info({
+        'text': '触发全量数据同步',
+        'data': {'isBackground': isBackground},
+      });
       await syncManager.autoSync(isBackground: isBackground);
+      _logger.info({'text': '数据同步完成，准备派发消息队列'});
     } finally {
       _isDataSyncing = false;
       getIt<WsStore>().setConnected();
