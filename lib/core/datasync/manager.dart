@@ -23,6 +23,9 @@ import 'dart:async';
 import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/datasync/index.dart';
 
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('dataSyncManager');
+
 /// 数据同步管理器
 ///
 /// 职责：协调全局数据同步
@@ -33,8 +36,6 @@ class DataSyncManager {
   bool _isSyncing = false;
   bool get isSyncing => _isSyncing;
   int _lastSyncTime = 0;
-
-  final _logger = Logger('dataSyncManager');
 
   final _statusController = StreamController<String>.broadcast();
   Stream<String> get statusStream => _statusController.stream;
@@ -56,7 +57,7 @@ class DataSyncManager {
     }
 
     try {
-      _logger.info({"text": "开始全量同步", "isBackground": isBackground});
+      _logger.info({'text': '开始全量同步', 'data': {'isBackground': isBackground}});
       _isSyncing = true;
       
       // 只有非后台同步才发送 syncing 状态（触发 UI 遮罩或加载条）

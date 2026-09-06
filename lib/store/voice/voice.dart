@@ -47,9 +47,11 @@ class VoicePlayerState extends Equatable {
   List<Object?> get props => [playingMessageId];
 }
 
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('voice-player');
+
 class VoicePlayerStore extends Cubit<VoicePlayerState> {
   final AudioPlayer _player = AudioPlayer();
-  final Logger _logger = Logger('voice-player');
 
   VoicePlayerStore() : super(const VoicePlayerState()) {
     _player.setReleaseMode(ReleaseMode.stop);
@@ -62,8 +64,7 @@ class VoicePlayerStore extends Cubit<VoicePlayerState> {
   Future<void> toggleVoice(String messageId, String fileUrl) async {
     _logger.info({
       'text': '点击语音',
-      'messageId': messageId,
-      'fileUrl': fileUrl,
+      'data': {'messageId': messageId, 'fileUrl': fileUrl},
     });
 
     if (messageId.isEmpty || fileUrl.isEmpty) {
@@ -84,16 +85,14 @@ class VoicePlayerStore extends Cubit<VoicePlayerState> {
       if (source == null) {
         _logger.warn({
           'text': '无法构造播放源',
-          'messageId': messageId,
-          'fileUrl': fileUrl,
+          'data': {'messageId': messageId, 'fileUrl': fileUrl},
         });
         return;
       }
 
       _logger.info({
         'text': '开始播放',
-        'messageId': messageId,
-        'source': source.runtimeType.toString(),
+        'data': {'messageId': messageId, 'source': source.runtimeType.toString()},
       });
 
       emit(state.copyWith(playingMessageId: messageId));
@@ -104,10 +103,12 @@ class VoicePlayerStore extends Cubit<VoicePlayerState> {
     } catch (error, stack) {
       _logger.error({
         'text': '播放失败',
-        'messageId': messageId,
-        'fileUrl': fileUrl,
-        'error': error.toString(),
-        'stack': stack.toString(),
+        'data': {
+          'messageId': messageId,
+          'fileUrl': fileUrl,
+          'error': error.toString(),
+          'stack': stack.toString(),
+        },
       });
       await stop();
     }
@@ -127,7 +128,7 @@ class VoicePlayerStore extends Cubit<VoicePlayerState> {
     if (fileUrl.startsWith('file://')) {
       final path = _stripFileScheme(fileUrl);
       final exists = File(path).existsSync();
-      _logger.info({'text': '本地 file://', 'path': path, 'exists': exists});
+      _logger.info({'text': '本地 file://', 'data': {'path': path, 'exists': exists}});
       return exists ? DeviceFileSource(path) : null;
     }
 
@@ -136,25 +137,25 @@ class VoicePlayerStore extends Cubit<VoicePlayerState> {
 
     if (mediaPath.startsWith('file://')) {
       final path = _stripFileScheme(mediaPath);
-      _logger.info({'text': '命中缓存 file://', 'path': path});
+      _logger.info({'text': '命中缓存 file://', 'data': {'path': path}});
       return DeviceFileSource(path);
     }
 
     if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) {
-      _logger.info({'text': '未命中本地缓存，开始下载', 'url': mediaPath});
+      _logger.info({'text': '未命中本地缓存，开始下载', 'data': {'url': mediaPath}});
       final localPath = await MediaManager().add(CacheType.voice, fileUrl);
-      _logger.info({'text': '下载完成', 'localPath': localPath});
+      _logger.info({'text': '下载完成', 'data': {'localPath': localPath}});
 
       if (localPath != null && File(localPath).existsSync()) {
         return DeviceFileSource(localPath);
       }
 
-      _logger.info({'text': '回退 UrlSource 在线播放', 'url': mediaPath});
+      _logger.info({'text': '回退 UrlSource 在线播放', 'data': {'url': mediaPath}});
       return UrlSource(mediaPath);
     }
 
     if (File(mediaPath).existsSync()) {
-      _logger.info({'text': '命中本地绝对路径', 'path': mediaPath});
+      _logger.info({'text': '命中本地绝对路径', 'data': {'path': mediaPath}});
       return DeviceFileSource(mediaPath);
     }
 

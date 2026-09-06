@@ -30,11 +30,15 @@ import 'package:beaver/core/database/db.dart';
 import 'package:beaver/store/user/user.dart';
 import 'package:beaver/store/contact/contact.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/api/chat.dart';
 import 'package:beaver/types/api/chat.dart';
 import 'package:beaver/store/message/message.dart';
 import 'package:drift/drift.dart';
 import 'package:beaver/core/database/services/chat/conversation.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('message-business');
 
 /// 聊天消息业务逻辑
 class MessageBusiness implements MessageRepositoryInterface {
@@ -106,6 +110,16 @@ class MessageBusiness implements MessageRepositoryInterface {
     final wsType = isGroup ? 'group_message_send' : 'private_message_send';
     final preview = _generateMessagePreview(msg);
 
+    _logger.info({
+      'text': '开始发送消息',
+      'data': {
+        'conversationId': conversationId,
+        'messageId': messageId,
+        'chatType': chatType,
+        'msgType': msg.type.name,
+      },
+    });
+
     // 1. 本地落库 (发送中状态)
     await _service.create(
       ChatsCompanion(
@@ -135,9 +149,16 @@ class MessageBusiness implements MessageRepositoryInterface {
         },
       },
     });
-    print(
-      '[MessageBusiness] WS 已发送: type=$wsType, msgType=${msg.type.name}, messageId=$messageId',
-    );
+    _logger.info({
+      'text': '消息已通过WS提交发送',
+      'data': {
+        'conversationId': conversationId,
+        'messageId': messageId,
+        'chatType': chatType,
+        'wsType': wsType,
+        'msgType': msg.type.name,
+      },
+    });
 
     // 3. 开启超时处理
     _sendingTimers[messageId] = Timer(const Duration(seconds: 10), () {
@@ -244,9 +265,14 @@ class MessageBusiness implements MessageRepositoryInterface {
    * 处理 WebSocket 推送的新消息 (对标 PC handleWSMessage)
    */
   Future<void> handleNewWSMessage(Map<String, dynamic> data) async {
-    print(
-      '[MessageBusiness] handleNewWSMessage type=${data['data']?['type']} body.msgId=${data['body']?['messageId']}',
-    );
+    _logger.info({
+      'text': '收到WS推送的新消息',
+      'data': {
+        'type': data['data']?['type'],
+        'messageId': data['body']?['messageId'],
+        'conversationId': data['conversationId'],
+      },
+    });
     final body = data['body'] as Map<String, dynamic>?;
     final conversationId = data['conversationId'] as String?;
     if (conversationId == null || body == null) return;
@@ -298,9 +324,10 @@ class MessageBusiness implements MessageRepositoryInterface {
       createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt * 1000),
       isSent: sendUserId == getIt<UserStore>().state.currentUserId,
     );
-    print(
-      '[MessageBusiness] handleNewWSMessage: adding message ${model.id} to store (WS PUSH)',
-    );
+    _logger.info({
+      'text': 'WS推送消息已写入本地Store',
+      'data': {'messageId': model.id, 'conversationId': conversationId},
+    });
     getIt<MessageStore>().addMessage(conversationId, model);
 
     // 4. 发送会话流更新通知 (让 ChatStore 响应)
@@ -323,9 +350,14 @@ class MessageBusiness implements MessageRepositoryInterface {
     int minVersion,
     int maxVersion,
   ) async {
-    print(
-      '[MessageBusiness] 开始拉取消息: conv=$conversationId, range=[$minVersion, $maxVersion]',
-    );
+    _logger.info({
+      'text': '开始按版本区间同步消息',
+      'data': {
+        'conversationId': conversationId,
+        'minVersion': minVersion,
+        'maxVersion': maxVersion,
+      },
+    });
     try {
       final response = await chatSyncApi(
         IChatSyncReq(
@@ -338,20 +370,36 @@ class MessageBusiness implements MessageRepositoryInterface {
 
       if (response.code == 0 && response.result != null) {
         final messages = response.result!.messages;
-        print('[MessageBusiness] 拉取成功: count=${messages.length}');
+        _logger.info({
+          'text': '消息同步拉取成功',
+          'data': {'conversationId': conversationId, 'count': messages.length},
+        });
         if (messages.isNotEmpty) {
           await _handleSyncedMessages(messages);
-          print(
-            '[MessageBusiness] 同步消息落库完成: conv=$conversationId, range=[$minVersion, $maxVersion]',
-          );
+          _logger.info({
+            'text': '同步消息落库完成',
+            'data': {
+              'conversationId': conversationId,
+              'minVersion': minVersion,
+              'maxVersion': maxVersion,
+            },
+          });
         }
       } else {
-        print(
-          '[MessageBusiness] 拉取失败: code=${response.code}, msg=${response.msg}',
-        );
+        _logger.error({
+          'text': '消息同步拉取失败',
+          'data': {
+            'conversationId': conversationId,
+            'code': response.code,
+            'msg': response.msg,
+          },
+        });
       }
     } catch (e) {
-      print('[MessageBusiness] 同步消息异常: $e');
+      _logger.error({
+        'text': '消息同步异常',
+        'data': {'conversationId': conversationId, 'error': e.toString()},
+      });
     }
   }
 
@@ -366,7 +414,10 @@ class MessageBusiness implements MessageRepositoryInterface {
   Future<void> _handleSyncedMessages(List<IChatMessageItem> messages) async {
     if (messages.isEmpty) return;
 
-    print('[MessageBusiness] 正在处理落库消息: count=${messages.length}');
+    _logger.info({
+      'text': '正在处理同步落库消息',
+      'data': {'count': messages.length},
+    });
 
     final companions = messages.map((msg) {
       return ChatsCompanion(
@@ -409,9 +460,10 @@ class MessageBusiness implements MessageRepositoryInterface {
         createdAt: DateTime.fromMillisecondsSinceEpoch(msg.createdAt * 1000),
         isSent: msg.sendUserId == getIt<UserStore>().state.currentUserId,
       );
-      print(
-        '[MessageBusiness] _handleSyncedMessages: adding message ${model.id} to store (SYNC PULL)',
-      );
+      _logger.info({
+        'text': '同步消息已写入本地Store',
+        'data': {'messageId': model.id, 'conversationId': msg.conversationId},
+      });
       messageStore.addMessage(msg.conversationId, model);
     }
 
@@ -428,7 +480,10 @@ class MessageBusiness implements MessageRepositoryInterface {
           maxSeq: latestMsg.seq,
         );
       } catch (e) {
-        print('[MessageBusiness] 更新会话最后消息失败: $e');
+        _logger.error({
+          'text': '更新会话最后消息失败',
+          'data': {'conversationId': convId, 'error': e.toString()},
+        });
       }
     }
 

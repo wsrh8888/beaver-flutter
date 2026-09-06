@@ -31,8 +31,10 @@ import 'package:beaver/core/business/chat/message.dart';
 
 /// 聊天消息路由器 (对标 PC receivers/chat/index.ts)
 /// 根据消息类型路由到对应的接收器
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('chat-message-router');
+
 class ChatMessageRouter {
-  final _logger = Logger('chat-message-router');
   final _messageReceiver = messageReceiver;
   final _conversationReceiver = conversationReceiver;
   final _userConversationReceiver = userConversationReceiver;
@@ -45,7 +47,7 @@ class ChatMessageRouter {
     final data = wsMessage['data'] as Map<String, dynamic>?;
 
     if (data == null) {
-      print('[ChatMessageRouter] 收到路由消息, 但缺少 data 字段: $wsMessage');
+      _logger.warn({'text': '收到路由消息但缺少data字段', 'data': {'wsMessage': wsMessage}});
       return;
     }
 
@@ -55,9 +57,7 @@ class ChatMessageRouter {
 
     _logger.info({
       'text': '收到路由消息',
-      'type': type,
-      'conversationId': conversationId,
-      'hasBody': body != null,
+      'data': {'type': type, 'conversationId': conversationId, 'hasBody': body != null},
     });
 
     if (type == null || body == null) return;
@@ -65,7 +65,7 @@ class ChatMessageRouter {
     switch (type) {
       // 聚合消息更新 - 包含所有表的更新
       case 'chat_conversation_message_receive':
-        print('[ChatMessageRouter] 命中聚合消息同步: $type, convId=$conversationId');
+        _logger.info({'text': '命中聚合消息同步', 'data': {'type': type, 'conversationId': conversationId}});
         await _messageReceiver.handleTableUpdates(body);
         break;
 
@@ -107,7 +107,7 @@ class ChatMessageRouter {
         break;
 
       default:
-        print('[ChatMessageRouter] 未处理的消息类型: $type');
+        _logger.warn({'text': '未处理的消息类型', 'data': {'type': type}});
     }
   }
 
@@ -132,7 +132,7 @@ class ChatMessageRouter {
   void _handleMessageMediaUpdate(Map<String, dynamic> body) {
     final tableUpdates = body['tableUpdates'] as List?;
     if (tableUpdates == null) {
-      _logger.warn({'text': '消息媒体更新缺少 tableUpdates', 'body': body});
+      _logger.warn({'text': '消息媒体更新缺少 tableUpdates', 'data': {'body': body}});
       return;
     }
 
@@ -163,8 +163,7 @@ class ChatMessageRouter {
     if (messageIds.isNotEmpty) {
       _logger.info({
         'text': '收到消息媒体已听推送',
-        'count': messageIds.length,
-        'messageIds': messageIds,
+        'data': {'count': messageIds.length, 'messageIds': messageIds},
       });
       getIt<MessageMediaStore>().merge(messageIds);
     }

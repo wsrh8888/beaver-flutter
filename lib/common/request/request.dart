@@ -52,9 +52,11 @@ class BaseResponse<T> {
 }
 
 /// HTTP 客户端封装
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('http');
+
 class HttpClient {
   final Dio _dio;
-  final _logger = Logger('http');
 
   HttpClient({String? baseUrl})
     : _dio = Dio(
@@ -103,25 +105,29 @@ class HttpClient {
           if (code == 0) {
             _logger.info({
               'text': '接口成功',
-              'url': response.requestOptions.path,
-              'method': response.requestOptions.method,
-              'status': response.statusCode,
-              'requestParameters': response.requestOptions.queryParameters,
-              'requestData': logRequestData,
-              'headers': response.requestOptions.headers,
-              'data': response.data,
+              'data': {
+                'url': response.requestOptions.path,
+                'method': response.requestOptions.method,
+                'status': response.statusCode,
+                'requestParameters': response.requestOptions.queryParameters,
+                'requestData': logRequestData,
+                'headers': response.requestOptions.headers,
+                'data': response.data,
+              },
             });
           } else {
             _logger.warn({
               'text': '状态码异常',
-              'url': response.requestOptions.path,
-              'method': response.requestOptions.method,
-              'status': response.statusCode,
-              'code': code,
-              'requestParameters': response.requestOptions.queryParameters,
-              'requestData': logRequestData,
-              'headers': response.requestOptions.headers,
-              'data': response.data,
+              'data': {
+                'url': response.requestOptions.path,
+                'method': response.requestOptions.method,
+                'status': response.statusCode,
+                'code': code,
+                'requestParameters': response.requestOptions.queryParameters,
+                'requestData': logRequestData,
+                'headers': response.requestOptions.headers,
+                'data': response.data,
+              },
             });
           }
           return handler.next(response);
@@ -134,13 +140,15 @@ class HttpClient {
 
           _logger.error({
             'text': '接口异常',
-            'url': error.requestOptions.path,
-            'method': error.requestOptions.method,
-            'error': error.message,
-            'requestParameters': error.requestOptions.queryParameters,
-            'requestData': logRequestData,
-            'headers': error.requestOptions.headers,
-            'responseData': error.response?.data,
+            'data': {
+              'url': error.requestOptions.path,
+              'method': error.requestOptions.method,
+              'error': error.message,
+              'requestParameters': error.requestOptions.queryParameters,
+              'requestData': logRequestData,
+              'headers': error.requestOptions.headers,
+              'responseData': error.response?.data,
+            },
           });
           return handler.next(error);
         },

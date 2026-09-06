@@ -29,8 +29,10 @@ import 'package:beaver/store/call/call_list.dart';
 import 'package:beaver/store/contact/contact.dart';
 
 /// 通话 WS 信令接收器（对标 Desktop CallMessageRouter）
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('CallMessageReceiver');
+
 class CallMessageReceiver {
-  final _logger = Logger('CallMessageReceiver');
   final _openedIncomingRooms = <String>{};
 
   void processCallMessage(Map<String, dynamic> content) {
@@ -40,7 +42,7 @@ class CallMessageReceiver {
     final payload = _resolvePayload(data);
     if (payload == null) return;
 
-    _logger.info({'text': '收到通话信令', 'payload': payload});
+    _logger.info({'text': '收到通话信令', 'data': {'payload': payload}});
 
     switch (payload['type'] as String?) {
       case 'RTC_INVITE':

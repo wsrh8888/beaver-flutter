@@ -43,7 +43,6 @@
   <img src="./static/flutter/聊天-markdown.jpg" width="200" alt="Markdown 消息"/>
   <img src="./static/flutter/聊天-图片预览.jpg" width="200" alt="图片预览"/>
   <img src="./static/flutter/私聊-设置.jpg" width="200" alt="私聊设置"/>
-  <img src="./static/flutter/会话-语言.jpg" width="200" alt="语音会话"/>
   <img src="./static/flutter/表情-商店.jpg" width="200" alt="表情商店"/>
 </div>
 

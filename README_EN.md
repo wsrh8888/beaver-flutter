@@ -43,7 +43,6 @@
   <img src="./static/flutter/聊天-markdown.jpg" width="200" alt="Markdown Message"/>
   <img src="./static/flutter/聊天-图片预览.jpg" width="200" alt="Image Preview"/>
   <img src="./static/flutter/私聊-设置.jpg" width="200" alt="Private Chat Settings"/>
-  <img src="./static/flutter/会话-语言.jpg" width="200" alt="Voice Session"/>
   <img src="./static/flutter/表情-商店.jpg" width="200" alt="Emoji Store"/>
 </div>
 

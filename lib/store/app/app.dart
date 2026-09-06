@@ -39,7 +39,11 @@ import 'package:beaver/store/message_media/message_media.dart';
 import 'package:beaver/core/datasync/emoji/sync.dart';
 import 'package:beaver/core/datasync/manager.dart' show syncManager;
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/shared/utils/storage_util.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('app');
 
 enum AppLifecycleStatus { connecting, syncing, ready, error }
 
@@ -109,6 +113,9 @@ class AppStore extends Cubit<AppStoreState> {
 
   /// 退出登录，清理所有状态和缓存 (对标 PC logout)
   Future<void> logout() async {
+    // 0. 清理用户身份，后续日志不再关联用户
+    Logger.setUserId(null);
+
     // 1. 断开 WebSocket
     getIt<WsConnectionManager>().disconnect();
 
@@ -179,6 +186,7 @@ class AppStore extends Cubit<AppStoreState> {
         state.copyWith(status: AppLifecycleStatus.ready, isInitComplete: true),
       );
     } catch (e) {
+      _logger.error({'text': '应用初始化失败', 'data': {'error': e.toString()}});
       emit(
         state.copyWith(
           status: AppLifecycleStatus.error,

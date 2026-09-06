@@ -20,7 +20,9 @@
  */
 
 import 'dart:io';
+import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show FlutterError, FlutterErrorDetails;
 import 'package:beaver/app/app.dart';
 import 'package:beaver/core/database/database.dart';
 import 'package:beaver/common/websocket/ws_connection_manager.dart';
@@ -31,19 +33,46 @@ import 'package:beaver/common/config/config.dart';
 import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/common/ua/http_adapter.dart';
 
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('app');
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 1. 初始化日志
   await Logger.init();
 
-  // 2. 初始化本地存储
+  // 2. 全局异常兜底（对标 PC main.ts 的 uncaughtException / unhandledRejection）
+  // 2.1 Flutter 框架层异常（build / layout / 手势等）
+  FlutterError.onError = (FlutterErrorDetails details) {
+    _logger.error({
+      'text': '界面构建异常',
+      'data': {
+        'error': details.exceptionAsString(),
+        'stack': details.stack.toString(),
+      },
+    });
+  };
+
+  // 2.2 非 Flutter 平台层异常（原生回调、 isolates 等）
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _logger.error({
+      'text': '平台层未捕获异常',
+      'data': {
+        'error': error.toString(),
+        'stack': stack.toString(),
+      },
+    });
+    return true;
+  };
+
+  // 3. 初始化本地存储
   await StorageUtil.init();
 
-  // 3. 初始化设备信息
+  // 4. 初始化设备信息
   await AppConfig.init();
 
-  // 4. UA 适配层注入
+  // 5. UA 适配层注入
   HttpOverrides.global = BeaverUaHttpAdapter();
 
   // 配置依赖注入
@@ -53,6 +82,8 @@ void main() async {
   final token = StorageUtil.getString('token');
   final userId = StorageUtil.getString('userId');
   if (userId != null && userId.isNotEmpty) {
+    // 注入用户身份，使云端日志可关联用户
+    Logger.setUserId(userId);
     await DatabaseManager.init(userId);
     if (token != null && token.isNotEmpty) {
       getIt<WsConnectionManager>().connectWithToken(token);
@@ -61,6 +92,17 @@ void main() async {
     getIt<AppStore>().initApp();
   }
 
-  runApp(const BeaverApp());
+  // 6. 异步任务未捕获异常兜底（异步回调中抛出的异常走此通道）
+  runZonedGuarded<void>(() {
+    runApp(const BeaverApp());
+  }, (error, stack) {
+    _logger.error({
+      'text': '异步任务未捕获异常',
+      'data': {
+        'error': error.toString(),
+        'stack': stack.toString(),
+      },
+    });
+  });
 }
 

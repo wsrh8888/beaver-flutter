@@ -23,9 +23,13 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/core/business/user/user.dart';
 import 'package:beaver/types/business/user.dart';
 import 'package:beaver/store/contact/contact.dart';
+
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('user');
 
 enum AuthStatus { initial, authenticated, unauthenticated }
 
@@ -79,6 +83,9 @@ class UserStore extends Cubit<UserStoreState> {
           ),
         );
 
+        // 注入用户身份，便于云端日志关联用户
+        Logger.setUserId(userInfo.userId);
+
         // 如果资料是初始化的（无头像且昵称为默认值），或者为了确保最新，触发同步
         // 在 AppStore 流程中，如果不等待同步完成，ContactStore 可能会读到旧数据
         // 所以这里我们选择“强制同步并入库”
@@ -87,7 +94,7 @@ class UserStore extends Cubit<UserStoreState> {
         emit(state.copyWith(authStatus: AuthStatus.unauthenticated));
       }
     } catch (e) {
-      print('UserStore: 初始化失败: $e');
+      _logger.error({'text': '用户初始化失败', 'data': {'error': e.toString()}});
     }
   }
 
@@ -115,6 +122,8 @@ class UserStore extends Cubit<UserStoreState> {
   }
 
   void logout() {
+    // 清理用户身份，后续日志不再关联用户
+    Logger.setUserId(null);
     emit(const UserStoreState(authStatus: AuthStatus.unauthenticated));
   }
 }

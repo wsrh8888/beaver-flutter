@@ -39,8 +39,10 @@ import 'package:beaver/common/config/index.dart' as env_config;
  * - 401 鉴权失效自愈
  * - 心跳维护 (PING/PONG)
  */
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('ws');
+
 class WsClient {
-  final Logger _logger = Logger('ws');
   WebSocketChannel? _channel;
   final String wsUrl;
   final String token;
@@ -116,7 +118,7 @@ class WsClient {
         },
       );
 
-      _logger.info({'text': '开始建立安全WS连接', 'url': uri.toString()});
+      _logger.info({'text': '开始建立安全WS连接', 'data': {'url': uri.toString()}});
 
       final customChannel = IOWebSocketChannel.connect(
         uri,
@@ -136,14 +138,14 @@ class WsClient {
       _isConnecting = false;
       _startHeartbeat();
 
-      _logger.info({'text': 'WS安全连接已成功建立', 'platform': platform});
+      _logger.info({'text': 'WS安全连接已成功建立', 'data': {'platform': platform}});
 
       // 握手成功后才触发 onConnect
       onConnect?.call();
     } catch (e) {
       _isConnecting = false;
       final errorStr = e.toString();
-      _logger.error({'text': 'WS物理连接或鉴权异常', 'error': errorStr});
+      _logger.error({'text': 'WS物理连接或鉴权异常', 'data': {'error': errorStr}});
 
       // 核心安全自愈逻辑：检测到 401 鉴权失效，自动强制登出
       if (errorStr.contains('401')) {
@@ -179,7 +181,7 @@ class WsClient {
       }
 
       if (command == 'ACK') {
-        _logger.info({'text': '收到服务端回复(ACK)', 'messageId': data['messageId']});
+        _logger.info({'text': '收到服务端回复(ACK)', 'data': {'messageId': data['messageId']}});
         return;
       }
 
@@ -190,8 +192,7 @@ class WsClient {
     } catch (e) {
       _logger.error({
         'text': '解析WS消息失败',
-        'error': e.toString(),
-        'raw': message,
+        'data': {'error': e.toString(), 'raw': message},
       });
     }
   }
@@ -203,8 +204,10 @@ class WsClient {
     }
     _logger.warn({
       'text': 'WS 未连接，消息未发出',
-      'command': data['command'],
-      'messageId': (data['content'] as Map?)?['messageId'],
+      'data': {
+        'command': data['command'],
+        'messageId': (data['content'] as Map?)?['messageId'],
+      },
     });
   }
 
@@ -249,7 +252,7 @@ class WsClient {
   }
 
   void _onConnectError(dynamic error) {
-    _logger.error({'text': 'WS流错误', 'error': error.toString()});
+    _logger.error({'text': 'WS流错误', 'data': {'error': error.toString()}});
     _reconnect();
     onError?.call(error);
   }

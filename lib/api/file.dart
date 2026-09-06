@@ -57,9 +57,7 @@ Future<BaseResponse<IFileUploadResult>> _uploadFileApiWithTarget(
 
   _logger.info({
     'text': '开始上传文件',
-    'endpoint': endpoint,
-    'path': filePath,
-    'url': uploadUrl,
+    'data': {'endpoint': endpoint, 'path': filePath, 'url': uploadUrl},
   });
 
   try {
@@ -79,17 +77,16 @@ Future<BaseResponse<IFileUploadResult>> _uploadFileApiWithTarget(
 
     if (response.isSuccess) {
       final fileUrl = response.result?.fileUrl;
-      _logger.info({'text': '文件上传成功', 'fileUrl': fileUrl});
+      _logger.info({'text': '文件上传成功', 'data': {'fileUrl': fileUrl}});
     } else {
       _logger.error({
         'text': '文件上传服务返回错误',
-        'code': response.code,
-        'msg': response.msg,
+        'data': {'code': response.code, 'msg': response.msg},
       });
     }
     return response;
   } catch (e) {
-    _logger.error({'text': '文件上传异常', 'error': e.toString()});
+    _logger.error({'text': '文件上传异常', 'data': {'error': e.toString()}});
     return BaseResponse(code: 500, msg: '上传异常: $e');
   }
 }

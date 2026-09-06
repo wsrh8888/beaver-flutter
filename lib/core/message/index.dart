@@ -31,9 +31,11 @@ import 'package:beaver/core/message/receivers/notification/index.dart';
 import 'package:beaver/core/message/receivers/user/index.dart';
 import 'package:beaver/common/logger/index.dart';
 
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('message');
+
 /// Message manager: ensures sync-first and ordered message dispatch.
 class MessageManager {
-  final logger = Logger('message');
   bool _isDataSyncing = false;
   final List<Map<String, dynamic>> _messageQueue = [];
   bool _isQueueDraining = false;
@@ -68,11 +70,12 @@ class MessageManager {
   }
 
   void onWsError(dynamic error) {
+    _logger.error({'text': 'WS连接错误', 'data': {'error': error.toString()}});
     getIt<WsStore>().setDisconnected();
   }
 
   void handleMessage(Map<String, dynamic> data) {
-    logger.info({'text': '收到了ws消息', 'data': data});
+    _logger.info({'text': '收到了ws消息', 'data': data});
     _messageQueue.add(data);
     if (_isDataSyncing) return;
     _startDrainQueue();
@@ -90,7 +93,16 @@ class MessageManager {
         final message = _messageQueue.removeAt(0);
         try {
           await _processMessage(message);
-        } catch (_) {}
+        } catch (e, stack) {
+          _logger.error({
+            'text': '消息分发处理异常',
+            'data': {
+              'command': message['command'],
+              'error': e.toString(),
+              'stack': stack.toString(),
+            },
+          });
+        }
       }
     } finally {
       _isQueueDraining = false;

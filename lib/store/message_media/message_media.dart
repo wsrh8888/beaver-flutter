@@ -56,10 +56,12 @@ class MessageMediaState extends Equatable {
   List<Object?> get props => [playedMessageIds];
 }
 
+// 模块级日志实例（对标 PC：在文件顶部定义 logger）
+final _logger = Logger('message-media');
+
 class MessageMediaStore extends Cubit<MessageMediaState> {
   static const _syncModule = 'chat_message_medias';
 
-  final _logger = Logger('message-media');
   final ChatMessageMediaService _mediaService = getIt<ChatMessageMediaService>();
   final DatasyncService _datasyncService = getIt<DatasyncService>();
 
@@ -98,9 +100,7 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
           if (!res.isSuccess) {
             _logger.warn({
               'text': '标记消息媒体状态失败',
-              'messageId': messageId,
-              'code': res.code,
-              'msg': res.msg,
+              'data': {'messageId': messageId, 'code': res.code, 'msg': res.msg},
             });
           }
         },
@@ -124,8 +124,7 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
 
     _logger.info({
       'text': '合并消息媒体已听状态',
-      'count': newIds.length,
-      'total': merged.length,
+      'data': {'count': newIds.length, 'total': merged.length},
     });
 
     emit(state.copyWith(playedMessageIds: merged));
@@ -148,12 +147,12 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
       emit(state.copyWith(playedMessageIds: messageIds.toSet()));
       _logger.info({
         'text': '从本地数据库加载消息媒体状态',
-        'count': messageIds.length,
+        'data': {'count': messageIds.length},
       });
     } catch (e) {
       _logger.warn({
         'text': '加载本地消息媒体状态失败',
-        'error': e.toString(),
+        'data': {'error': e.toString()},
       });
     }
   }
@@ -179,12 +178,12 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
       await _mediaService.batchCreate(_userId, list);
       _logger.info({
         'text': '已从 StorageUtil 迁移消息媒体状态到本地数据库',
-        'count': list.length,
+        'data': {'count': list.length},
       });
     } catch (e) {
       _logger.warn({
         'text': '迁移消息媒体状态失败',
-        'error': e.toString(),
+        'data': {'error': e.toString()},
       });
     }
   }
@@ -199,8 +198,7 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
     } catch (e) {
       _logger.warn({
         'text': '保存消息媒体状态到本地数据库失败',
-        'count': messageIds.length,
-        'error': e.toString(),
+        'data': {'count': messageIds.length, 'error': e.toString()},
       });
     }
   }
@@ -209,7 +207,7 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
     final localCursor = await _datasyncService.get(_syncModule);
     final since = localCursor?.updatedAt ?? 0;
 
-    _logger.info({'text': '开始同步消息媒体状态', 'since': since});
+    _logger.info({'text': '开始同步消息媒体状态', 'data': {'since': since}});
 
     final res = await datasyncGetSyncMessageMediasApi(
       IGetSyncMessageMediasReq(since: since),
@@ -217,9 +215,7 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
     if (!res.isSuccess || res.result == null) {
       _logger.warn({
         'text': '同步消息媒体状态失败',
-        'since': since,
-        'code': res.code,
-        'msg': res.msg,
+        'data': {'since': since, 'code': res.code, 'msg': res.msg},
       });
       return;
     }
@@ -227,9 +223,11 @@ class MessageMediaStore extends Cubit<MessageMediaState> {
     final messageIds = res.result!.messageIds;
     _logger.info({
       'text': '同步消息媒体状态成功',
-      'since': since,
-      'count': messageIds.length,
-      'serverTimestamp': res.result!.serverTimestamp,
+      'data': {
+        'since': since,
+        'count': messageIds.length,
+        'serverTimestamp': res.result!.serverTimestamp,
+      },
     });
 
     if (messageIds.isNotEmpty) {
