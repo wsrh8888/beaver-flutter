@@ -26,18 +26,20 @@ import 'package:beaver/features/chat/list/list.dart';
 import 'package:beaver/features/contact/list/list.dart';
 import 'package:beaver/features/user/mine/mine.dart';
 import 'package:beaver/features/workbench/home/home.dart';
+import 'package:beaver/features/ai/tab.dart';
 import 'package:beaver/store/chat/chat.dart';
 import 'package:beaver/store/friend/friend_verify.dart';
 import 'package:beaver/store/notification/notification.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// 主界面底栏 Tab 索引。
-/// 当前 4 段：消息 / 通讯录 / 工作台 / 我的。
+/// 当前 5 段：消息 / 通讯录 / AI / 工作台 / 我的。AI 在正中间。
 enum HomeTab {
   chat(0),
   contact(1),
-  workbench(2),
-  mine(3);
+  ai(2),
+  workbench(3),
+  mine(4);
 
   const HomeTab(this.tabIndex);
   final int tabIndex;
@@ -56,6 +58,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _pages = const [
     ChatListPage(),
     ContactListPage(),
+    AiTab(),
     WorkbenchHomePage(showBack: false),
     MinePage(),
   ];
@@ -107,6 +110,12 @@ class _MainScreenState extends State<MainScreen> {
                           'new-friend-active.png',
                           HomeTab.contact.tabIndex,
                           badgeCount: verifyState.unreadCount,
+                        ),
+                        _buildSvgNavItem(
+                          'AI',
+                          'assets/icons/tabbar/ai.svg',
+                          'assets/icons/tabbar/ai-active.svg',
+                          HomeTab.ai.tabIndex,
                         ),
                         _buildSvgNavItem(
                           '工作台',

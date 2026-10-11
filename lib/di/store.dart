@@ -39,6 +39,7 @@ import 'package:beaver/store/voice/voice.dart';
 import 'package:beaver/store/group/group_member.dart';
 import 'package:beaver/store/group/group_join_request.dart';
 import 'package:beaver/store/friend/friend_verify.dart';
+import 'package:beaver/store/ai/ai.dart';
 
 /// 全局 Store 依赖配置
 void configureStoreDependencies(GetIt getIt) {
@@ -51,6 +52,7 @@ void configureStoreDependencies(GetIt getIt) {
   getIt.registerLazySingleton<ChatStore>(() => ChatStore());
   getIt.registerLazySingleton<FriendStore>(() => FriendStore());
   getIt.registerLazySingleton<FriendVerifyStore>(() => FriendVerifyStore());
+  getIt.registerLazySingleton<AiStore>(() => AiStore());
   getIt.registerLazySingleton<GroupStore>(() => GroupStore());
   getIt.registerLazySingleton<CircleStore>(() => CircleStore());
   getIt.registerLazySingleton<NotificationStore>(() => NotificationStore());

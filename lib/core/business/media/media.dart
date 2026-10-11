@@ -48,7 +48,7 @@ class MediaBusiness {
       if (response.isSuccess && response.result != null) {
         _logger.info({
           'text': '上传文件成功',
-          'data': {'filePath': filePath, 'url': response.result?.url},
+          'data': {'filePath': filePath, 'url': response.result?.fileUrl},
         });
         return response.result;
       }

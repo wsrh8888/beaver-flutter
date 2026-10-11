@@ -24,11 +24,12 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:beaver/common/config/env.dart';
 import 'package:beaver/common/ua/ua.dart';
 
 /// 应用级配置 (Dart 规范化重构)
 class AppConfig {
-  static const String env = 'prod';
+  static const String env = 'dev';
   static String version = '1.0.0';
   static late String deviceId;
   static String deviceArch = 'arm64';
@@ -45,6 +46,14 @@ class AppConfig {
   static String get userAgent => generateUserAgentIdentifier();
 
   static Future<void> init() async {
+    switch (env) {
+      case 'dev':
+        setCurrentEnv(Env.dev);
+      case 'test':
+        setCurrentEnv(Env.test);
+      default:
+        setCurrentEnv(Env.prod);
+    }
     await _initVersion();
     await _initDeviceId();
     await initDeviceProfile();

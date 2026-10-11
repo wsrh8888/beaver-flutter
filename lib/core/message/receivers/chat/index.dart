@@ -26,6 +26,7 @@ import './conversation_receiver.dart';
 import './user_conversation_receiver.dart';
 import 'package:beaver/common/logger/index.dart';
 import 'package:beaver/di/injection.dart';
+import 'package:beaver/store/ai/ai.dart';
 import 'package:beaver/store/message_media/message_media.dart';
 import 'package:beaver/core/business/chat/message.dart';
 
@@ -104,6 +105,10 @@ class ChatMessageRouter {
 
       case 'chat_message_media_receive':
         _handleMessageMediaUpdate(body);
+        break;
+
+      case 'chat_message_stream_receive':
+        getIt<AiStore>().onStream(data, body);
         break;
 
       default:

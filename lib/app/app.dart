@@ -41,6 +41,7 @@ import 'package:beaver/store/update/update.dart';
 import 'package:beaver/store/ws/ws.dart';
 import 'package:beaver/store/call/call.dart';
 import 'package:beaver/store/call/call_list.dart';
+import 'package:beaver/store/ai/ai.dart';
 import 'package:beaver/store/app/app.dart';
 import 'package:beaver/features/setting/update/update_listener.dart';
 import 'package:beaver/di/injection.dart';
@@ -118,6 +119,7 @@ class _BeaverAppState extends State<BeaverApp> with WidgetsBindingObserver {
             BlocProvider<WsStore>(create: (_) => getIt<WsStore>()),
             BlocProvider<CallStore>(create: (_) => getIt<CallStore>()),
             BlocProvider<CallListStore>(create: (_) => getIt<CallListStore>()),
+            BlocProvider<AiStore>(create: (_) => getIt<AiStore>()),
           ],
           child: MaterialApp.router(
             title: '海狸',
