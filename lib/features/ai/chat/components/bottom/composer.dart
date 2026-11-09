@@ -19,6 +19,7 @@
  * beaver-flutter-header-v1
  */
 
+import 'package:beaver/features/ai/chat/components/bottom/model_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -46,39 +47,51 @@ class AiComposer extends StatelessWidget {
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFEBEEF5))),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              minLines: 1,
-              maxLines: compact ? 4 : 6,
-              decoration: InputDecoration(
-                hintText: hint,
-                filled: true,
-                fillColor: const Color(0xFFF7F8FA),
-                contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.r),
-                  borderSide: const BorderSide(color: Color(0xFFEBEEF5)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.r),
-                  borderSide: const BorderSide(color: Color(0xFFEBEEF5)),
-                ),
-              ),
+          Padding(
+            padding: EdgeInsets.only(bottom: compact ? 6.h : 8.h),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: AiModelChip(),
             ),
           ),
-          SizedBox(width: 8.w),
-          IconButton(
-            onPressed: sending ? null : onSend,
-            style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFFF7D45),
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: const Color(0xFFFFD4B8),
-            ),
-            icon: const Icon(Icons.arrow_upward),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  minLines: 1,
+                  maxLines: compact ? 4 : 6,
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.r),
+                      borderSide: const BorderSide(color: Color(0xFFEBEEF5)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.r),
+                      borderSide: const BorderSide(color: Color(0xFFEBEEF5)),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              IconButton(
+                onPressed: sending ? null : onSend,
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7D45),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFFFD4B8),
+                ),
+                icon: const Icon(Icons.arrow_upward),
+              ),
+            ],
           ),
         ],
       ),

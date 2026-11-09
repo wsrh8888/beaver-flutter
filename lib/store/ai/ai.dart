@@ -151,6 +151,9 @@ class AiStoreState extends Equatable {
   final List<AiSpace> spaces;
   final String draftWorkspaceId;
   final String activeArtifactId;
+  final List<AgentModelItem> models;
+  final String selectedModelId;
+  final String selectedModelSource;
 
   const AiStoreState({
     this.threads = const [],
@@ -161,6 +164,9 @@ class AiStoreState extends Equatable {
     this.spaces = const [],
     this.draftWorkspaceId = '',
     this.activeArtifactId = '',
+    this.models = const [],
+    this.selectedModelId = '',
+    this.selectedModelSource = '',
   });
 
   bool get cloudMode => computer == null;
@@ -183,6 +189,9 @@ class AiStoreState extends Equatable {
     String? draftWorkspaceId,
     String? activeArtifactId,
     bool clearActiveArtifact = false,
+    List<AgentModelItem>? models,
+    String? selectedModelId,
+    String? selectedModelSource,
   }) {
     return AiStoreState(
       threads: threads ?? this.threads,
@@ -193,6 +202,9 @@ class AiStoreState extends Equatable {
       spaces: spaces ?? this.spaces,
       draftWorkspaceId: draftWorkspaceId ?? this.draftWorkspaceId,
       activeArtifactId: clearActiveArtifact ? '' : (activeArtifactId ?? this.activeArtifactId),
+      models: models ?? this.models,
+      selectedModelId: selectedModelId ?? this.selectedModelId,
+      selectedModelSource: selectedModelSource ?? this.selectedModelSource,
     );
   }
 
@@ -207,6 +219,9 @@ class AiStoreState extends Equatable {
     spaces,
     draftWorkspaceId,
     activeArtifactId,
+    models.map((item) => '${item.source}:${item.modelId}').join(','),
+    selectedModelId,
+    selectedModelSource,
   ];
 }
 
@@ -225,6 +240,7 @@ class AiStore extends Cubit<AiStoreState> {
   Future<bool> refreshRemote() async {
     final desks = await loadDesktops();
     final catalog = await loadCatalog();
+    await loadModels();
     return desks && catalog;
   }
 
@@ -260,6 +276,57 @@ class AiStore extends Cubit<AiStoreState> {
       return;
     }
     emit(state.copyWith(computer: device));
+  }
+
+  /// 拉官方+自定义模型，扁平合并；保留当前选中（若仍存在），否则默认官方 auto，再否则首个。
+  Future<bool> loadModels() async {
+    try {
+      final res = await listAgentModelsApi();
+      if (!res.isSuccess || res.result == null) return false;
+      final all = <AgentModelItem>[...res.result!.official, ...res.result!.custom];
+      final prevId = state.selectedModelId;
+      final prevSrc = state.selectedModelSource;
+      bool exists(String id, String src) => all.any((m) => m.modelId == id && m.source == src);
+      var pickId = prevId;
+      var pickSrc = prevSrc;
+      if (!exists(pickId, pickSrc)) {
+        if (all.any((m) => m.modelId == 'auto' && m.source == 'official')) {
+          pickId = 'auto';
+          pickSrc = 'official';
+        } else if (all.isNotEmpty) {
+          pickId = all.first.modelId;
+          pickSrc = all.first.source;
+        } else {
+          pickId = '';
+          pickSrc = '';
+        }
+      }
+      emit(state.copyWith(models: all, selectedModelId: pickId, selectedModelSource: pickSrc));
+      return true;
+    } catch (err) {
+      _logger.error({'text': '读取模型列表失败', 'data': {'error': err.toString()}});
+      return false;
+    }
+  }
+
+  /// UI 打开选择器前确保已加载。
+  Future<void> ensureModels() async {
+    if (state.models.isEmpty) await loadModels();
+  }
+
+  void selectModel(String source, String id) {
+    final ok = state.models.any((m) => m.modelId == id && m.source == source);
+    if (!ok) return;
+    emit(state.copyWith(selectedModelId: id, selectedModelSource: source));
+  }
+
+  String get selectedModelLabel {
+    for (final m in state.models) {
+      if (m.modelId == state.selectedModelId && m.source == state.selectedModelSource) {
+        return m.name.isNotEmpty ? m.name : m.modelId;
+      }
+    }
+    return '自动';
   }
 
   Future<bool> loadCatalog() async {
@@ -335,6 +402,26 @@ class AiStore extends Cubit<AiStoreState> {
     emit(state.copyWith(activeThreadId: id, draftWorkspaceId: '', clearActiveArtifact: true));
     if (thread.topicId.isNotEmpty) {
       _reloadMessages(id, thread.topicId);
+    } else if (thread.conversationId.isNotEmpty) {
+      _resolveTopic(id, thread.conversationId);
+    }
+  }
+
+  /// 本地无 topicId 时，用 listTopics 补齐当前话题（镜像桌面：取首个）再拉消息。
+  Future<void> _resolveTopic(String threadId, String conversationId) async {
+    try {
+      final res = await listAgentTopicsApi(conversationId);
+      if (!res.isSuccess || res.result == null) return;
+      final list = res.result!.list;
+      if (list.isEmpty) return;
+      final topicId = list.first.topicId;
+      if (topicId.isEmpty) return;
+      final thread = state.threadOf(threadId);
+      if (thread == null) return;
+      _replace(thread.copyWith(topicId: topicId));
+      _reloadMessages(threadId, topicId);
+    } catch (err) {
+      _logger.error({'text': '补齐会话话题失败', 'data': {'error': err.toString()}});
     }
   }
 
@@ -477,6 +564,8 @@ class AiStore extends Cubit<AiStoreState> {
         targetDeviceId: state.computer?.deviceId ?? '',
         workspaceId: workspaceId,
         workspacePath: workspacePath,
+        modelId: state.selectedModelId,
+        modelSource: state.selectedModelSource,
       ));
       if (!res.isSuccess || res.result == null) {
         _finish(threadId, assistantId, fallback: res.msg.isNotEmpty ? res.msg : '发送失败');

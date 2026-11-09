@@ -37,6 +37,9 @@ class SendAgentMessageReq {
   final String targetDeviceId;
   final String workspaceId;
   final String workspacePath;
+  // 选模：官方列表含虚拟 auto（服务端写死返回），agent 收到 auto 自行选模。
+  final String modelId;
+  final String modelSource;
 
   const SendAgentMessageReq({
     this.conversationId = '',
@@ -47,6 +50,8 @@ class SendAgentMessageReq {
     this.targetDeviceId = '',
     this.workspaceId = '',
     this.workspacePath = '',
+    this.modelId = '',
+    this.modelSource = '',
   });
 
   Map<String, dynamic> toJson() => {
@@ -58,6 +63,8 @@ class SendAgentMessageReq {
     if (targetDeviceId.isNotEmpty) 'targetDeviceId': targetDeviceId,
     if (workspaceId.isNotEmpty) 'workspaceId': workspaceId,
     if (workspacePath.isNotEmpty) 'workspacePath': workspacePath,
+    if (modelId.isNotEmpty) 'modelId': modelId,
+    if (modelSource.isNotEmpty) 'modelSource': modelSource,
   };
 }
 
@@ -211,4 +218,82 @@ class ListAgentMessagesRes {
           : const [],
     );
   }
+}
+
+/// 某会话下的话题（分支）项；对齐服务端 camelCase 输出。
+class AgentTopicItem {
+  final String topicId;
+  final String conversationId;
+  final String title;
+  final int updatedAt;
+
+  const AgentTopicItem({
+    required this.topicId,
+    this.conversationId = '',
+    this.title = '',
+    this.updatedAt = 0,
+  });
+
+  factory AgentTopicItem.fromJson(Map<String, dynamic> json) => AgentTopicItem(
+    topicId: json['topicId']?.toString() ?? '',
+    conversationId: json['conversationId']?.toString() ?? '',
+    title: json['title']?.toString() ?? '',
+    updatedAt: int.tryParse(json['updatedAt']?.toString() ?? '') ?? 0,
+  );
+}
+
+class ListAgentTopicsRes {
+  final List<AgentTopicItem> list;
+
+  const ListAgentTopicsRes({required this.list});
+
+  factory ListAgentTopicsRes.fromJson(Map<String, dynamic> json) {
+    final raw = json['list'];
+    return ListAgentTopicsRes(
+      list: raw is List
+          ? raw.whereType<Map>().map((item) => AgentTopicItem.fromJson(Map<String, dynamic>.from(item))).toList()
+          : const [],
+    );
+  }
+}
+
+/// 模型项（官方 / 自定义共用），对齐桌面 IAgentModelItem。
+class AgentModelItem {
+  final String modelId;
+  final String source;
+  final String name;
+  final String provider;
+  final String tier;
+
+  const AgentModelItem({
+    required this.modelId,
+    required this.source,
+    this.name = '',
+    this.provider = '',
+    this.tier = '',
+  });
+
+  factory AgentModelItem.fromJson(Map<String, dynamic> json) => AgentModelItem(
+    modelId: json['modelId']?.toString() ?? '',
+    source: json['source']?.toString() ?? '',
+    name: json['name']?.toString() ?? '',
+    provider: json['provider']?.toString() ?? '',
+    tier: json['tier']?.toString() ?? '',
+  );
+}
+
+class ListAgentModelsRes {
+  final List<AgentModelItem> official;
+  final List<AgentModelItem> custom;
+
+  const ListAgentModelsRes({required this.official, required this.custom});
+
+  static List<AgentModelItem> _parse(dynamic raw) => raw is List
+      ? raw.whereType<Map>().map((item) => AgentModelItem.fromJson(Map<String, dynamic>.from(item))).toList()
+      : const [];
+
+  factory ListAgentModelsRes.fromJson(Map<String, dynamic> json) => ListAgentModelsRes(
+    official: _parse(json['official']),
+    custom: _parse(json['custom']),
+  );
 }

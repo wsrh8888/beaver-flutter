@@ -47,3 +47,21 @@ Future<BaseResponse<SendAgentMessageRes>> sendAgentMessageApi(SendAgentMessageRe
     fromJsonT: (json) => SendAgentMessageRes.fromJson(Map<String, dynamic>.from(json as Map)),
   );
 }
+
+/// 列某会话下的话题（分支）；用于本地无 topicId 时补齐当前话题。
+Future<BaseResponse<ListAgentTopicsRes>> listAgentTopicsApi(String conversationId) {
+  return httpClient.post<ListAgentTopicsRes>(
+    '$baseUrl/api/agent/v1/sync/listTopics',
+    data: {'conversationId': conversationId},
+    fromJsonT: (json) => ListAgentTopicsRes.fromJson(Map<String, dynamic>.from(json as Map)),
+  );
+}
+
+/// 列官方 + 自定义模型（一次返回两组）。模型目录由外部 ai 服务提供，桌面同网关已验证，这里镜像其调用。
+Future<BaseResponse<ListAgentModelsRes>> listAgentModelsApi() {
+  return httpClient.post<ListAgentModelsRes>(
+    '$baseUrl/api/agent/v1/model/listModels',
+    data: {},
+    fromJsonT: (json) => ListAgentModelsRes.fromJson(Map<String, dynamic>.from(json as Map)),
+  );
+}
